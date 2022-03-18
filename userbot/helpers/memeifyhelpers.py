@@ -9,7 +9,7 @@ from wand.color import Color
 from wand.drawing import Drawing
 from wand.image import Image as swtimage
 
-from .utils import _lionutils
+from .utils import _lionxutils
 
 MARGINS = [50, 150, 250, 350, 450]
 
