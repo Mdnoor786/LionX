@@ -1,31 +1,65 @@
 # Copyright (C) 2019 The Raphielscape Company LLC.
 # Licensed under the Raphielscape Public License, Version 1.b (the "License");
 # you may not use this file except in compliance with the License.
-# catUserbot module for having some fun with people.
+# LionX module for having some fun with people.
 import asyncio
 import random
 import re
 
 import requests
 from cowpy import cow
-from telethon.tl.types import ChannelParticipantsAdmins
+from telethon.tl.functions.users import GetFullUserRequest
+from telethon.tl.types import ChannelParticipantsAdmins, MessageEntityMentionName
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
-from ..helpers import get_user_from_event, lionxmemes
+from ..funcs.managers import eod, eor
+from ..helpers import swtmemes
 from ..helpers.utils import _lionxutils, parse_pre
 from . import BOTLOG, BOTLOG_CHATID, mention
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
-@lionxub.lionx_cmd(
+async def get_user(event):
+    # Get the user from argument or replied message.
+    if event.reply_to_msg_id:
+        previous_message = await event.get_reply_message()
+        replied_user = await event.client(
+            GetFullUserRequest(previous_message.sender_id)
+        )
+    else:
+        user = event.pattern_match.group(1)
+        if user.isnumeric():
+            user = int(user)
+
+        if not user:
+            self_user = await event.client.get_me()
+            user = self_user.id
+
+        if event.message.entities:
+            probable_user_mention_entity = event.message.entities[0]
+
+            if isinstance(probable_user_mention_entity, MessageEntityMentionName):
+                user_id = probable_user_mention_entity.user_id
+                replied_user = await event.client(GetFullUserRequest(user_id))
+                return replied_user
+        try:
+            user_object = await event.client.get_entity(user)
+            replied_user = await event.client(GetFullUserRequest(user_object.id))
+
+        except (TypeError, ValueError):
+            await event.edit("`I don't slap aliens, they ugly AF !!`")
+            return None
+    return replied_user
+
+
+@lionx.lion_cmd(
     pattern="(\w+)say ([\s\S]*)",
-    command=("cowsay", plugin_category),
+    command=("cowsay", plugin_type),
     info={
         "header": "A fun art plugin.",
-        "types": [
+        "flags": [
             "default",
             "beavis",
             "bongcow",
@@ -78,7 +112,7 @@ plugin_category = "fun"
         ],
         "examples": [
             "{tr}squirrelsay LionX",
-            "{tr}milksay lionx",
+            "{tr}milksay LionX",
             "{tr}ghostbustersghostbusterssay LionX",
         ],
     },
@@ -90,15 +124,15 @@ async def univsaye(cowmsg):
     if arg == "cow":
         arg = "default"
     if arg not in cow.COWACTERS:
-        return await edit_delete(cowmsg, "check help menu to know the correct options.")
+        return await eod(cowmsg, "check help menu to know the correct options.")
     cheese = cow.get_cow(arg)
     cheese = cheese()
-    await edit_or_reply(cowmsg, f"`{cheese.milk(text).replace('`', '´')}`")
+    await eor(cowmsg, f"`{cheese.milk(text).replace('`', '´')}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="coin ?([\s\S]*)",
-    command=("coin", plugin_category),
+    command=("coin", plugin_type),
     info={
         "header": "Coin flipper.",
         "usage": [
@@ -115,35 +149,31 @@ async def _(event):
         input_str = input_str.lower()
     if r % 2 == 1:
         if input_str == "heads":
-            await edit_or_reply(
-                event, "The coin landed on: **Heads**. \n You were correct."
-            )
+            await eor(event, "The coin landed on: **Heads**. \n You were correct.")
         elif input_str == "tails":
-            await edit_or_reply(
+            await eor(
                 event,
                 "The coin landed on: **Heads**. \n You weren't correct, try again ...",
             )
         else:
-            await edit_or_reply(event, "The coin landed on: **Heads**.")
+            await eor(event, "The coin landed on: **Heads**.")
     elif r % 2 == 0:
         if input_str == "tails":
-            await edit_or_reply(
-                event, "The coin landed on: **Tails**. \n You were correct."
-            )
+            await eor(event, "The coin landed on: **Tails**. \n You were correct.")
         elif input_str == "heads":
-            await edit_or_reply(
+            await eor(
                 event,
                 "The coin landed on: **Tails**. \n You weren't correct, try again ...",
             )
         else:
-            await edit_or_reply(event, "The coin landed on: **Tails**.")
+            await eor(event, "The coin landed on: **Tails**.")
     else:
-        await edit_or_reply(event, r"¯\_(ツ)_/¯")
+        await eor(event, r"¯\_(ツ)_/¯")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="slap(?:\s|$)([\s\S]*)",
-    command=("slap", plugin_category),
+    command=("slap", plugin_type),
     info={
         "header": "To slap a person with random objects !!",
         "usage": "{tr}slap reply/username>",
@@ -151,21 +181,21 @@ async def _(event):
 )
 async def who(event):
     "To slap a person with random objects !!"
-    replied_user, reason = await get_user_from_event(event)
+    replied_user = await get_user(event)
     if replied_user is None:
         return
-    caption = await lionxmemes.slap(replied_user, event, mention)
+    caption = await swtmemes.slap(replied_user, event, mention)
     try:
-        await edit_or_reply(event, caption)
+        await eor(event, caption)
     except BaseException:
-        await edit_or_reply(
+        await eor(
             event, "`Can't slap this person, need to fetch some sticks and stones !!`"
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(yes|no|maybe|decide)$",
-    command=("decide", plugin_category),
+    command=("decide", plugin_type),
     info={
         "header": "To decide something will send gif according to given input or ouput.",
         "usage": [
@@ -185,15 +215,15 @@ async def decide(event):
     else:
         r = requests.get("https://yesno.wtf/api").json()
     await event.delete()
-    amaan = await event.client.send_message(
+    LIONX = await event.client.send_message(
         event.chat_id, str(r["answer"]).upper(), reply_to=message_id, file=r["image"]
     )
-    await _lionxutils.unsavegif(event, amaan)
+    await _lionxutils.unsavegif(event, LIONX)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="shout(?:\s|$)([\s\S]*)",
-    command=("shout", plugin_category),
+    command=("shout", plugin_type),
     info={
         "header": "shouts the text in a fun way",
         "usage": [
@@ -205,28 +235,26 @@ async def shout(args):
     "shouts the text in a fun way"
     input_str = args.pattern_match.group(1)
     if not input_str:
-        return await edit_delete(args, "__What should i shout?__")
+        return await eod(args, "__What should i shout?__")
     words = input_str.split()
     msg = ""
     for messagestr in words:
         text = " ".join(messagestr)
         result = [" ".join(text)]
-        result.extend(
-            f"{symbol} " + "  " * pos + symbol for pos, symbol in enumerate(text[1:])
-        )
-
+        for pos, symbol in enumerate(text[1:]):
+            result.append(symbol + " " + "  " * pos + symbol)
         result = list("\n".join(result))
         result[0] = text[0]
         result = "".join(result)
         msg += "\n" + result
         if len(words) > 1:
             msg += "\n\n----------\n"
-    await edit_or_reply(args, msg, parse_mode=parse_pre)
+    await eor(args, msg, parse_mode=parse_pre)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="owo ?([\s\S]*)",
-    command=("owo", plugin_category),
+    command=("owo", plugin_type),
     info={
         "header": "check yourself.",
         "usage": [
@@ -243,20 +271,20 @@ async def faces(owo):
     elif textx:
         message = textx.text
     else:
-        return await edit_or_reply(owo, "` UwU no text given! `")
+        return await eor(owo, "` UwU no text given! `")
     reply_text = re.sub(r"(r|l)", "w", message)
     reply_text = re.sub(r"(R|L)", "W", reply_text)
     reply_text = re.sub(r"n([aeiou])", r"ny\1", reply_text)
     reply_text = re.sub(r"N([aeiouAEIOU])", r"Ny\1", reply_text)
-    reply_text = re.sub(r"\!+", f" {random.choice(lionxmemes.UWUS)}", reply_text)
+    reply_text = re.sub(r"\!+", " " + random.choice(swtmemes.UWUS), reply_text)
     reply_text = reply_text.replace("ove", "uv")
-    reply_text += f" {random.choice(lionxmemes.UWUS)}"
-    await edit_or_reply(owo, reply_text)
+    reply_text += " " + random.choice(swtmemes.UWUS)
+    await eor(owo, reply_text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="clap(?:\s|$)([\s\S]*)",
-    command=("clap", plugin_category),
+    command=("clap", plugin_type),
     info={
         "header": "Praise people!",
         "usage": [
@@ -272,16 +300,16 @@ async def claptext(event):
     elif textx.message:
         query = textx.message
     else:
-        return await edit_or_reply(event, "`Hah, I don't clap pointlessly!`")
+        return await eor(event, "`Hah, I don't clap pointlessly!`")
     reply_text = "👏 "
     reply_text += query.replace(" ", " 👏 ")
     reply_text += " 👏"
-    await edit_or_reply(event, reply_text)
+    await eor(event, reply_text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="smk(?:\s|$)([\s\S]*)",
-    command=("smk", plugin_category),
+    command=("smk", plugin_type),
     info={
         "header": "A shit module for ツ , who cares.",
         "usage": [
@@ -297,19 +325,19 @@ async def smrk(smk):
     elif textx.message:
         message = textx.message
     else:
-        await edit_or_reply(smk, "ツ")
+        await eor(smk, "ツ")
         return
     if message == "dele":
-        await edit_or_reply(smk, f"{message}te the hellツ")
+        await eor(smk, message + "te the hell" + "ツ")
     else:
         smirk = " ツ"
         reply_text = message + smirk
-        await edit_or_reply(smk, reply_text)
+        await eor(smk, reply_text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="f ([\s\S]*)",
-    command=("f", plugin_category),
+    command=("f", plugin_type),
     info={
         "header": "Pay Respects.",
         "usage": [
@@ -334,12 +362,12 @@ async def payf(event):
         paytext * 2,
         paytext * 2,
     )
-    await edit_or_reply(event, pay)
+    await eor(event, pay)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="wish(?:\s|$)([\s\S]*)",
-    command=("wish", plugin_category),
+    command=("wish", plugin_type),
     info={
         "header": "Shows the chance of your success.",
         "usage": [
@@ -360,12 +388,12 @@ async def wish_check(event):
                   \n\n__Chance of success :__ **{chance}%**"
     else:
         reslt = "What's your Wish? Should I consider you as Idiot by default ? 😜"
-    await edit_or_reply(event, reslt)
+    await eor(event, reslt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lfy(?:\s|$)([\s\S]*)",
-    command=("lfy", plugin_category),
+    command=("lfy", plugin_type),
     info={
         "header": "Let me Google that for you real quick !!",
         "usage": [
@@ -380,18 +408,15 @@ async def _(event):
     if not input_str and reply:
         input_str = reply.text
     if not input_str:
-        return await edit_delete(
+        return await eod(
             event, "`either reply to text message or give input to search`", 5
         )
     sample_url = f"https://da.gd/s?url=https://lmgtfy.com/?q={input_str.replace(' ', '+')}%26iie=1"
-    if response_api := requests.get(sample_url).text:
-        await edit_or_reply(
-            event, f"[{input_str}]({response_api.rstrip()})\n`Thank me Later 🙃` "
-        )
+    response_api = requests.get(sample_url).text
+    if response_api:
+        await eor(event, f"[{input_str}]({response_api.rstrip()})\n`Thank me Later 🙃` ")
     else:
-        return await edit_delete(
-            event, "`something is wrong. please try again later.`", 5
-        )
+        return await eod(event, "`something is wrong. please try again later.`", 5)
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,
@@ -399,9 +424,9 @@ async def _(event):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gbun(?:\s|$)([\s\S]*)",
-    command=("gbun", plugin_category),
+    command=("gbun", plugin_type),
     info={
         "header": "Fake gban action !!",
         "usage": ["{tr}gbun <reason>", "{tr}gbun"],
@@ -412,7 +437,7 @@ async def gbun(event):
     gbunVar = event.text
     gbunVar = gbunVar[6:]
     mentions = "`Warning!! User 𝙂𝘽𝘼𝙉𝙉𝙀𝘿 By Admin...\n`"
-    lionxevent = await edit_or_reply(event, "**Summoning out le Gungnir ❗️⚜️☠️**")
+    lionxevent = await eor(event, "**Summoning out le Gungnir ❗️⚜️☠️**")
     await asyncio.sleep(3.5)
     chat = await event.get_input_chat()
     async for _ in event.client.iter_participants(
@@ -422,9 +447,9 @@ async def gbun(event):
     reply_message = None
     if event.reply_to_msg_id:
         reply_message = await event.get_reply_message()
-        replied_user = await event.client.get_entity(reply_message.sender_id)
-        firstname = replied_user.first_name
-        usname = replied_user.username
+        replied_user = await event.client(GetFullUserRequest(reply_message.sender_id))
+        firstname = replied_user.user.first_name
+        usname = replied_user.user.username
         idd = reply_message.sender_id
         # make meself invulnerable cuz why not xD
         if idd == 1035034432:
@@ -445,7 +470,7 @@ async def gbun(event):
                 jnl += "**Victim Nigga's username** : @{}\n".format(usname)
             if len(gbunVar) > 0:
                 gbunm = "`{}`".format(gbunVar)
-                gbunr = f"**Reason: **{gbunm}"
+                gbunr = "**Reason: **" + gbunm
                 jnl += gbunr
             else:
                 no_reason = "__Reason: Potential spammer. __"

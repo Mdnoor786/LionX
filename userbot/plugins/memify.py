@@ -1,5 +1,5 @@
-# Made by @copyless786 and @TeamLionX
-# memify plugin for lionx
+# Made by @TeamLionX and @TeamLionX
+# memify plugin for LionX
 import asyncio
 import base64
 import io
@@ -10,10 +10,10 @@ import string
 from PIL import Image, ImageFilter
 from telethon.tl.functions.messages import ImportChatInviteRequest as Get
 
-from userbot import lionxub
+from userbot import BOTLOG_CHATID, lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
-from ..helpers import asciiart, lionx_meeme, lionx_meme, media_type
+from ..funcs.managers import eod, eor
+from ..helpers import asciiart, media_type, swt_meeme, swt_meme
 from ..helpers.functions import (
     add_frame,
     convert_toimage,
@@ -27,15 +27,16 @@ from ..helpers.functions import (
 )
 from ..helpers.utils import _lionxtools, reply_id
 from ..sql_helper.globals import addgvar, gvarstatus
+from . import deEmojify
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
 def random_color():
     number_of_colors = 2
     return [
-        "#" + "".join(random.choice("0123456789ABCDEF") for _ in range(6))
-        for _ in range(number_of_colors)
+        "#" + "".join(random.choice("0123456789ABCDEF") for j in range(6))
+        for i in range(number_of_colors)
     ]
 
 
@@ -49,9 +50,9 @@ font_list = [
 ]
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pframe(f|-f)?$",
-    command=("pframe", plugin_category),
+    command=("pframe", plugin_type),
     info={
         "header": "Adds frame for the replied image.",
         "flags": {
@@ -67,9 +68,9 @@ async def maccmd(event):  # sourcery no-metrics
     reply = await event.get_reply_message()
     mediatype = media_type(reply)
     if not reply or not mediatype or mediatype not in ["Photo", "Sticker"]:
-        return await edit_delete(event, "__Reply to photo or sticker to frame it.__")
+        return await eod(event, "__Reply to photo or sticker to frame it.__")
     if mediatype == "Sticker" and reply.document.mime_type == "application/i-tgsticker":
-        return await edit_delete(
+        return await eod(
             event,
             "__Reply to photo or sticker to frame it. Animated sticker is not supported__",
         )
@@ -79,14 +80,12 @@ async def maccmd(event):  # sourcery no-metrics
     try:
         imag = await _lionxtools.media_to_pic(lionxevent, reply, noedits=True)
         if imag[1] is None:
-            return await edit_delete(
+            return await eod(
                 imag[0], "__Unable to extract image from the replied message.__"
             )
         image = Image.open(imag[1])
     except Exception as e:
-        return await edit_delete(
-            lionxevent, f"**Error in identifying image:**\n__{e}__"
-        )
+        return await eod(lionxevent, f"**Error in identifying image:**\n__{e}__")
     wid, hgt = image.size
     img = Image.new("RGBA", (wid, hgt))
     scale = min(wid // 100, hgt // 100)
@@ -129,9 +128,9 @@ async def maccmd(event):  # sourcery no-metrics
         os.remove(output)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(mmf|mms)(?:\s|$)([\s\S]*)",
-    command=("mmf", plugin_category),
+    command=("mmf", plugin_type),
     info={
         "header": "To write text on stickers or images.",
         "description": "To create memes.",
@@ -156,11 +155,11 @@ async def memes(event):
     lionxinput = event.pattern_match.group(2)
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    lionxid = await reply_id(event)
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+        return await eod(event, "`Reply to supported Media...`")
+    swtid = await reply_id(event)
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     if not lionxinput:
-        return await edit_delete(
+        return await eod(
             event, "`what should i write on that u idiot give text to memify`"
         )
     if ";" in lionxinput:
@@ -172,7 +171,7 @@ async def memes(event):
         os.mkdir("./temp")
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     try:
@@ -187,13 +186,13 @@ async def memes(event):
     else:
         CNG_FONTS = gvarstatus("CNG_FONTS")
     if max(len(top), len(bottom)) < 21:
-        await lionx_meme(CNG_FONTS, top, bottom, meme_file, meme)
+        await swt_meme(CNG_FONTS, top, bottom, meme_file, meme)
     else:
-        await lionx_meeme(top, bottom, CNG_FONTS, meme_file, meme)
+        await swt_meeme(top, bottom, CNG_FONTS, meme_file, meme)
     if cmd != "mmf":
         meme = convert_tosticker(meme)
     await event.client.send_file(
-        event.chat_id, meme, reply_to=lionxid, force_document=False
+        event.chat_id, meme, reply_to=swtid, force_document=False
     )
     await output[0].delete()
     for files in (meme, meme_file):
@@ -201,9 +200,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="cfont(?:\s|$)([\s\S]*)",
-    command=("cfont", plugin_category),
+    command=("cfont", plugin_type),
     info={
         "header": "Change the font style use for memify.To get font list use cfont command as it is without input.",
         "usage": "{tr}.cfont <Font Name>",
@@ -217,18 +216,18 @@ async def lang(event):
         await event.edit(f"**Available Fonts names are here:-**\n\n{FONTS}")
         return
     if input_str not in font_list:
-        lionxevent = await edit_or_reply(event, "`Give me a correct font name...`")
+        lionxevent = await eor(event, "`Give me a correct font name...`")
         await asyncio.sleep(1)
         await lionxevent.edit(f"**Available Fonts names are here:-**\n\n{FONTS}")
     else:
         arg = f"userbot/helpers/styles/{input_str}"
         addgvar("CNG_FONTS", arg)
-        await edit_or_reply(event, f"**Fonts for Memify changed to :-** `{input_str}`")
+        await eor(event, f"**Fonts for Memify changed to :-** `{input_str}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ascii(?:\s|$)([\s\S]*)",
-    command=("ascii", plugin_category),
+    command=("ascii", plugin_type),
     info={
         "header": "To get ascii image of replied image.",
         "description": "pass hexa colou code along with the cmd to change custom background colour",
@@ -243,20 +242,20 @@ async def memes(event):
     lionxinput = event.pattern_match.group(1)
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -264,7 +263,7 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "ascii_file.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "ascii_file.jpg")
     )
     c_list = random_color()
@@ -273,7 +272,7 @@ async def memes(event):
     bgcolor = "#080808" if not lionxinput else lionxinput
     asciiart(meme_file, 0.3, 1.9, outputfile, color1, color2, bgcolor)
     await event.client.send_file(
-        event.chat_id, outputfile, reply_to=lionxid, force_document=False
+        event.chat_id, outputfile, reply_to=swtid, force_document=False
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -281,9 +280,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="invert$",
-    command=("invert", plugin_category),
+    command=("invert", plugin_type),
     info={
         "header": "To invert colours of given image or sticker.",
         "usage": "{tr}invert",
@@ -292,21 +291,21 @@ async def memes(event):
 async def memes(event):
     reply = await event.get_reply_message()
     if not (reply and (reply.media)):
-        await edit_or_reply(event, "`Reply to supported Media...`")
+        await eor(event, "`Reply to supported Media...`")
         return
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp/"):
         os.mkdir("./temp/")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -314,12 +313,12 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "invert.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "invert.jpg")
     )
     await invert_colors(meme_file, outputfile)
     await event.client.send_file(
-        event.chat_id, outputfile, force_document=False, reply_to=lionxid
+        event.chat_id, outputfile, force_document=False, reply_to=swtid
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -327,9 +326,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="solarize$",
-    command=("solarize", plugin_category),
+    command=("solarize", plugin_type),
     info={
         "header": "To sun burn the colours of given image or sticker.",
         "usage": "{tr}solarize",
@@ -339,20 +338,20 @@ async def memes(event):
     "Sun burn of image."
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -360,12 +359,12 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "solarize.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "solarize.jpg")
     )
     await solarize(meme_file, outputfile)
     await event.client.send_file(
-        event.chat_id, outputfile, force_document=False, reply_to=lionxid
+        event.chat_id, outputfile, force_document=False, reply_to=swtid
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -373,9 +372,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="mirror$",
-    command=("mirror", plugin_category),
+    command=("mirror", plugin_type),
     info={
         "header": "shows you the reflection of the media file.",
         "usage": "{tr}mirror",
@@ -385,20 +384,20 @@ async def memes(event):
     "shows you the reflection of the media file"
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -406,12 +405,12 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "mirror_file.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "mirror_file.jpg")
     )
     await mirror_file(meme_file, outputfile)
     await event.client.send_file(
-        event.chat_id, outputfile, force_document=False, reply_to=lionxid
+        event.chat_id, outputfile, force_document=False, reply_to=swtid
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -419,9 +418,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="flip$",
-    command=("flip", plugin_category),
+    command=("flip", plugin_type),
     info={
         "header": "shows you the upside down image of the given media file.",
         "usage": "{tr}flip",
@@ -431,20 +430,20 @@ async def memes(event):
     "shows you the upside down image of the given media file"
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -452,12 +451,12 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "flip_image.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "flip_image.jpg")
     )
     await flip_image(meme_file, outputfile)
     await event.client.send_file(
-        event.chat_id, outputfile, force_document=False, reply_to=lionxid
+        event.chat_id, outputfile, force_document=False, reply_to=swtid
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -465,9 +464,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gray$",
-    command=("gray", plugin_category),
+    command=("gray", plugin_type),
     info={
         "header": "makes your media file to black and white.",
         "usage": "{tr}gray",
@@ -477,20 +476,20 @@ async def memes(event):
     "makes your media file to black and white"
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -498,12 +497,12 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "grayscale.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "grayscale.jpg")
     )
     await grayscale(meme_file, outputfile)
     await event.client.send_file(
-        event.chat_id, outputfile, force_document=False, reply_to=lionxid
+        event.chat_id, outputfile, force_document=False, reply_to=swtid
     )
     await output[0].delete()
     for files in (outputfile, meme_file):
@@ -511,9 +510,42 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
+    pattern="gg ?([\s\S]*)",
+    command=("gg", plugin_type),
+    info={
+        "header": "Try with Your Self,",
+    },
+)
+async def nope(kraken):
+    KANNADIGA = kraken.pattern_match.group(1)
+    if not KANNADIGA:
+        if kraken.is_reply:
+            (await kraken.get_reply_message()).message
+        else:
+            if gvarstatus("ABUSE") == "ON":
+                return await eor(kraken, "Abe chumtiye kuch likhne ke liye de")
+            else:
+                return await eor(kraken, "Googlax need some text to make sticker.")
+
+    troll = await bot.inline_query("GooglaxBot", f"{(deEmojify(KANNADIGA))}")
+    if troll:
+        await kraken.delete()
+        legen_ = await troll[0].click(BOTLOG_CHATID)
+        if legen_:
+            await kraken.client.send_file(
+                kraken.chat_id,
+                legen_,
+                caption="",
+            )
+        await kraken.delete()
+    else:
+        await eod(kraken, "Error 404:  Not Found")
+
+
+@lionx.lion_cmd(
     pattern="zoom ?([\s\S]*)",
-    command=("zoom", plugin_category),
+    command=("zoom", plugin_type),
     info={
         "header": "zooms your media file,",
         "usage": ["{tr}zoom", "{tr}zoom range"],
@@ -525,20 +557,20 @@ async def memes(event):
     lionxinput = 50 if not lionxinput else int(lionxinput)
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -546,7 +578,7 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "zoomimage.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "zoomimage.jpg")
     )
     try:
@@ -555,7 +587,7 @@ async def memes(event):
         return await output[0].edit(f"`{e}`")
     try:
         await event.client.send_file(
-            event.chat_id, outputfile, force_document=False, reply_to=lionxid
+            event.chat_id, outputfile, force_document=False, reply_to=swtid
         )
     except Exception as e:
         return await output[0].edit(f"`{e}`")
@@ -565,9 +597,9 @@ async def memes(event):
             os.remove(files)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="frame ?([\s\S]*)",
-    command=("frame", plugin_category),
+    command=("frame", plugin_type),
     info={
         "header": "make a frame for your media file.",
         "fill": "This defines the pixel fill value or color value to be applied. The default value is 0 which means the color is black.",
@@ -587,23 +619,23 @@ async def memes(event):
     try:
         colr = int(colr)
     except Exception as e:
-        return await edit_delete(event, f"**Error**\n`{e}`")
+        return await eod(event, f"**Error**\n`{e}`")
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(event, "`Reply to supported Media...`")
-    shu = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    lionxid = await reply_id(event)
+        return await eod(event, "`Reply to supported Media...`")
+    shu = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
+    swtid = await reply_id(event)
     if not os.path.isdir("./temp"):
         os.mkdir("./temp")
-    shasaidea = None
+    shasaaidea = None
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     meme_file = convert_toimage(output[1])
     if output[2] in ["Round Video", "Gif", "Sticker", "Video"]:
-        shasaidea = True
+        shasaaidea = True
     try:
         shu = Get(shu)
         await event.client(shu)
@@ -611,7 +643,7 @@ async def memes(event):
         pass
     outputfile = (
         os.path.join("./temp", "framed.webp")
-        if shasaidea
+        if shasaaidea
         else os.path.join("./temp", "framed.jpg")
     )
     try:
@@ -620,7 +652,7 @@ async def memes(event):
         return await output[0].edit(f"`{e}`")
     try:
         await event.client.send_file(
-            event.chat_id, outputfile, force_document=False, reply_to=lionxid
+            event.chat_id, outputfile, force_document=False, reply_to=swtid
         )
     except Exception as e:
         return await output[0].edit(f"`{e}`")

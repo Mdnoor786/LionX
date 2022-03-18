@@ -14,19 +14,18 @@ from telethon.errors.rpcerrorlist import FloodWaitError
 from telethon.tl.functions.account import UpdateProfileRequest
 from telethon.tl.functions.users import GetFullUserRequest
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
 from ..helpers.functions import deEmojify, hide_inlinebot
 from ..helpers.utils import reply_id
-from ..sql_helper.globals import gvarstatus
-from . import BOTLOG, BOTLOG_CHATID
+from . import BOTLOG, BOTLOG_CHATID, DEFAULT_BIO
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "extra"
+plugin_type = "extra"
 
-DEFAULT_BIO = gvarstatus("DEFAULT_BIO")
+
 BIO_PREFIX = Config.BIO_PREFIX
 LASTFM_API = Config.LASTFM_API
 LASTFM_SECRET = Config.LASTFM_SECRET
@@ -82,7 +81,7 @@ async def gettags(track=None, isNowPlaying=None, playing=None):
         arg = track.track
     if not tags:
         tags = arg.artist.get_top_tags()
-    tags = "".join(f" #{t.item.__str__()}" for t in tags[:5])
+    tags = "".join(" #" + t.item.__str__() for t in tags[:5])
     tags = sub("^ ", "", tags)
     tags = sub(" ", "_", tags)
     tags = sub("_#", " #", tags)
@@ -100,7 +99,7 @@ async def get_curr_track(lfmbio):  # sourcery no-metrics
         try:
             if LASTFM_.USER_ID == 0:
                 LASTFM_.USER_ID = (await lfmbio.client.get_me()).id
-            user_info = (await lionxub(GetFullUserRequest(LASTFM_.USER_ID))).full_user
+            user_info = await lionx(GetFullUserRequest(LASTFM_.USER_ID))
             LASTFM_.RUNNING = True
             playing = User(LASTFM_USERNAME, lastfm).get_now_playing()
             LASTFM_.SONG = playing.get_title()
@@ -120,32 +119,32 @@ async def get_curr_track(lfmbio):  # sourcery no-metrics
                     lfmbio = f"🎧: {LASTFM_.ARTIST} - {LASTFM_.SONG}"
                 try:
                     if BOTLOG and LASTFM_.LastLog:
-                        await lionxub.send_message(
+                        await lionx.send_message(
                             BOTLOG_CHATID, f"Attempted to change bio to\n{lfmbio}"
                         )
-                    await lionxub(UpdateProfileRequest(about=lfmbio))
+                    await lionx(UpdateProfileRequest(about=lfmbio))
                 except AboutTooLongError:
                     short_bio = f"🎧: {LASTFM_.SONG}"
-                    await lionxub(UpdateProfileRequest(about=short_bio))
+                    await lionx(UpdateProfileRequest(about=short_bio))
             if playing is None and user_info.about != DEFAULT_BIO:
                 await sleep(6)
-                await lionxub(UpdateProfileRequest(about=DEFAULT_BIO))
+                await lionx(UpdateProfileRequest(about=DEFAULT_BIO))
                 if BOTLOG and LASTFM_.LastLog:
-                    await lionxub.send_message(
+                    await lionx.send_message(
                         BOTLOG_CHATID, f"Reset bio back to\n{DEFAULT_BIO}"
                     )
         except AttributeError:
             try:
                 if user_info.about != DEFAULT_BIO:
                     await sleep(6)
-                    await lionxub(UpdateProfileRequest(about=DEFAULT_BIO))
+                    await lionx(UpdateProfileRequest(about=DEFAULT_BIO))
                     if BOTLOG and LASTFM_.LastLog:
-                        await lionxub.send_message(
+                        await lionx.send_message(
                             BOTLOG_CHATID, f"Reset bio back to\n{DEFAULT_BIO}"
                         )
             except FloodWaitError as err:
                 if BOTLOG and LASTFM_.LastLog:
-                    await lionxub.send_message(
+                    await lionx.send_message(
                         BOTLOG_CHATID, f"Error changing bio:\n{err}"
                     )
         except (
@@ -155,14 +154,14 @@ async def get_curr_track(lfmbio):  # sourcery no-metrics
             AboutTooLongError,
         ) as err:
             if BOTLOG and LASTFM_.LastLog:
-                await lionxub.send_message(BOTLOG_CHATID, f"Error changing bio:\n{err}")
+                await lionx.send_message(BOTLOG_CHATID, f"Error changing bio:\n{err}")
         await sleep(2)
     LASTFM_.RUNNING = False
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lastfm$",
-    command=("lastfm", plugin_category),
+    command=("lastfm", plugin_type),
     info={
         "header": "To fetch scrobble data from last.fm",
         "description": "Shows currently scrobbling track or most recent scrobbles if nothing is playing.",
@@ -207,9 +206,9 @@ async def last_fm(lastFM):
         await lastFM.edit(f"{output}", parse_mode="md")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lastbio (on|off)",
-    command=("lastbio", plugin_category),
+    command=("lastbio", plugin_type),
     info={
         "header": "To Enable or Disable the last.fm current playing to bio",
         "usage": [
@@ -240,9 +239,9 @@ async def lastbio(lfmbio):
         await lfmbio.edit(LFM_BIO_ERR)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lastlog (on|off)",
-    command=("lastlog", plugin_category),
+    command=("lastlog", plugin_type),
     info={
         "header": "To Enable or Disable the last.fm current playing to bot log group",
         "usage": [
@@ -265,9 +264,9 @@ async def lastlog(lstlog):
         await lstlog.edit(LFM_LOG_ERR)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="now$",
-    command=("now", plugin_category),
+    command=("now", plugin_type),
     info={
         "header": "Send your current listening song from Lastfm/Spotify/Deezer.",
         "usage": "{tr}now",
@@ -279,6 +278,25 @@ async def now(event):
     text = " "
     reply_to_id = await reply_id(event)
     bot_name = "@nowplaybot"
+    text = deEmojify(text)
+    await event.delete()
+    await hide_inlinebot(event.client, bot_name, text, event.chat_id, reply_to_id)
+
+
+@lionx.lion_cmd(
+    pattern="inow$",
+    command=("inow", plugin_type),
+    info={
+        "header": "Show your current listening song in the form of a cool image.",
+        "usage": "{tr}inow",
+        "note": "For working of this command, you need to authorize @SpotiPieBot.",
+    },
+)
+async def nowimg(event):
+    "Show your current listening song."
+    text = " "
+    reply_to_id = await reply_id(event)
+    bot_name = "@Spotipiebot"
     text = deEmojify(text)
     await event.delete()
     await hide_inlinebot(event.client, bot_name, text, event.chat_id, reply_to_id)

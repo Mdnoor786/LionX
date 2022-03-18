@@ -1,16 +1,16 @@
 import requests
 from validators.url import url
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="dns(?:\s|$)([\s\S]*)",
-    command=("dns", plugin_category),
+    command=("dns", plugin_type),
     info={
         "header": "To get Domain Name System(dns) of the given link.",
         "usage": "{tr}dns <url/reply to url>",
@@ -24,31 +24,29 @@ async def _(event):
     if not input_str and reply:
         input_str = reply.text
     if not input_str:
-        return await edit_delete(
+        return await eod(
             event, "`Either reply to link or give link as input to get data`", 5
         )
     check = url(input_str)
     if not check:
-        lionxstr = f"http://{input_str}"
-        check = url(lionxstr)
+        lolstr = f"http://{input_str}"
+        check = url(lolstr)
     if not check:
-        return await edit_delete(event, "`the given link is not supported`", 5)
+        return await eod(event, "`the given link is not supported`", 5)
     sample_url = f"https://da.gd/dns/{input_str}"
     if response_api := requests.get(sample_url).text:
-        await edit_or_reply(event, f"DNS records of {input_str} are \n{response_api}")
+        await eor(event, f"DNS records of {input_str} are \n{response_api}")
     else:
-        await edit_or_reply(
-            event, f"__I can't seem to find `{input_str}` on the internet__"
-        )
+        await eor(event, f"__I can't seem to find `{input_str}` on the internet__")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="short(?:\s|$)([\s\S]*)",
-    command=("short", plugin_category),
+    command=("short", plugin_type),
     info={
         "header": "To short the given url.",
         "usage": "{tr}short <url/reply to url>",
-        "examples": "{tr}short https://github.com/TeamLionX/LionX",
+        "examples": "{tr}short https://github.com/TEAMLIONX/LIONX",
     },
 )
 async def _(event):
@@ -58,29 +56,29 @@ async def _(event):
     if not input_str and reply:
         input_str = reply.text
     if not input_str:
-        return await edit_delete(
+        return await eod(
             event, "`Either reply to link or give link as input to get data`", 5
         )
     check = url(input_str)
     if not check:
-        lionxstr = f"http://{input_str}"
-        check = url(lionxstr)
+        lolstr = f"http://{input_stt}"
+        check = url(lolstr)
     if not check:
-        return await edit_delete(event, "`the given link is not supported`", 5)
+        return await eod(event, "`the given link is not supported`", 5)
     if not input_str.startswith("http"):
         input_str = f"http://{input_str}"
     sample_url = f"https://da.gd/s?url={input_str}"
     if response_api := requests.get(sample_url).text:
-        await edit_or_reply(
+        await eor(
             event, f"Generated {response_api} for {input_str}.", link_preview=False
         )
     else:
-        await edit_or_reply(event, "`Something is wrong, please try again later.`")
+        await eor(event, "`Something is wrong, please try again later.`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="unshort(?:\s|$)([\s\S]*)",
-    command=("unshort", plugin_category),
+    command=("unshort", plugin_type),
     info={
         "header": "To unshort the given dagb shorten url.",
         "usage": "{tr}unshort <url/reply to url>",
@@ -94,35 +92,35 @@ async def _(event):
     if not input_str and reply:
         input_str = reply.text
     if not input_str:
-        return await edit_delete(
+        return await eod(
             event, "`Either reply to link or give link as input to get data`", 5
         )
     check = url(input_str)
     if not check:
-        lionxstr = f"http://{input_str}"
-        check = url(lionxstr)
+        lolstr = f"http://{input_str}"
+        check = url(lolstr)
     if not check:
-        return await edit_delete(event, "`the given link is not supported`", 5)
+        return await eod(event, "`the given link is not supported`", 5)
     if not input_str.startswith("http"):
         input_str = f"http://{input_str}"
     r = requests.get(input_str, allow_redirects=False)
     if str(r.status_code).startswith("3"):
-        await edit_or_reply(
+        await eor(
             event,
             f"Input URL: {input_str}\nReDirected URL: {r.headers['Location']}",
             link_preview=False,
         )
     else:
-        await edit_or_reply(
+        await eor(
             event,
             "Input URL {} returned status_code {}".format(input_str, r.status_code),
         )
 
 
 # By Priyam Kalra
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="hl(?:\s|$)([\s\S]*)",
-    command=("hl", plugin_category),
+    command=("hl", plugin_type),
     info={
         "header": "To hide the url with white spaces using hyperlink.",
         "usage": "{tr}hl <url/reply to url>",
@@ -136,13 +134,13 @@ async def _(event):
     if not input_str and reply:
         input_str = reply.text
     if not input_str:
-        return await edit_delete(
+        return await eod(
             event, "`Either reply to link or give link as input to get data`", 5
         )
     check = url(input_str)
     if not check:
-        lionxstr = f"http://{input_str}"
-        check = url(lionxstr)
+        lolstr = f"http://{input_str}"
+        check = url(lolstr)
     if not check:
-        return await edit_delete(event, "`the given link is not supported`", 5)
-    await edit_or_reply(event, f"[ㅤㅤㅤㅤㅤㅤㅤ]({input_str})")
+        return await eod(event, "`the given link is not supported`", 5)
+    await eor(event, f"[ㅤㅤㅤㅤㅤㅤㅤ]({input_str})")

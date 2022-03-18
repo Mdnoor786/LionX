@@ -1,21 +1,21 @@
-# speech to text module for lionx by uniborg (@spechide)
+# speech to text module for LionX by uniborg (@spechide)
 import os
 from datetime import datetime
 
 import requests
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import media_type
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stt$",
-    command=("stt", plugin_category),
+    command=("stt", plugin_type),
     info={
         "header": "speech to text module.",
         "usage": "{tr}stt",
@@ -24,7 +24,7 @@ plugin_category = "utils"
 async def _(event):
     "speech to text."
     if Config.IBM_WATSON_CRED_URL is None or Config.IBM_WATSON_CRED_PASSWORD is None:
-        return await edit_delete(
+        return await eod(
             event,
             "`You need to set the required ENV variables for this module. \nModule stopping`",
         )
@@ -35,13 +35,11 @@ async def _(event):
     reply = await event.get_reply_message()
     mediatype = media_type(reply)
     if not reply or (mediatype and mediatype not in ["Voice", "Audio"]):
-        return await edit_delete(
+        return await eod(
             event,
             "`Reply to a voice message or Audio, to get the relevant transcript.`",
         )
-    lionxevent = await edit_or_reply(
-        event, "`Downloading to my local, for analysis  🙇`"
-    )
+    lionxevent = await eor(event, "`Downloading to my local, for analysis  🙇`")
     required_file_name = await event.client.download_media(reply, Config.TEMP_DIR)
     await lionxevent.edit("`Starting analysis, using IBM WatSon Speech To Text`")
     headers = {
@@ -49,12 +47,11 @@ async def _(event):
     }
     data = open(required_file_name, "rb").read()
     response = requests.post(
-        f"{Config.IBM_WATSON_CRED_URL}/v1/recognize",
+        Config.IBM_WATSON_CRED_URL + "/v1/recognize",
         headers=headers,
         data=data,
         auth=("apikey", Config.IBM_WATSON_CRED_PASSWORD),
     )
-
     r = response.json()
     if "results" not in r:
         return await lionxevent.edit(r["error"])
@@ -68,7 +65,7 @@ async def _(event):
         transcript_confidence += " " + str(alternatives["confidence"])
     end = datetime.now()
     ms = (end - start).seconds
-    if not transcript_response:
+    if transcript_response == "":
         string_to_show = "**Language : **`{}`\n**Time Taken : **`{} seconds`\n**No Results Found**".format(
             lan, ms
         )

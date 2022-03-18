@@ -8,26 +8,26 @@ import urllib3
 from git import Repo
 from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 
-from userbot import HEROKU_APP, UPSTREAM_REPO_URL, lionxub
+from userbot import HEROKU_APP, UPSTREAM_REPO_URL, lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..sql_helper.global_collection import (
     add_to_collectionlist,
     del_keyword_collectionlist,
     get_collectionlist_items,
 )
 
-plugin_category = "tools"
-cmdhd = Config.COMMAND_HAND_LER
+plugin_type = "tools"
+cmdhd = Config.HANDLER
 
 LOGS = logging.getLogger(__name__)
 # -- Constants -- #
 
-HEROKU_APP_NAME = Config.HEROKU_APP_NAME or None
-HEROKU_API_KEY = Config.HEROKU_API_KEY or None
-Heroku = heroku3.from_key(Config.HEROKU_API_KEY)
+APP_NAME = Config.APP_NAME or None
+API_KEY = Config.API_KEY or None
+Heroku = heroku3.from_key(Config.API_KEY)
 heroku_api = "https://api.heroku.com"
 
 UPSTREAM_REPO_BRANCH = Config.UPSTREAM_REPO_BRANCH
@@ -64,7 +64,7 @@ async def gen_chlog(repo, diff):
 
 async def print_changelogs(event, ac_br, changelog):
     changelog_str = (
-        f"**New UPDATE available for [{ac_br}]:\n\nCHANGELOG:**\n`{changelog}`"
+        f"**🤖 New Update available for [{ac_br}]:\n\nChangeLogs:**\n`{changelog}`"
     )
     if len(changelog_str) > 4096:
         await event.edit("`Changelog is too big, view the file to see it.`")
@@ -105,35 +105,34 @@ async def update(event, repo, ups_rem, ac_br):
     except GitCommandError:
         repo.git.reset("--hard", "FETCH_HEAD")
     await update_requirements()
-    amaan = await event.edit(
+    LIONX = await event.edit(
         "`Successfully Updated!\n" "Bot is restarting... Wait for a minute!`"
     )
-    await event.client.reload(amaan)
+    await event.client.reload(LIONX)
 
 
 async def deploy(event, repo, ups_rem, ac_br, txt):
-    if HEROKU_API_KEY is None:
-        return await event.edit("`Please set up`  **HEROKU_API_KEY**  ` Var...`")
-    heroku = heroku3.from_key(HEROKU_API_KEY)
+    if API_KEY is None:
+        return await event.edit("`Please set up`  **API_KEY**  ` Var...`")
+    heroku = heroku3.from_key(API_KEY)
     heroku_applications = heroku.apps()
-    if HEROKU_APP_NAME is None:
+    if APP_NAME is None:
         await event.edit(
-            "`Please set up the` **HEROKU_APP_NAME** `Var`"
+            "`Please set up the` **APP_NAME** `Var`"
             " to be able to deploy your userbot...`"
         )
         repo.__del__()
         return
     heroku_app = next(
-        (app for app in heroku_applications if app.name == HEROKU_APP_NAME),
+        (app for app in heroku_applications if app.name == APP_NAME),
         None,
     )
-
     if heroku_app is None:
         await event.edit(
             f"{txt}\n" "`Invalid Heroku credentials for deploying userbot dyno.`"
         )
         return repo.__del__()
-    amaan = await event.edit(
+    LIONX = await event.edit(
         "`Userbot dyno build in progress, please wait until the process finishes it usually takes 4 to 5 minutes .`"
     )
     try:
@@ -144,15 +143,12 @@ async def deploy(event, repo, ups_rem, ac_br, txt):
     except Exception as e:
         LOGS.error(e)
     try:
-        add_to_collectionlist("restart_update", [amaan.chat_id, amaan.id])
+        add_to_collectionlist("restart_update", [LIONX.chat_id, LIONX.id])
     except Exception as e:
         LOGS.error(e)
     ups_rem.fetch(ac_br)
     repo.git.reset("--hard", "FETCH_HEAD")
-    heroku_git_url = heroku_app.git_url.replace(
-        "https://", f"https://api:{HEROKU_API_KEY}@"
-    )
-
+    heroku_git_url = heroku_app.git_url.replace("https://", f"https://api:{API_KEY}@")
     if "heroku" in repo.remotes:
         remote = repo.remote("heroku")
         remote.set_url(heroku_git_url)
@@ -165,7 +161,7 @@ async def deploy(event, repo, ups_rem, ac_br, txt):
         return repo.__del__()
     build_status = heroku_app.builds(order_by="created_at", sort="desc")[0]
     if build_status.status == "failed":
-        return await edit_delete(
+        return await eod(
             event, "`Build failed!\n" "Cancelled or there were some errors...`"
         )
     try:
@@ -182,9 +178,9 @@ async def deploy(event, repo, ups_rem, ac_br, txt):
         pass
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="update(| now)?$",
-    command=("update", plugin_category),
+    command=("update", plugin_type),
     info={
         "header": "To update userbot.",
         "description": "I recommend you to do update deploy atlest once a week.",
@@ -202,13 +198,11 @@ async def deploy(event, repo, ups_rem, ac_br, txt):
 async def upstream(event):
     "To check if the bot is up to date and update if specified"
     conf = event.pattern_match.group(1).strip()
-    event = await edit_or_reply(event, "`Checking for updates, please wait....`")
+    event = await eor(event, "`Checking for updates, please wait....`")
     off_repo = UPSTREAM_REPO_URL
     force_update = False
-    if HEROKU_API_KEY is None or HEROKU_APP_NAME is None:
-        return await edit_or_reply(
-            event, "`Set the required vars first to update the bot`"
-        )
+    if API_KEY is None or APP_NAME is None:
+        return await eor(event, "`Set the required vars first to update the bot`")
     try:
         txt = (
             "`Oops.. Updater cannot continue due to "
@@ -227,7 +221,6 @@ async def upstream(event):
             return await event.edit(
                 f"`Unfortunately, the directory {error} does not seem to be a git repository.\nBut we can fix that by force updating the userbot using .update now.`"
             )
-
         repo = Repo.init()
         origin = repo.create_remote("upstream", off_repo)
         origin.fetch()
@@ -255,14 +248,16 @@ async def upstream(event):
     # Special case for deploy
     if changelog == "" and not force_update:
         await event.edit(
-            "\n`LIONXUSERBOT is`  **up-to-date**  `with`  "
+            "\n`LionX is`  **up-to-date**  `with`  "
             f"**{UPSTREAM_REPO_BRANCH}**\n"
         )
         return repo.__del__()
     if conf == "" and not force_update:
         await print_changelogs(event, ac_br, changelog)
         await event.delete()
-        return await event.respond(f"do `{cmdhd}update deploy` to update the lionx")
+        return await event.respond(
+            f"do `{cmdhd}update deploy` to update the LionX"
+        )
 
     if force_update:
         await event.edit(
@@ -274,12 +269,12 @@ async def upstream(event):
     return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="update deploy$",
 )
 async def upstream(event):
-    event = await edit_or_reply(event, "`Pulling the nekopack repo wait a sec ....`")
-    off_repo = "https://github.com/TeamLionX/Heroku/nekopack/tree/test"
+    event = await eor(event, "`Pulling the LIONX repo wait a sec ....`")
+    off_repo = "https://github.com/TEAMLIONX/LIONX"
     os.chdir("/app")
     try:
         txt = (
@@ -288,6 +283,7 @@ async def upstream(event):
         )
 
         repo = Repo()
+
     except NoSuchPathError as error:
         await event.edit(f"{txt}\n`directory {error} is not found`")
         return repo.__del__()
@@ -312,38 +308,28 @@ async def upstream(event):
     await deploy(event, repo, ups_rem, ac_br, txt)
 
 
-@lionxub.lionx_cmd(
-    pattern="(good|bad)lionx$",
-    command=("switch", plugin_category),
+@lionx.lion_cmd(
+    pattern="MULTI$",
+    command=("MULTI", plugin_type),
     info={
-        "header": "To switch between lionx & lionx(For extra nsfw and gali).",
-        "usage": [
-            "{tr}lionx",
-            "{tr}lionx",
-        ],
+        "header": "To update to Multi Its Features Currently Not Available Soon Add.Ok ",
+        "usage": "{tr}MULTI",
     },
 )
-async def variable(event):
-    "To update to lionx( for extra masala and gali)."
-    if (HEROKU_APP_NAME is None) or (HEROKU_API_KEY is None):
-        return await edit_delete(
-            event,
-            "Set the required vars in heroku to function this normally `HEROKU_API_KEY` and `HEROKU_APP_NAME`.",
+async def variable(var):
+    "To update to goolionx."
+    if Config.API_KEY is None:
+        return await eod(
+            var,
+            "Set the required var in heroku to function this normally `API_KEY`.",
         )
-    app = Heroku.app(Config.HEROKU_APP_NAME)
-    heroku_var = app.config()
-    switch = "LIONX"
-    cmd = event.pattern_match.group(1).lower()
-    if cmd == "good":
-        if switch in heroku_var:
-            await edit_or_reply(
-                event, "`Changing lionx to lionx wait for 2-3 minutes.`"
-            )
-            del heroku_var[switch]
-            return
-        await edit_delete(event, "`You already using LionX`", 6)
+    if Config.APP_NAME is not None:
+        app = Heroku.app(Config.APP_NAME)
     else:
-        if switch in heroku_var:
-            return await edit_delete(event, "`You already using LionX`", 6)
-        await edit_or_reply(event, "`Changing lionx to lionx wait for 2-3 minutes.`")
-        heroku_var[switch] = "True"
+        return await eod(
+            var,
+            "Set the required var in heroku to function this normally `APP_NAME`.",
+        )
+    heroku_var = app.config()
+    await eor(var, "`Changing PRO to MULTI wait for 2-3 minutes.`")
+    heroku_var["UPSTREAM_REPO"] = "https://github.com/TEAMLIONX/LionX"

@@ -32,16 +32,16 @@ from urllib.error import HTTPError
 
 from pySmartDL import SmartDL
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from . import humanbytes, time_formatter
 
 LOGS = logging.getLogger(__name__)
 
-plugin_category = "misc"
+plugin_type = "misc"
 
 
 TMP_DOWNLOAD_DIRECTORY = Config.TMP_DOWNLOAD_DIRECTORY
@@ -62,9 +62,9 @@ async def subprocess_run(megadl, cmd):
     return stdout.decode().strip(), stderr.decode().strip(), exitCode
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="mega(?:\s|$)([\s\S]*)",
-    command=("mega", plugin_category),
+    command=("mega", plugin_type),
     info={
         "header": "Downloads mega files from it links.",
         "description": "Pass mega link to command so that it will download to bot server, for uploading to TG, check .help -c upload. Folder is not supported currently and only mega file links are supported.",
@@ -73,7 +73,7 @@ async def subprocess_run(megadl, cmd):
 )
 async def mega_downloader(megadl):  # sourcery no-metrics
     "To download mega files from mega.nz links."
-    lionxevent = await edit_or_reply(megadl, "`Collecting information...`")
+    lionxevent = await eor(megadl, "`Collecting information...`")
     if not os.path.isdir(TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(TMP_DOWNLOAD_DIRECTORY)
     msg_link = await megadl.get_reply_message()
@@ -193,7 +193,7 @@ async def mega_downloader(megadl):  # sourcery no-metrics
 
 
 async def decrypt_file(megadl, file_path, temp_file_path, hex_key, hex_raw_key):
-    cmd = "lionx '{}' | openssl enc -d -aes-128-ctr -K {} -iv {} > '{}'".format(
+    cmd = "lion '{}' | openssl enc -d -aes-128-ctr -K {} -iv {} > '{}'".format(
         temp_file_path, hex_key, hex_raw_key, file_path
     )
     if await subprocess_run(megadl, cmd):

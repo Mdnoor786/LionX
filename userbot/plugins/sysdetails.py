@@ -9,12 +9,12 @@ from datetime import datetime
 import psutil
 from telethon import __version__
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers.utils import _lionxutils
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 
 def get_size(inputbytes, suffix="B"):
@@ -25,9 +25,9 @@ def get_size(inputbytes, suffix="B"):
         inputbytes /= factor
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="spc$",
-    command=("spc", plugin_category),
+    command=("spc", plugin_type),
     info={
         "header": "To show system specification.",
         "usage": "{tr}spc",
@@ -47,8 +47,8 @@ async def psu(event):
     softw += f"`Boot Time: {bt.day}/{bt.month}/{bt.year}  {bt.hour}:{bt.minute}:{bt.second}`\n"
     # CPU Cores
     cpuu = "**CPU Info**\n"
-    cpuu += f"`Physical cores   : {str(psutil.cpu_count(logical=False))}" + "`\n"
-    cpuu += f"`Total cores      : {str(psutil.cpu_count(logical=True))}" + "`\n"
+    cpuu += "`Physical cores   : " + str(psutil.cpu_count(logical=False)) + "`\n"
+    cpuu += "`Total cores      : " + str(psutil.cpu_count(logical=True)) + "`\n"
     # CPU frequencies
     cpufreq = psutil.cpu_freq()
     cpuu += f"`Max Frequency    : {cpufreq.max:.2f}Mhz`\n"
@@ -81,9 +81,9 @@ async def psu(event):
     await event.edit(help_string)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="cpu$",
-    command=("cpu", plugin_category),
+    command=("cpu", plugin_type),
     info={
         "header": "To show cpu information.",
         "usage": "{tr}cpu",
@@ -93,14 +93,14 @@ async def cpu(event):
     "shows cpu information"
     cmd = "lionx /proc/cpuinfo | grep 'model name'"
     o = (await _lionxutils.runcmd(cmd))[0]
-    await edit_or_reply(
+    await eor(
         event, f"**[LionX's](tg://need_update_for_some_feature/) CPU Model:**\n{o}"
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="sysd$",
-    command=("sysd", plugin_category),
+    command=("sysd", plugin_type),
     info={
         "header": "Shows system information using neofetch",
         "usage": "{tr}cpu",
@@ -108,11 +108,11 @@ async def cpu(event):
 )
 async def sysdetails(sysd):
     "Shows system information using neofetch"
-    lionxevent = await edit_or_reply(sysd, "`Fetching system information.`")
+    lionxevent = await eor(sysd, "`Fetching system information.`")
     cmd = "git clone https://github.com/dylanaraps/neofetch.git"
     await _lionxutils.runcmd(cmd)
     neo = "neofetch/neofetch --off --color_blocks off --bold off --cpu_temp C \
                     --cpu_speed on --cpu_cores physical --kernel_shorthand off --stdout"
     a, b, c, d = await _lionxutils.runcmd(neo)
     result = str(a) + str(b)
-    await edit_or_reply(lionxevent, f"**Neofetch Result:** `{result}`")
+    await eor(lionxevent, "**Neofetch Result:** `" + result + "`")

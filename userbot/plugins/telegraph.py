@@ -1,4 +1,4 @@
-# telegraph utils for lionx
+# telegraph utils for LionX
 import os
 import random
 import string
@@ -8,15 +8,15 @@ from PIL import Image
 from telegraph import Telegraph, exceptions, upload_file
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_or_reply
-from . import BOTLOG, BOTLOG_CHATID
+from ..funcs.managers import eor
+from . import BOTLOG, BOTLOG_CHATID, mention
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 telegraph = Telegraph()
@@ -29,9 +29,9 @@ def resize_image(image):
     im.save(image, "PNG")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(t(ele)?g(raph)?) ?(m|t|media|text)(?:\s|$)([\s\S]*)",
-    command=("telegraph", plugin_category),
+    command=("telegraph", plugin_type),
     info={
         "header": "To get telegraph link.",
         "description": "Reply to text message to paste that text on telegraph you can also pass input along with command \
@@ -50,7 +50,7 @@ def resize_image(image):
 )  # sourcery no-metrics
 async def _(event):
     "To get telegraph link."
-    lionxevent = await edit_or_reply(event, "`processing........`")
+    lionxevent = await eor(event, "`processing........`")
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,
@@ -82,8 +82,10 @@ async def _(event):
             ms = (end - start).seconds
             os.remove(downloaded_file_name)
             await lionxevent.edit(
-                f"**link : **[telegraph](https://telegra.ph{media_urls[0]})\
-                    \n**Time Taken : **`{ms} seconds.`",
+                f"**✓ Uploaded to :-**[telegraph](https://telegra.ph{media_urls[0]})\
+                 \n**✓ Uploaded in {ms} seconds.**\
+                 \n**✓ Uploaded by :-** {mention}\
+                 \n**✓ Telegraph :** `https://telegra.ph{media_urls[0]}`",
                 link_preview=True,
             )
     elif input_str in ["text", "t"]:
@@ -119,7 +121,9 @@ async def _(event):
         ms = (end - start).seconds
         lionx = f"https://telegra.ph/{response['path']}"
         await lionxevent.edit(
-            f"**link : ** [telegraph]({lionx})\
-                 \n**Time Taken : **`{ms} seconds.`",
+            f"**✓ Uploaded to :-** [telegraph]({lionx})\
+                 \n**✓ Uploaded in {ms} seconds.**\
+                 \n**✓ Uploaded by :-** {mention}\
+                 \n**✓ Telegraph :-** `{lionx}`",
             link_preview=True,
         )

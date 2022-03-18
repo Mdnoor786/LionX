@@ -2,16 +2,16 @@ from asyncio import sleep
 
 import requests
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmg ([\s\S]*)",
-    command=("lmg", plugin_category),
+    command=("lmg", plugin_type),
     info={
         "header": "Searches the given query in Google and shows you the link of that query.",
         "usage": "{tr}lmg <Query>",
@@ -24,19 +24,19 @@ async def _(event):
         f"https://da.gd/s?url=http://google.com/search?q={input_str.replace(' ', '+')}"
     )
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **Google** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmy ([\s\S]*)",
-    command=("lmy", plugin_category),
+    command=("lmy", plugin_type),
     info={
         "header": "Searches the given query in youtube and shows you the link of that query.",
         "usage": "{tr}lmy <Query>",
@@ -47,19 +47,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://www.youtube.com/results?search_query={input_str.replace(' ', '+')}"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **youtube** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ddg ([\s\S]*)",
-    command=("ddg", plugin_category),
+    command=("ddg", plugin_type),
     info={
         "header": "Searches the given query in Duck buck go and shows you the link of that query.",
         "usage": "{tr}ddg <Query>",
@@ -70,19 +70,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://duckduckgo.com/?q={input_str.replace(' ', '+')}&t=h_&ia=about"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **duckduckgo** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmalt ([\s\S]*)",
-    command=("lmalt", plugin_category),
+    command=("lmalt", plugin_type),
     info={
         "header": "Searches the given query in altnews and shows you the link of that query.",
         "usage": "{tr}lmalt <Query>",
@@ -95,19 +95,19 @@ async def _(event):
         f"https://da.gd/s?url=https://www.altnews.in/?s={input_str.replace(' ', '+')}"
     )
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **altnews** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmvar ([\s\S]*)",
-    command=("lmvar", plugin_category),
+    command=("lmvar", plugin_type),
     info={
         "header": "Searches the given app name in heroku and show that app vars page link .",
         "usage": "{tr}lmvar <app name>",
@@ -118,19 +118,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://dashboard.heroku.com/apps/{input_str.replace(' ', '+')}/settings"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **var** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmlog ([\s\S]*)",
-    command=("lmlog", plugin_category),
+    command=("lmlog", plugin_type),
     info={
         "header": "Searches the given app name in heroku and shows you logs page link of that app.",
         "usage": "{tr}lmlog <app name>",
@@ -141,19 +141,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://dashboard.heroku.com/apps/{input_str.replace(' ', '+')}/logs"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **log** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="dyno ([\s\S]*)",
-    command=("dyno", plugin_category),
+    command=("dyno", plugin_type),
     info={
         "header": "Searches the given app name in heroku and shows you dyno page link of that app.",
         "usage": "{tr}dyno <Query>",
@@ -168,7 +168,7 @@ async def _(event):
     )
     response_api = requests.get(sample_url).text
     respons_api = requests.get(billings_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
@@ -178,12 +178,12 @@ async def _(event):
                 \n`Thank me later 😉`"
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="lmkp ([\s\S]*)",
-    command=("lmkp", plugin_category),
+    command=("lmkp", plugin_type),
     info={
         "header": "Searches the given query in indian kanoon and shows you the link of that query.",
         "usage": "{tr}lmkp <Query>",
@@ -194,19 +194,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://indiankanoon.org/search/?formInput={input_str.replace(' ', '+')}+sortby%3Amostrecent"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **Indiankanoon.com : Place** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gem ([\s\S]*)",
-    command=("gem", plugin_category),
+    command=("gem", plugin_type),
     info={
         "header": "Searches the given query in Government e marketplace and shows you the link of that query.",
         "usage": "{tr}gem <Query>",
@@ -217,19 +217,19 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://mkp.gem.gov.in/search?q={input_str.replace(' ', '+')}&sort_type=created_at_desc&_xhr=1"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me **gem.gov.in** that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="archive ([\s\S]*)",
-    command=("archive", plugin_category),
+    command=("archive", plugin_type),
     info={
         "header": "Searches the given query in web archive and shows you the link of that query.",
         "usage": "{tr}archive <Query>",
@@ -240,11 +240,11 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     sample_url = f"https://da.gd/s?url=https://web.archive.org/web/*/{input_str.replace(' ', '+')}"
     response_api = requests.get(sample_url).text
-    event = await edit_or_reply(event, "`Searching.....`")
+    event = await eor(event, "`Searching.....`")
     await sleep(2)
     if response_api:
         await event.edit(
             f"Let me run your link on wayback machine that for you:\n👉 [{input_str}]({response_api.rstrip()})\n`Thank me later 😉` "
         )
     else:
-        await edit_delete(event, "`Something went wrong. Please try again later.`", 5)
+        await eod(event, "`Something went wrong. Please try again later.`", 5)

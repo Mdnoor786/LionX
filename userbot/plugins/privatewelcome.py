@@ -1,11 +1,10 @@
 from asyncio import sleep
 
 from telethon import events
-from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..sql_helper import pmpermit_sql as pmpermit_sql
 from ..sql_helper.welcomesql import (
     addwelcome_setting,
@@ -14,10 +13,10 @@ from ..sql_helper.welcomesql import (
 )
 from . import BOTLOG_CHATID
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.on(events.ChatAction)
+@lionx.on(events.ChatAction)
 async def _(event):  # sourcery no-metrics
     cws = getcurrent_welcome_settings(event.chat_id)
     if (
@@ -28,7 +27,7 @@ async def _(event):  # sourcery no-metrics
         a_user = await event.get_user()
         chat = await event.get_chat()
         me = await event.client.get_me()
-        title = get_display_name(await event.get_chat()) or "this chat"
+        title = chat.title or "this chat"
         participants = await event.client.get_participants(chat)
         count = len(participants)
         mention = "<a href='tg://user?id={}'>{}</a>".format(
@@ -83,9 +82,9 @@ async def _(event):  # sourcery no-metrics
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="savepwel(?:\s|$)([\s\S]*)",
-    command=("savepwel", plugin_category),
+    command=("savepwel", plugin_type),
     info={
         "header": "To welcome user(sends welcome message to here private messages).",
         "description": "Saves the message as a welcome note in the chat. And will send welcome message to every new user who ever joins newly in group.",
@@ -122,14 +121,14 @@ async def save_welcome(event):
                 BOTLOG_CHATID,
                 f"#WELCOME_NOTE\
                 \nCHAT ID: {event.chat_id}\
-                \nThe following message is saved as the welcome note for the {get_display_name(await event.get_chat())}, Dont delete this message !!",
+                \nThe following message is saved as the welcome note for the {event.chat.title}, Dont delete this message !!",
             )
             msg_o = await event.client.forward_messages(
                 entity=BOTLOG_CHATID, messages=msg, from_peer=event.chat_id, silent=True
             )
             msg_id = msg_o.id
         else:
-            await edit_or_reply(
+            await eor(
                 event,
                 "`Saving media as part of the welcome note requires the BOTLOG_CHATID to be set.`",
             )
@@ -139,16 +138,16 @@ async def save_welcome(event):
         string = rep_msg.text
     success = "`Welcome note {} for this chat.`"
     if addwelcome_setting(event.chat_id, 0, string, msg_id) is True:
-        return await edit_or_reply(event, success.format("saved"))
+        return await eor(event, success.format("saved"))
     rmwelcome_setting(event.chat_id)
     if addwelcome_setting(event.chat_id, 0, string, msg_id) is True:
-        return await edit_or_reply(event, success.format("updated"))
-    await edit_or_reply("Error while setting welcome in this group")
+        return await eor(event, success.format("updated"))
+    await eor("Error while setting welcome in this group")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="clearpwel$",
-    command=("clearpwel", plugin_category),
+    command=("clearpwel", plugin_type),
     info={
         "header": "To turn off private welcome message.",
         "description": "Deletes the private welcome note for the current chat.",
@@ -158,14 +157,14 @@ async def save_welcome(event):
 async def del_welcome(event):
     "To turn off private welcome message"
     if rmwelcome_setting(event.chat_id) is True:
-        await edit_or_reply(event, "`Welcome note deleted for this chat.`")
+        await eor(event, "`Welcome note deleted for this chat.`")
     else:
-        await edit_or_reply(event, "`Do I have a welcome note here ?`")
+        await eor(event, "`Do I have a welcome note here ?`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="listpwel$",
-    command=("listpwel", plugin_category),
+    command=("listpwel", plugin_type),
     info={
         "header": "To check current private welcome message in group.",
         "usage": "{tr}listpwel",
@@ -175,18 +174,18 @@ async def show_welcome(event):
     "To show current private welcome message in group"
     cws = getcurrent_welcome_settings(event.chat_id)
     if not cws:
-        await edit_or_reply(event, "`No pwelcome message saved here.`")
+        await eor(event, "`No pwelcome message saved here.`")
         return
     if cws.f_mesg_id:
         msg_o = await event.client.get_messages(
             entity=BOTLOG_CHATID, ids=int(cws.f_mesg_id)
         )
-        await edit_or_reply(
+        await eor(
             event, "`I am currently pwelcoming new users with this welcome note.`"
         )
         await event.reply(msg_o.message, file=msg_o.media)
     elif cws.reply:
-        await edit_or_reply(
+        await eor(
             event, "`I am currently pwelcoming new users with this welcome note.`"
         )
         await event.reply(cws.reply, link_preview=False)

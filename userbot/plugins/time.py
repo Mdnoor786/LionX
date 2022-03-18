@@ -6,13 +6,13 @@ from pytz import country_names as c_n
 from pytz import country_timezones as c_tz
 from pytz import timezone as tz
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from . import reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 # Userbot timezone
 
@@ -44,9 +44,9 @@ async def get_tz(con):
         return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ctime(?:\s|$)([\s\S]*)(?<![0-9])(?: |$)([0-9]+)?",
-    command=("ctime", plugin_category),
+    command=("ctime", plugin_type),
     info={
         "header": "To get current time of a paticular country",
         "note": "For country names check [this link](https://telegra.ph/country-names-10-24)",
@@ -72,12 +72,12 @@ async def time_func(tdata):
         tz_num = Config.TZ_NUMBER
         timezones = await get_tz(Config.COUNTRY)
     else:
-        return await edit_or_reply(
+        return await eor(
             tdata,
             f"`It's`  **{dt.now().strftime(t_form)}**` on `**{dt.now().strftime(d_form)}** `here.`",
         )
     if not timezones:
-        return await edit_or_reply(tdata, "`Invaild country.`")
+        return await eor(tdata, "`Invaild country.`")
     if len(timezones) == 1:
         time_zone = timezones[0]
     elif len(timezones) > 1:
@@ -94,26 +94,26 @@ async def time_func(tdata):
             return_str += "in the command.`\n"
             return_str += f"`Example: .ctime {c_name} 2`"
 
-            return await edit_or_reply(tdata, return_str)
+            return await eor(tdata, return_str)
 
     dtnow1 = dt.now(tz(time_zone)).strftime(t_form)
     dtnow2 = dt.now(tz(time_zone)).strftime(d_form)
     if c_name != Config.COUNTRY:
-        await edit_or_reply(
+        await eor(
             tdata,
             f"`It's`  **{dtnow1}**` on `**{dtnow2}**  `in {c_name} ({time_zone} timezone).`",
         )
     if Config.COUNTRY:
-        await edit_or_reply(
+        await eor(
             tdata,
             f"`It's`  **{dtnow1}**` on `**{dtnow2}**  `here, in {Config.COUNTRY}"
             f"({time_zone} timezone).`",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="time(?:\s|$)([\s\S]*)",
-    command=("time", plugin_category),
+    command=("time", plugin_type),
     info={
         "header": "To show current time.",
         "description": "shows current default time you can change by changing TZ in heroku vars.",
@@ -126,11 +126,12 @@ async def _(event):
     current_time = dt.now().strftime(
         f"⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡\n⚡USERBOT TIMEZONE⚡\n⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡\n   {os.path.basename(Config.TZ)}\n  Time: %H:%M:%S \n  Date: %d.%m.%y \n⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡"
     )
-    if input_str := event.pattern_match.group(1):
+    input_str = event.pattern_match.group(1)
+    if input_str:
         current_time = input_str
     if not os.path.isdir(Config.TEMP_DIR):
         os.makedirs(Config.TEMP_DIR)
-    required_file_name = f"{Config.TEMP_DIR} {str(dt.now())}.webp"
+    required_file_name = Config.TEMP_DIR + " " + str(dt.now()) + ".webp"
     img = Image.new("RGBA", (350, 220), color=(0, 0, 0, 115))
     fnt = ImageFont.truetype(FONT_FILE_TO_USE, 30)
     drawn_text = ImageDraw.Draw(img)

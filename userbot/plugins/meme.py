@@ -1,15 +1,15 @@
 import asyncio
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="^\:/$",
-    command=("\:", plugin_category),
+    command=("\:", plugin_type),
     info={
         "header": "Animation command",
         "usage": "\:",
@@ -17,17 +17,17 @@ plugin_category = "fun"
 )
 async def kek(keks):
     "Animation command"
-    keks = await edit_or_reply(keks, ":\\")
+    keks = await eor(keks, ":\\")
     uio = ["/", "\\"]
     for i in range(15):
         await asyncio.sleep(0.5)
-        txt = f":{uio[i % 2]}"
+        txt = ":" + uio[i % 2]
         await keks.edit(txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="^\-_-$",
-    command=("-_-", plugin_category),
+    command=("-_-", plugin_type),
     info={
         "header": "Animation command",
         "usage": "-_-",
@@ -35,17 +35,17 @@ async def kek(keks):
 )
 async def lol(lel):
     "Animation command"
-    lel = await edit_or_reply(lel, "-__-")
+    lel = await eor(lel, "-__-")
     okay = "-__-"
     for _ in range(15):
         await asyncio.sleep(0.5)
-        okay = f"{okay[:-1]}_-"
+        okay = okay[:-1] + "_-"
         await lel.edit(okay)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="^\;_;$",
-    command=(";_;", plugin_category),
+    command=(";_;", plugin_type),
     info={
         "header": "Animation command",
         "usage": ";_;",
@@ -53,17 +53,17 @@ async def lol(lel):
 )
 async def fun(e):
     "Animation command"
-    e = await edit_or_reply(e, ";__;")
+    e = await eor(e, ";__;")
     t = ";__;"
     for _ in range(15):
         await asyncio.sleep(0.5)
-        t = f"{t[:-1]}_;"
+        t = t[:-1] + "_;"
         await e.edit(t)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="oof$",
-    command=("oof", plugin_category),
+    command=("oof", plugin_type),
     info={
         "header": "Animation command",
         "usage": "{tr}oof",
@@ -72,16 +72,16 @@ async def fun(e):
 async def Oof(e):
     "Animation command."
     t = "Oof"
-    lionxevent = await edit_or_reply(e, t)
+    lionxevent = await eor(e, t)
     for _ in range(15):
         await asyncio.sleep(0.5)
-        t = f"{t[:-1]}of"
+        t = t[:-1] + "of"
         await lionxevent.edit(t)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="type ([\s\S]*)",
-    command=("type", plugin_category),
+    command=("type", plugin_type),
     info={
         "header": "Type writter animation.",
         "usage": "{tr}type text",
@@ -93,38 +93,38 @@ async def typewriter(typew):
     sleep_time = 0.2
     typing_symbol = "|"
     old_text = ""
-    typew = await edit_or_reply(typew, typing_symbol)
+    typew = await eor(typew, typing_symbol)
     await asyncio.sleep(sleep_time)
     for character in message:
-        old_text = f"{old_text}{character}"
-        typing_text = f"{old_text}{typing_symbol}"
+        old_text = old_text + "" + character
+        typing_text = old_text + "" + typing_symbol
         await typew.edit(typing_text)
         await asyncio.sleep(sleep_time)
         await typew.edit(old_text)
         await asyncio.sleep(sleep_time)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="repeat (\d*) ([\s\S]*)",
-    command=("repeat", plugin_category),
+    command=("repeat", plugin_type),
     info={
         "header": "repeats the given text with given no of times.",
         "usage": "{tr}repeat <count> <text>",
-        "examples": "{tr}repeat 10 lionx",
+        "examples": "{tr}repeat 10 LionX",
     },
 )
 async def _(event):
     "To repeat the given text."
-    lionx = ("".join(event.text.split(maxsplit=1)[1:])).split(" ", 1)
-    message = lionx[1]
-    count = int(lionx[0])
+    lol = ("".join(event.text.split(maxsplit=1)[1:])).split(" ", 1)
+    message = lol[1]
+    count = int(lol[0])
     repsmessage = (f"{message} ") * count
-    await edit_or_reply(event, repsmessage)
+    await eor(event, repsmessage)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="meme",
-    command=("meme", plugin_category),
+    command=("meme", plugin_type),
     info={
         "header": "Animation command",
         "usage": [
@@ -140,68 +140,68 @@ async def meme(event):
     memeVar = memeVar[6:]
     if not memeVar:
         memeVar = "✈️"
-    event = await edit_or_reply(event, f"-------------{memeVar}")
+    event = await eor(event, "-------------" + memeVar)
     await asyncio.sleep(sleepValue)
-    await event.edit(f"------------{memeVar}-")
+    await event.edit("------------" + memeVar + "-")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-----------{memeVar}--")
+    await event.edit("-----------" + memeVar + "--")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"----------{memeVar}---")
+    await event.edit("----------" + memeVar + "---")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"---------{memeVar}----")
+    await event.edit("---------" + memeVar + "----")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"--------{memeVar}-----")
+    await event.edit("--------" + memeVar + "-----")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-------{memeVar}------")
+    await event.edit("-------" + memeVar + "------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"------{memeVar}-------")
+    await event.edit("------" + memeVar + "-------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-----{memeVar}--------")
+    await event.edit("-----" + memeVar + "--------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"----{memeVar}---------")
+    await event.edit("----" + memeVar + "---------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"---{memeVar}----------")
+    await event.edit("---" + memeVar + "----------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"--{memeVar}-----------")
+    await event.edit("--" + memeVar + "-----------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-{memeVar}------------")
+    await event.edit("-" + memeVar + "------------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"{memeVar}-------------")
+    await event.edit(memeVar + "-------------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-------------{memeVar}")
+    await event.edit("-------------" + memeVar)
     await asyncio.sleep(sleepValue)
-    await event.edit(f"------------{memeVar}-")
+    await event.edit("------------" + memeVar + "-")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-----------{memeVar}--")
+    await event.edit("-----------" + memeVar + "--")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"----------{memeVar}---")
+    await event.edit("----------" + memeVar + "---")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"---------{memeVar}----")
+    await event.edit("---------" + memeVar + "----")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"--------{memeVar}-----")
+    await event.edit("--------" + memeVar + "-----")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-------{memeVar}------")
+    await event.edit("-------" + memeVar + "------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"------{memeVar}-------")
+    await event.edit("------" + memeVar + "-------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-----{memeVar}--------")
+    await event.edit("-----" + memeVar + "--------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"----{memeVar}---------")
+    await event.edit("----" + memeVar + "---------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"---{memeVar}----------")
+    await event.edit("---" + memeVar + "----------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"--{memeVar}-----------")
+    await event.edit("--" + memeVar + "-----------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"-{memeVar}------------")
+    await event.edit("-" + memeVar + "------------")
     await asyncio.sleep(sleepValue)
-    await event.edit(f"{memeVar}-------------")
+    await event.edit(memeVar + "-------------")
     await asyncio.sleep(sleepValue)
     await event.edit(memeVar)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="give",
-    command=("give", plugin_category),
+    command=("give", plugin_type),
     info={
         "header": "Animation command",
         "usage": [
@@ -217,7 +217,7 @@ async def give(event):
     lp = giveVar[6:]
     if not lp:
         lp = " 🍭"
-    event = await edit_or_reply(event, f"{lp}        ")
+    event = await eor(event, lp + "        ")
     await asyncio.sleep(sleepValue)
     await event.edit(lp + lp + "       ")
     await asyncio.sleep(sleepValue)
@@ -235,7 +235,7 @@ async def give(event):
     await asyncio.sleep(sleepValue)
     await event.edit(lp + lp + lp + lp + lp + lp + lp + lp + lp)
     await asyncio.sleep(sleepValue)
-    await event.edit(f"{lp}        ")
+    await event.edit(lp + "        ")
     await asyncio.sleep(sleepValue)
     await event.edit(lp + lp + "       ")
     await asyncio.sleep(sleepValue)
@@ -254,9 +254,9 @@ async def give(event):
     await event.edit(lp + lp + lp + lp + lp + lp + lp + lp + lp)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="sadmin$",
-    command=("sadmin", plugin_category),
+    command=("sadmin", plugin_type),
     info={
         "header": "Shouts Admin Animation command",
         "usage": "{tr}sadmin",
@@ -265,7 +265,7 @@ async def give(event):
 async def _(event):
     "Shouts Admin Animation command."
     animation_ttl = range(13)
-    event = await edit_or_reply(event, "sadmin")
+    event = await eor(event, "sadmin")
     animation_chars = [
         "@aaaaaaaaaaaaadddddddddddddmmmmmmmmmmmmmiiiiiiiiiiiiinnnnnnnnnnnnn",
         "@aaaaaaaaaaaaddddddddddddmmmmmmmmmmmmiiiiiiiiiiiinnnnnnnnnnnn",

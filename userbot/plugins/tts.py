@@ -9,17 +9,17 @@ from datetime import datetime
 
 from gtts import gTTS
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from . import deEmojify, reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="tts(?:\s|$)([\s\S]*)",
-    command=("tts", plugin_category),
+    command=("tts", plugin_type),
     info={
         "header": "Text to speech command.",
         "usage": [
@@ -42,10 +42,10 @@ async def _(event):
         lan = input_str or "en"
     else:
         if not input_str:
-            return await edit_or_reply(event, "Invalid Syntax. Module stopping.")
+            return await eor(event, "Invalid Syntax. Module stopping.")
         text = input_str
         lan = "en"
-    lionxevent = await edit_or_reply(event, "`Recording......`")
+    lionxevent = await eor(event, "`Recording......`")
     text = deEmojify(text.strip())
     lan = lan.strip()
     if not os.path.isdir("./temp/"):
@@ -67,9 +67,8 @@ async def _(event):
             "100k",
             "-vbr",
             "on",
-            f"{required_file_name}.opus",
+            required_file_name + ".opus",
         ]
-
         try:
             t_response = subprocess.check_output(
                 command_to_execute, stderr=subprocess.STDOUT
@@ -79,7 +78,7 @@ async def _(event):
             # continue sending required_file_name
         else:
             os.remove(required_file_name)
-            required_file_name = f"{required_file_name}.opus"
+            required_file_name = required_file_name + ".opus"
         end = datetime.now()
         ms = (end - start).seconds
         await event.client.send_file(
@@ -90,10 +89,9 @@ async def _(event):
             voice_note=True,
         )
         os.remove(required_file_name)
-        await edit_delete(
+        await eod(
             lionxevent,
-            "`Processed text {} into voice in {} seconds!`".format(text[:20], ms),
+            "`Processed text {} into voice in {} seconds!`".format(text[0:20], ms),
         )
-
     except Exception as e:
-        await edit_or_reply(lionxevent, f"**Error:**\n`{e}`")
+        await eor(lionxevent, f"**Error:**\n`{e}`")

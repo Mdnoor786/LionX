@@ -3,50 +3,24 @@ from os import remove
 from random import choice
 from urllib import parse
 
-import nekos
 import requests
-from PIL import Image
 from telethon import functions, types, utils
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..helpers import reply_id
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 BASE_URL = "https://headp.at/pats/{}"
 PAT_IMAGE = "pat.webp"
 
-
-@lionxub.lionx_cmd(
-    pattern="lionx$",
-    command=("lionx", plugin_category),
-    info={
-        "header": "To get random lionx stickers.",
-        "usage": "{tr}lionx",
-    },
-)
-async def _(event):
-    "To get random lionx stickers."
-    await event.delete()
-    reply_to_id = await reply_id(event)
-    with open("temp.png", "wb") as f:
-        f.write(requests.get(nekos.lionx()).content)
-    img = Image.open("temp.png")
-    img.save("temp.webp", "webp")
-    img.seek(0)
-    await event.client.send_file(
-        event.chat_id, open("temp.webp", "rb"), reply_to=reply_to_id
-    )
-    remove("temp.webp")
-
-
 # credit to @r4v4n4
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="dab$",
-    command=("dab", plugin_category),
+    command=("dab", plugin_type),
     info={
         "header": "To get random dabbing pose stickers.",
         "usage": "{tr}dab",
@@ -77,8 +51,7 @@ async def _(event):
         for x in (
             await event.client(
                 functions.messages.GetStickerSetRequest(
-                    types.InputStickerSetShortName("DabOnHaters"),
-                    hash=0,
+                    types.InputStickerSetShortName("DabOnHaters")
                 )
             )
         ).documents
@@ -87,9 +60,9 @@ async def _(event):
     await event.respond(file=random.choice(docs), reply_to=reply_to_id)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="brain$",
-    command=("brain", plugin_category),
+    command=("brain", plugin_type),
     info={
         "header": "To get random brain stickers.",
         "usage": "{tr}brain",
@@ -105,8 +78,7 @@ async def handler(event):
         for x in (
             await event.client(
                 functions.messages.GetStickerSetRequest(
-                    types.InputStickerSetShortName("supermind"),
-                    hash=0,
+                    types.InputStickerSetShortName("supermind")
                 )
             )
         ).documents
@@ -120,9 +92,9 @@ async def handler(event):
 # By:- git: jaskaranSM tg: @Zero_cool7870
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pat$",
-    command=("pat", plugin_category),
+    command=("pat", plugin_type),
     info={
         "header": "To get random pat stickers.",
         "usage": "{tr}pat",

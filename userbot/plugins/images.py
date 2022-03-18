@@ -1,29 +1,29 @@
-# image search for lionx
+# image search for LionX
 import os
 import shutil
 
 from telethon.errors.rpcerrorlist import MediaEmptyError
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers.google_image_download import googleimagesdownload
 from ..helpers.utils import reply_id
 
-plugin_category = "misc"
+plugin_type = "misc"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="img(?: |$)(\d*)? ?([\s\S]*)",
-    command=("img", plugin_category),
+    command=("img", plugin_type),
     info={
         "header": "Google image search.",
         "description": "To search images in google. By default will send 3 images.you can get more images(upto 10 only by changing limit value as shown in usage and examples.",
         "usage": ["{tr}img <1-10> <query>", "{tr}img <query>"],
         "examples": [
-            "{tr}img 10 lionx",
-            "{tr}img lionx",
-            "{tr}img 7 lionx",
+            "{tr}img 10 LionX",
+            "{tr}img LionX",
+            "{tr}img 7 LionX",
         ],
     },
 )
@@ -36,10 +36,8 @@ async def img_sampler(event):
     else:
         query = str(event.pattern_match.group(2))
     if not query:
-        return await edit_or_reply(
-            event, "Reply to a message or pass a query to search!"
-        )
-    lionx = await edit_or_reply(event, "`Processing...`")
+        return await eor(event, "Reply to a message or pass a query to search!")
+    lionx = await eor(event, "`Processing...`")
     if event.pattern_match.group(1) != "":
         lim = int(event.pattern_match.group(1))
         if lim > 10:

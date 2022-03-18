@@ -4,12 +4,11 @@ import requests
 from googletrans import LANGUAGES
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
-from ..helpers.functions import getTranslate
+from ..funcs.managers import eor
 from ..sql_helper.globals import gvarstatus
-from . import _lionxtools, convert_toimage, deEmojify, lionxub
+from . import _lionxtools, convert_toimage, deEmojify, lionx
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 async def ocr_space_file(
@@ -42,9 +41,9 @@ async def ocr_space_file(
     return r.json()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(|t)ocr(?:\s|$)([\s\S]*)",
-    command=("ocr", plugin_category),
+    command=("ocr", plugin_type),
     info={
         "header": "To read text in image/gif/sticker/video and print it.",
         "description": "Reply to an image or sticker to extract text from it.\n\nGet language codes from [here](https://ocr.space/ocrapi).",
@@ -56,8 +55,8 @@ async def ocr(event):
     "To read text in media."
     reply = await event.get_reply_message()
     if not event.reply_to_msg_id or not reply.media:
-        return await edit_delete(event, "__Reply to a media to read text on it__")
-    lionxevent = await edit_or_reply(event, "`Reading...`")
+        return await eod(event, "__Reply to a media to read text on it__")
+    lionxevent = await eor(event, "`Reading...`")
     if not os.path.isdir(Config.TEMP_DIR):
         os.makedirs(Config.TEMP_DIR)
     cmd = event.pattern_match.group(1)
@@ -83,9 +82,7 @@ async def ocr(event):
             try:
                 reply_text = await getTranslate(deEmojify(ParsedText), dest=TRT_LANG)
             except ValueError:
-                return await edit_delete(
-                    trans, "`Invalid destination language.`", time=5
-                )
+                return await eod(trans, "`Invalid destination language.`", time=5)
             source_lan = LANGUAGES[f"{reply_text.src.lower()}"]
             transl_lan = LANGUAGES[f"{reply_text.dest.lower()}"]
             tran_text = f"📜**Translate :-\nFrom {source_lan.title()}({reply_text.src.lower()}) to {transl_lan.title()}({reply_text.dest.lower()}) :**\n\n`{reply_text.text}`"
@@ -95,9 +92,9 @@ async def ocr(event):
     os.remove(output_file)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="tocr",
-    command=("tocr", plugin_category),
+    command=("tocr", plugin_type),
     info={
         "header": "To read text in image/gif/sticker/video and print it with its translation.",
         "description": "Reply to an image/gif/sticker/video to extract text from it and print it with its translation.\n\nGet language codes from [here](https://ocr.space/ocrapi).",

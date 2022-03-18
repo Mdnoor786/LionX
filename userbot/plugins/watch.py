@@ -8,14 +8,14 @@ import os
 from justwatch import JustWatch, justwatchapi
 from pySmartDL import SmartDL
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "utils"
+plugin_type = "utils"
 
 moviepath = os.path.join(os.getcwd(), "temp", "moviethumb.jpg")
 
@@ -25,6 +25,7 @@ justwatchapi.__dict__["HEADER"] = {
 
 
 def get_stream_data(query):
+    stream_data = {}
     # Compatibility for Current Userge Users
     try:
         country = Config.WATCH_COUNTRY
@@ -34,15 +35,12 @@ def get_stream_data(query):
     just_watch = JustWatch(country=country)
     results = just_watch.search_for_item(query=query)
     movie = results["items"][0]
-    stream_data = {
-        "title": movie["title"],
-        "movie_thumb": (
-            "https://images.justwatch.com"
-            + movie["poster"].replace("{profile}", "")
-            + "s592"
-        ),
-    }
-
+    stream_data["title"] = movie["title"]
+    stream_data["movie_thumb"] = (
+        "https://images.justwatch.com"
+        + movie["poster"].replace("{profile}", "")
+        + "s592"
+    )
     stream_data["release_year"] = movie["original_release_year"]
     try:
         LOGS.info(movie["cinema_release_date"])
@@ -89,9 +87,9 @@ def get_provider(url):
     return url
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="watch ([\s\S]*)",
-    command=("watch", plugin_category),
+    command=("watch", plugin_type),
     info={
         "header": "To search online streaming sites for that movie.",
         "description": "Fetches the list of sites(standard) where you can watch that movie.",
@@ -102,7 +100,7 @@ def get_provider(url):
 async def _(event):
     "To search online streaming sites for that movie."
     query = event.pattern_match.group(1)
-    et = await edit_or_reply(event, "`Finding Sites...`")
+    et = await eor(event, "`Finding Sites...`")
     try:
         streams = get_stream_data(query)
     except Exception as e:
@@ -127,9 +125,9 @@ async def _(event):
 
     output_ = f"**Movie:**\n`{title}`\n**Release Date:**\n`{release_date}`"
     if imdb_score:
-        output_ = f"{output_}\n**IMDB: **{imdb_score}"
+        output_ = output_ + f"\n**IMDB: **{imdb_score}"
     if tmdb_score:
-        output_ = f"{output_}\n**TMDB: **{tmdb_score}"
+        output_ = output_ + f"\n**TMDB: **{tmdb_score}"
 
     output_ = output_ + "\n\n**Available on:**\n"
     for provider, link in stream_providers.items():

@@ -1,6 +1,6 @@
 """
 idea from lynda and rose bot
-made by @copyless786
+made by @TeamLionX
 """
 from telethon.errors import BadRequestError
 from telethon.errors.rpcerrorlist import UserAdminInvalidError, UserIdInvalidError
@@ -8,22 +8,22 @@ from telethon.tl.functions.channels import EditBannedRequest
 from telethon.tl.types import ChatBannedRights
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers.utils import _format
 from . import BOTLOG, BOTLOG_CHATID, extract_time, get_user_from_event
 
-plugin_category = "admin"
+plugin_type = "admin"
 
 # =================== CONSTANT ===================
 NO_ADMIN = "`I am not an admin nub nibba!`"
 NO_PERM = "`I don't have sufficient permissions! This is so sed. Alexa play despacito`"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="tmute(?:\s|$)([\s\S]*)",
-    command=("tmute", plugin_category),
+    command=("tmute", plugin_type),
     info={
         "header": "To stop sending messages permission for that user",
         "description": "Temporary mutes the user for given time.",
@@ -45,7 +45,7 @@ NO_PERM = "`I don't have sufficient permissions! This is so sed. Alexa play desp
 )
 async def tmuter(event):  # sourcery no-metrics
     "To mute a person for specific time"
-    lionxevent = await edit_or_reply(event, "`muting....`")
+    lionxevent = await eor(event, "`muting....`")
     user, reason = await get_user_from_event(event, lionxevent)
     if not user:
         return
@@ -53,9 +53,9 @@ async def tmuter(event):  # sourcery no-metrics
         return await lionxevent.edit("you haven't mentioned time, check `.help tmute`")
     reason = reason.split(" ", 1)
     hmm = len(reason)
-    lionxtime = reason[0].strip()
+    swttime = reason[0].strip()
     reason = "".join(reason[1:]) if hmm > 1 else None
-    ctime = await extract_time(lionxevent, lionxtime)
+    ctime = await extract_time(lionxevent, swttime)
     if not ctime:
         return
     if user.id == event.client.uid:
@@ -72,7 +72,7 @@ async def tmuter(event):  # sourcery no-metrics
         if reason:
             await lionxevent.edit(
                 f"{_format.mentionuser(user.first_name ,user.id)} was muted in {get_display_name(await event.get_chat())}\n"
-                f"**Muted for : **{lionxtime}\n"
+                f"**Muted for : **{swttime}\n"
                 f"**Reason : **__{reason}__"
             )
             if BOTLOG:
@@ -81,13 +81,13 @@ async def tmuter(event):  # sourcery no-metrics
                     "#TMUTE\n"
                     f"**User : **[{user.first_name}](tg://user?id={user.id})\n"
                     f"**Chat : **{get_display_name(await event.get_chat())}(`{event.chat_id}`)\n"
-                    f"**Muted for : **`{lionxtime}`\n"
+                    f"**Muted for : **`{swttime}`\n"
                     f"**Reason : **`{reason}``",
                 )
         else:
             await lionxevent.edit(
                 f"{_format.mentionuser(user.first_name ,user.id)} was muted in {get_display_name(await event.get_chat())}\n"
-                f"Muted for {lionxtime}\n"
+                f"Muted for {swttime}\n"
             )
             if BOTLOG:
                 await event.client.send_message(
@@ -95,7 +95,7 @@ async def tmuter(event):  # sourcery no-metrics
                     "#TMUTE\n"
                     f"**User : **[{user.first_name}](tg://user?id={user.id})\n"
                     f"**Chat : **{get_display_name(await event.get_chat())}(`{event.chat_id}`)\n"
-                    f"**Muted for : **`{lionxtime}`",
+                    f"**Muted for : **`{swttime}`",
                 )
         # Announce to logging group
     except UserIdInvalidError:
@@ -108,9 +108,9 @@ async def tmuter(event):  # sourcery no-metrics
         return await lionxevent.edit(f"`{e}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="tban(?:\s|$)([\s\S]*)",
-    command=("tban", plugin_category),
+    command=("tban", plugin_type),
     info={
         "header": "To remove a user from the group for specified time.",
         "description": "Temporary bans the user for given time.",
@@ -132,7 +132,7 @@ async def tmuter(event):  # sourcery no-metrics
 )
 async def tban(event):  # sourcery no-metrics
     "To ban a person for specific time"
-    lionxevent = await edit_or_reply(event, "`banning....`")
+    lionxevent = await eor(event, "`banning....`")
     user, reason = await get_user_from_event(event, lionxevent)
     if not user:
         return
@@ -140,9 +140,9 @@ async def tban(event):  # sourcery no-metrics
         return await lionxevent.edit("you haven't mentioned time, check `.help tban`")
     reason = reason.split(" ", 1)
     hmm = len(reason)
-    lionxtime = reason[0].strip()
+    swttime = reason[0].strip()
     reason = "".join(reason[1:]) if hmm > 1 else None
-    ctime = await extract_time(lionxevent, lionxtime)
+    ctime = await extract_time(lionxevent, swttime)
     if not ctime:
         return
     if user.id == event.client.uid:
@@ -177,7 +177,7 @@ async def tban(event):  # sourcery no-metrics
     if reason:
         await lionxevent.edit(
             f"{_format.mentionuser(user.first_name ,user.id)} was banned in {get_display_name(await event.get_chat())}\n"
-            f"banned for {lionxtime}\n"
+            f"banned for {swttime}\n"
             f"Reason:`{reason}`"
         )
         if BOTLOG:
@@ -186,13 +186,13 @@ async def tban(event):  # sourcery no-metrics
                 "#TBAN\n"
                 f"**User : **[{user.first_name}](tg://user?id={user.id})\n"
                 f"**Chat : **{get_display_name(await event.get_chat())}(`{event.chat_id}`)\n"
-                f"**Banned untill : **`{lionxtime}`\n"
+                f"**Banned untill : **`{swttime}`\n"
                 f"**Reason : **__{reason}__",
             )
     else:
         await lionxevent.edit(
             f"{_format.mentionuser(user.first_name ,user.id)} was banned in {get_display_name(await event.get_chat())}\n"
-            f"banned for {lionxtime}\n"
+            f"banned for {swttime}\n"
         )
         if BOTLOG:
             await event.client.send_message(
@@ -200,5 +200,5 @@ async def tban(event):  # sourcery no-metrics
                 "#TBAN\n"
                 f"**User : **[{user.first_name}](tg://user?id={user.id})\n"
                 f"**Chat : **{get_display_name(await event.get_chat())}(`{event.chat_id}`)\n"
-                f"**Banned untill : **`{lionxtime}`",
+                f"**Banned untill : **`{swttime}`",
             )

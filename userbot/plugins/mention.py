@@ -1,17 +1,17 @@
 from telethon.tl.types import ChannelParticipantsAdmins
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..helpers.utils import get_user_from_event, reply_id
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(tagall|all)(?:\s|$)([\s\S]*)",
-    command=("tagall", plugin_category),
+    command=("tagall", plugin_type),
     info={
-        "header": "tags recent 50 persons in the group may not work for all",
+        "header": "tags recent 100 persons in the group may not work for all",
         "usage": [
             "{tr}all <text>",
             "{tr}tagall",
@@ -24,15 +24,15 @@ async def _(event):
     input_str = event.pattern_match.group(2)
     mentions = input_str or "@all"
     chat = await event.get_input_chat()
-    async for x in event.client.iter_participants(chat, 50):
+    async for x in event.client.iter_participants(chat, 100):
         mentions += f"[\u2063](tg://user?id={x.id})"
     await event.client.send_message(event.chat_id, mentions, reply_to=reply_to_id)
     await event.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="report$",
-    command=("report", plugin_category),
+    command=("report", plugin_type),
     info={
         "header": "To tags admins in group.",
         "usage": "{tr}report",
@@ -52,16 +52,16 @@ async def _(event):
     await event.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="men ([\s\S]*)",
-    command=("mention", plugin_category),
+    command=("mention", plugin_type),
     info={
         "header": "Tags that person with the given custom text.",
         "usage": [
             "{tr}men username/userid text",
             "text (username/mention)[custom text] text",
         ],
-        "examples": ["{tr}men @copyless786 hi", "Hi @copyless786[How are you?]"],
+        "examples": ["{tr}men @TeamLionX hi", "Hi @TeamLionX[How are you?]"],
     },
 )
 async def _(event):

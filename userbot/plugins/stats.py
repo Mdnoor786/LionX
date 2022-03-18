@@ -5,11 +5,11 @@ from telethon.tl.custom import Dialog
 from telethon.tl.functions.messages import ImportChatInviteRequest as Get
 from telethon.tl.types import Channel, Chat, User
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 # =========================================================== #
 #                           STRINGS                           #
@@ -37,9 +37,9 @@ def user_full_name(user):
     return " ".join(names)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stat$",
-    command=("stat", plugin_category),
+    command=("stat", plugin_type),
     info={
         "header": "To get statistics of your telegram account.",
         "description": "Shows you the count of  your groups, channels, private chats...etc if no input is given.",
@@ -51,13 +51,13 @@ def user_full_name(user):
             "ca": "To get list of all channels where you are admin",
             "co": "To get list of all channels where you are owner/creator.",
         },
-        "usage": ["{tr}stat", "{tr}stat <flag>"],
+        "usage": ["{tr}stat", "{tr}stat <type>"],
         "examples": ["{tr}stat g", "{tr}stat ca"],
     },
 )
 async def stats(event):  # sourcery no-metrics
     "To get statistics of your telegram account."
-    lionx = await edit_or_reply(event, STAT_INDICATION)
+    lionx = await eor(event, STAT_INDICATION)
     start_time = time.time()
     private_chats = 0
     bots = 0
@@ -98,34 +98,32 @@ async def stats(event):  # sourcery no-metrics
         unread += dialog.unread_count
     stop_time = time.time() - start_time
     full_name = inline_mention(await event.client.get_me())
-    response = f"📌 **Stats for {full_name}** \n\n"
+    response = f"📜 **Stats for {full_name}** \n\n"
     response += f"**Private Chats:** {private_chats} \n"
-    response += f"   ★ `Users: {private_chats - bots}` \n"
-    response += f"   ★ `Bots: {bots}` \n"
+    response += f"   • **Users:** `{private_chats - bots}` \n"
+    response += f"   • **Bots:** `{bots}` \n"
     response += f"**Groups:** {groups} \n"
     response += f"**Channels:** {broadcast_channels} \n"
     response += f"**Admin in Groups:** {admin_in_groups} \n"
-    response += f"   ★ `Creator: {creator_in_groups}` \n"
-    response += f"   ★ `Admin Rights: {admin_in_groups - creator_in_groups}` \n"
+    response += f"   ▪ **Creator:** `{creator_in_groups}` \n"
+    response += f"   ▪ **Admin Rights:** `{admin_in_groups - creator_in_groups}` \n"
     response += f"**Admin in Channels:** {admin_in_broadcast_channels} \n"
-    response += f"   ★ `Creator: {creator_in_channels}` \n"
-    response += (
-        f"   ★ `Admin Rights: {admin_in_broadcast_channels - creator_in_channels}` \n"
-    )
+    response += f"   ♡ **Creator:** `{creator_in_channels}` \n"
+    response += f"   ★ **Admin Rights:** `{admin_in_broadcast_channels - creator_in_channels}` \n"
     response += f"**Unread:** {unread} \n"
     response += f"**Unread Mentions:** {unread_mentions} \n\n"
-    response += f"📌 __It Took:__ {stop_time:.02f}s \n"
+    response += f"🚩 __It Took:__ {stop_time:.02f}s \n"
     await lionx.edit(response)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stat (c|ca|co)$",
 )
 async def stats(event):  # sourcery no-metrics
     lionxcmd = event.pattern_match.group(1)
-    lionxevent = await edit_or_reply(event, STAT_INDICATION)
+    lionxevent = await eor(event, STAT_INDICATION)
     start_time = time.time()
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     hi = []
     hica = []
     hico = []
@@ -162,21 +160,21 @@ async def stats(event):  # sourcery no-metrics
     try:
         await lionxevent.edit(output)
     except Exception:
-        await edit_or_reply(
+        await eor(
             lionxevent,
             output,
             caption=caption,
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stat (g|ga|go)$",
 )
 async def stats(event):  # sourcery no-metrics
     lionxcmd = event.pattern_match.group(1)
-    lionxevent = await edit_or_reply(event, STAT_INDICATION)
+    lionxevent = await eor(event, STAT_INDICATION)
     start_time = time.time()
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     hi = []
     higa = []
     higo = []
@@ -221,16 +219,16 @@ async def stats(event):  # sourcery no-metrics
     try:
         await lionxevent.edit(output)
     except Exception:
-        await edit_or_reply(
+        await eor(
             lionxevent,
             output,
             caption=caption,
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ustat(?:\s|$)([\s\S]*)",
-    command=("ustat", plugin_category),
+    command=("ustat", plugin_type),
     info={
         "header": "To get list of public groups of repled person or mentioned person.",
         "usage": "{tr}ustat <reply/userid/username>",
@@ -241,7 +239,7 @@ async def _(event):
     input_str = "".join(event.text.split(maxsplit=1)[1:])
     reply_message = await event.get_reply_message()
     if not input_str and not reply_message:
-        return await edit_delete(
+        return await eod(
             event,
             "`reply to  user's text message to get name/username history or give userid/username`",
         )
@@ -252,19 +250,17 @@ async def _(event):
             try:
                 u = await event.client.get_entity(input_str)
             except ValueError:
-                await edit_delete(
-                    event, "`Give userid or username to find name history`"
-                )
+                await eod(event, "`Give userid or username to find name history`")
             uid = u.id
     else:
         uid = reply_message.sender_id
     chat = "@tgscanrobot"
-    lionxevent = await edit_or_reply(event, "`Processing...`")
+    lionxevent = await eor(event, "`Processing...`")
     async with event.client.conversation(chat) as conv:
         try:
             await conv.send_message(f"{uid}")
         except Exception:
-            await edit_delete(lionxevent, "`unblock `@tgscanrobot` and then try`")
+            await eod(lionxevent, "`unblock `@tgscanrobot` and then try`")
         response = await conv.get_response()
         await event.client.send_read_acknowledge(conv.chat_id)
         await lionxevent.edit(response.text)

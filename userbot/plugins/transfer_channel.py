@@ -5,16 +5,16 @@ Available Commands:
 import telethon.password as pwd_mod
 from telethon.tl import functions
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="otransfer ([\s\S]*)",
-    command=("otransfer", plugin_category),
+    command=("otransfer", plugin_type),
     info={
         "header": "To transfer channel ownership.",
         "description": "Transfers ownership to the given username for this set this var `TG_2STEP_VERIFICATION_CODE` in heroku with your 2-step verification code.",

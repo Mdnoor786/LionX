@@ -1,6 +1,6 @@
 """
 imported from nicegrill
-modified by @copyless786
+modified by @TeamLionX
 QuotLy: Avaible commands: .qbot
 """
 
@@ -16,31 +16,31 @@ from telethon import events
 from telethon.errors.rpcerrorlist import YouBlockedUserError
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import convert_tosticker, media_type, process
 from ..helpers.utils import _lionxtools, reply_id
 
 FONT_FILE_TO_USE = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
 def get_warp_length(width):
     return int((20.0 / 1024.0) * (width + 0.0))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="qpic(?:\s|$)([\s\S]*)",
-    command=("qpic", plugin_category),
+    command=("qpic", plugin_type),
     info={
         "header": "Makes quote pic.",
         "flags": {
             "-b": "To get black and white output.",
             "-s": "To output file as sticker",
         },
-        "usage": "{tr}qpic <flag> <input/reply to text msg>",
+        "usage": "{tr}qpic <type> <input/reply to text msg>",
         "examples": ["{tr}qpic LionX.", "{tr}qpic -b LionX."],
     },
 )
@@ -59,10 +59,10 @@ async def q_pic(event):  # sourcery no-metrics
     elif reply and reply.raw_text:
         text = reply.raw_text
     else:
-        return await edit_delete(
+        return await eod(
             event, "__Provide input along with cmd or reply to text message.__"
         )
-    lionxevent = await edit_or_reply(event, "__Making Quote pic....__")
+    lionxevent = await eor(event, "__Making Quote pic....__")
     mediatype = media_type(reply)
     if (
         (not reply)
@@ -78,7 +78,7 @@ async def q_pic(event):  # sourcery no-metrics
     else:
         imag = await _lionxtools.media_to_pic(event, reply, noedits=True)
         if imag[1] is None:
-            return await edit_delete(
+            return await eod(
                 imag[0], "__Unable to extract image from the replied message.__"
             )
         user = event.client.uid
@@ -139,91 +139,79 @@ async def q_pic(event):  # sourcery no-metrics
             os.remove(i)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="q(?:\s|$)([\s\S]*)",
-    command=("q", plugin_category),
+    command=("q", plugin_type),
     info={
         "header": "Makes your message as sticker quote.",
         "usage": "{tr}q",
     },
 )
-async def stickerchat(lionxquotes):
+async def stickerchat(owoquotes):
     "Makes your message as sticker quote"
-    reply = await lionxquotes.get_reply_message()
+    reply = await owoquotes.get_reply_message()
     if not reply:
-        return await edit_or_reply(
-            lionxquotes, "`I cant quote the message . reply to a message`"
-        )
+        return await eor(owoquotes, "`I cant quote the message . reply to a message`")
     fetchmsg = reply.message
     repliedreply = None
     mediatype = media_type(reply)
     if mediatype and mediatype in ["Photo", "Round Video", "Gif"]:
-        return await edit_or_reply(
-            lionxquotes, "`Replied message is not supported now`"
-        )
-    lionxevent = await edit_or_reply(lionxquotes, "`Making quote...`")
+        return await eor(owoquotes, "`Replied message is not supported now`")
+    lionxevent = await eor(owoquotes, "`Making quote...`")
     user = (
-        await lionxquotes.client.get_entity(reply.forward.sender)
+        await owoquotes.client.get_entity(reply.forward.sender)
         if reply.fwd_from
         else reply.sender
     )
-    res, lionxmsg = await process(
-        fetchmsg, user, lionxquotes.client, reply, repliedreply
-    )
+    res, swtmsg = await process(fetchmsg, user, owoquotes.client, reply, repliedreply)
     if not res:
         return
     outfi = os.path.join("./temp", "sticker.png")
-    lionxmsg.save(outfi)
+    swtmsg.save(outfi)
     endfi = convert_tosticker(outfi)
-    await lionxquotes.client.send_file(lionxquotes.chat_id, endfi, reply_to=reply)
+    await owoquotes.client.send_file(owoquotes.chat_id, endfi, reply_to=reply)
     await lionxevent.delete()
     os.remove(endfi)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="rq(?:\s|$)([\s\S]*)",
-    command=("rq", plugin_category),
+    command=("rq", plugin_type),
     info={
         "header": "Makes your message along with the previous replied message as sticker quote",
         "usage": "{tr}rq",
     },
 )
-async def stickerchat(lionxquotes):
+async def stickerchat(owoquotes):
     "To make sticker message."
-    reply = await lionxquotes.get_reply_message()
+    reply = await owoquotes.get_reply_message()
     if not reply:
-        return await edit_or_reply(
-            lionxquotes, "`I cant quote the message . reply to a message`"
-        )
+        return await eor(owoquotes, "`I cant quote the message . reply to a message`")
     fetchmsg = reply.message
     repliedreply = await reply.get_reply_message()
     mediatype = media_type(reply)
     if mediatype and mediatype in ["Photo", "Round Video", "Gif"]:
-        return await edit_or_reply(
-            lionxquotes, "`Replied message is not supported now`"
-        )
-    lionxevent = await edit_or_reply(lionxquotes, "`Making quote...`")
+        return await eor(owoquotes, "`Replied message is not supported now`")
+    lionxevent = await eor(owoquotes, "`Making quote...`")
     user = (
-        await lionxquotes.client.get_entity(reply.forward.sender)
+        await owoquotes.client.get_entity(reply.forward.sender)
         if reply.fwd_from
         else reply.sender
     )
-    res, lionxmsg = await process(
-        fetchmsg, user, lionxquotes.client, reply, repliedreply
-    )
+    res, stmsg = await process(fetchmsg, user, owoquotes.client, reply, repliedreply)
     if not res:
         return
     outfi = os.path.join("./temp", "sticker.png")
-    lionxmsg.save(outfi)
+    stmsg.save(outfi)
     endfi = convert_tosticker(outfi)
-    await lionxquotes.client.send_file(lionxquotes.chat_id, endfi, reply_to=reply)
+    await owoquotes.client.send_file(owoquotes.chat_id, endfi, reply_to=reply)
     await lionxevent.delete()
     os.remove(endfi)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="qbot(?:\s|$)([\s\S]*)",
-    command=("qbot", plugin_category),
+    command=("qbot", plugin_type),
     info={
         "header": "Makes your message as sticker quote by @quotlybot",
         "usage": "{tr}qbot",
@@ -254,11 +242,11 @@ async def _(event):
     elif input_str:
         message = input_str
     else:
-        return await edit_delete(
+        return await eod(
             event, "`Either reply to message or give input to function properly`"
         )
     chat = "@QuotLyBot"
-    lionxevent = await edit_or_reply(event, "```Making a Quote```")
+    lionxevent = await eor(event, "```Making a Quote```")
     async with event.client.conversation(chat) as conv:
         try:
             response = conv.wait_event(
@@ -269,12 +257,14 @@ async def _(event):
             elif message != "":
                 await event.client.send_message(conv.chat_id, message)
             else:
-                return await edit_delete(
+                return await eod(
                     lionxevent, "`I guess you have used a invalid syntax`"
                 )
             response = await response
         except YouBlockedUserError:
-            return await lionxevent.edit("```Please unblock me (@QuotLyBot) u Nigga```")
+            return await lionxevent.edit(
+                "```Please unblock me (@QuotLyBot) u Nigga```"
+            )
         await event.client.send_read_acknowledge(conv.chat_id)
         await lionxevent.delete()
         await event.client.send_message(

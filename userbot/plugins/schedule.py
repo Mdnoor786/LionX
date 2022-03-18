@@ -1,13 +1,13 @@
 from asyncio import sleep
 
-from userbot import lionxub
+from userbot import lionx
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="schd (\d*) ([\s\S]*)",
-    command=("schd", plugin_category),
+    command=("schd", plugin_type),
     info={
         "header": "To schedule a message after given time(in seconds).",
         "usage": "{tr}schd <time_in_seconds>  <message to send>",

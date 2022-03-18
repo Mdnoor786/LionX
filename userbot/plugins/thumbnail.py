@@ -4,14 +4,13 @@ from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 from PIL import Image
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers.utils import _lionxtools
-from . import CMD_HELP
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 # Thumbnail Utilities ported from uniborg
 # credits @spechide
@@ -20,9 +19,9 @@ plugin_category = "utils"
 thumb_image_path = Config.TMP_DOWNLOAD_DIRECTORY + "/thumb_image.jpg"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="savethumb$",
-    command=("savethumb", plugin_category),
+    command=("savethumb", plugin_type),
     info={
         "header": "To save replied image as temporary thumb.",
         "usage": "{tr}savethumb",
@@ -30,7 +29,7 @@ thumb_image_path = Config.TMP_DOWNLOAD_DIRECTORY + "/thumb_image.jpg"
 )
 async def _(event):
     "To save replied image as temporary thumb."
-    lionxevent = await edit_or_reply(event, "`Processing ...`")
+    lionxevent = await eor(event, "`Processing ...`")
     if not event.reply_to_msg_id:
         return await lionxevent.edit("`Reply to a photo to save custom thumbnail`")
     downloaded_file_name = await event.client.download_media(
@@ -48,13 +47,13 @@ async def _(event):
     # https://pillow.readthedocs.io/en/3.1.x/reference/Image.html#create-thumbnails
     os.remove(downloaded_file_name)
     await lionxevent.edit(
-        "Custom video/file thumbnail saved. This image will be used in the upload, till `.clearthumb`."
+        "Custom video/file thumbnail saved. This image will be used in the upload, till `.clearthumb`. \nTo get : .getthumb"
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="clearthumb$",
-    command=("clearthumb", plugin_category),
+    command=("clearthumb", plugin_type),
     info={
         "header": "To delete thumb image.",
         "usage": "{tr}clearthumb",
@@ -65,13 +64,13 @@ async def _(event):
     if os.path.exists(thumb_image_path):
         os.remove(thumb_image_path)
     else:
-        await edit_or_reply(event, "`No thumbnail is set to clear`")
-    await edit_or_reply(event, "✅ Custom thumbnail cleared successfully.")
+        await eor(event, "`No thumbnail is set to clear`")
+    await eor(event, "✅ Custom thumbnail cleared successfully.")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="getthumb$",
-    command=("getthumb", plugin_category),
+    command=("getthumb", plugin_type),
     info={
         "header": "To get thumbnail of given video or gives your present thumbnail.",
         "usage": "{tr}getthumb",
@@ -84,7 +83,7 @@ async def _(event):
         try:
             a = await r.download_media(thumb=-1)
         except Exception as e:
-            return await edit_or_reply(event, str(e))
+            return await eor(event, str(e))
         try:
             await event.client.send_file(
                 event.chat_id,
@@ -96,7 +95,7 @@ async def _(event):
             os.remove(a)
             await event.delete()
         except Exception as e:
-            await edit_or_reply(event, str(e))
+            await eor(event, str(e))
     elif os.path.exists(thumb_image_path):
         caption_str = "Currently Saved Thumbnail"
         await event.client.send_file(
@@ -107,20 +106,6 @@ async def _(event):
             allow_cache=False,
             reply_to=event.message.id,
         )
-        await edit_or_reply(event, caption_str)
+        await eor(event, caption_str)
     else:
-        await edit_or_reply(event, "Reply `.gethumbnail` as a reply to a media")
-
-
-CMD_HELP.update(
-    {
-        "thumbnail": "**Plugin :** `thumbnail`\
-    \n\n**Syntax :** `.savethumb`\
-    \n**Usage : **Reply to file or video to save it as temporary thumbimage\
-    \n\n**Syntax : **`.clearthumb`\
-    \n**Usage : **To clear Thumbnail no longer you uploads uses custom thumbanail\
-    \n\n**Syntax : **`.getthumb`\
-    \n**Usage : **To get thumbnail of given video or gives your present thumbnail\
-    "
-    }
-)
+        await eor(event, "Reply `.gethumbnail` as a reply to a media")

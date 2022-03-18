@@ -9,16 +9,16 @@ from telethon.errors.rpcerrorlist import YouBlockedUserError
 from telethon.utils import get_extension
 from urlextract import URLExtract
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.events import MessageEdited
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.tools import media_type
 from ..helpers.utils import pastetext, reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 extractor = URLExtract()
 
@@ -38,13 +38,13 @@ def get_key(val):
             return key
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pcode(?:\s|$)([\s\S]*)",
-    command=("pcode", plugin_category),
+    command=("pcode", plugin_type),
     info={
         "header": "Will paste the entire text on the blank white image.",
         "flags": {
-            "f": "Use this flag to send it as file rather than image",
+            "f": "Use this type to send it as file rather than image",
         },
         "usage": ["{tr}pcode <reply>", "{tr}pcode text"],
     },
@@ -53,7 +53,7 @@ async def paste_img(event):
     "To paste text to image."
     reply_to = await reply_id(event)
     d_file_name = None
-    lionxevent = await edit_or_reply(event, "`Pasting the text on image`")
+    lionxevent = await eor(event, "`Pasting the text on image`")
     input_str = event.pattern_match.group(1)
     reply = await event.get_reply_message()
     ext = re.findall(r"-f", input_str)
@@ -74,7 +74,7 @@ async def paste_img(event):
         if reply and reply.text:
             text_to_print = reply.raw_text
         else:
-            return await edit_delete(
+            return await eod(
                 lionxevent,
                 "`Either reply to text/code file or reply to text message or give text along with command`",
             )
@@ -96,23 +96,23 @@ async def paste_img(event):
         if d_file_name is not None:
             os.remove(d_file_name)
     except Exception as e:
-        await edit_delete(lionxevent, f"**Error:**\n`{e}`", time=10)
+        await eod(lionxevent, f"**Error:**\n`{e}`", time=10)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(d|p|s|n)?(paste|neko)(?:\s|$)([\S\s]*)",
-    command=("paste", plugin_category),
+    command=("paste", plugin_type),
     info={
         "header": "To paste text to a paste bin.",
-        "description": "Uploads the given text to website so that you can share text/code with others easily. If no flag is used then it will use p as default",
+        "description": "Uploads the given text to website so that you can share text/code with others easily. If no type is used then it will use p as default",
         "flags": {
             "d": "Will paste text to dog.bin",
             "p": "Will paste text to pasty.lus.pm",
             "s": "Will paste text to spaceb.in (language extension not there at present.)",
         },
         "usage": [
-            "{tr}{flags}paste <reply/text>",
-            "{tr}{flags}paste {extension} <reply/text>",
+            "{tr}{types}paste <reply/text>",
+            "{tr}{types}paste {extension} <reply/text>",
         ],
         "examples": [
             "{tr}spaste <reply/text>",
@@ -122,7 +122,7 @@ async def paste_img(event):
 )
 async def paste_bin(event):
     "To paste text to a paste bin."
-    lionxevent = await edit_or_reply(event, "`pasting text to paste bin....`")
+    lionxevent = await eor(event, "`pasting text to paste bin....`")
     input_str = event.pattern_match.group(3)
     reply = await event.get_reply_message()
     ext = re.findall(r"-\w+", input_str)
@@ -148,7 +148,7 @@ async def paste_bin(event):
         if reply and reply.text:
             text_to_print = reply.raw_text
         else:
-            return await edit_delete(
+            return await eod(
                 lionxevent,
                 "`Either reply to text/code file or reply to text message or give text along with command`",
             )
@@ -157,7 +157,7 @@ async def paste_bin(event):
     try:
         response = await pastetext(text_to_print, pastetype, extension)
         if "error" in response:
-            return await edit_delete(
+            return await eod(
                 lionxevent,
                 "**Error while pasting text:**\n`Unable to process your request may be pastebins are down.`",
             )
@@ -170,11 +170,11 @@ async def paste_bin(event):
             result += f"\n<b>Raw link: <a href={response['raw']}>Raw</a></b>"
         await lionxevent.edit(result, link_preview=False, parse_mode="html")
     except Exception as e:
-        await edit_delete(lionxevent, f"**Error while pasting text:**\n`{e}`")
+        await eod(lionxevent, f"**Error while pasting text:**\n`{e}`")
 
 
-@lionxub.lionx_cmd(
-    command=("neko", plugin_category),
+@lionx.lion_cmd(
+    command=("neko", plugin_type),
     info={
         "header": "To paste text to a neko bin.",
         "description": "Uploads the given text to nekobin so that you can share text/code with others easily.",
@@ -190,9 +190,9 @@ async def _(event):
     # just to show in help menu as seperate
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="g(et)?paste(?:\s|$)([\s\S]*)",
-    command=("getpaste", plugin_category),
+    command=("getpaste", plugin_type),
     info={
         "header": "To paste text into telegram from pastebin link.",
         "description": "Gets the content of a pastebin. You can provide link along with cmd or reply to link.",
@@ -216,9 +216,11 @@ async def get_dogbin_content(event):
                 url = iurl
                 break
     if not url:
-        return await edit_delete(event, "__I can't find any pastebin link.__")
-    lionxevent = await edit_or_reply(event, "`Getting Contents of pastebin.....`")
-    rawurl = url if "raw" in url else None
+        return await eod(event, "__I can't find any pastebin link.__")
+    lionxevent = await eor(event, "`Getting Contents of pastebin.....`")
+    rawurl = None
+    if "raw" in url:
+        rawurl = url
     if rawurl is None:
         fid = os.path.splitext((os.path.basename(url)))
         if "pasty" in url:
@@ -230,7 +232,7 @@ async def get_dogbin_content(event):
         elif "lionxbin" in url:
             rawurl = f"http://lionxbin.up.railway.app/raw/{fid[0]}"
         else:
-            return await edit_delete(event, "__This pastebin is not supported.__")
+            return await eod(event, "__This pastebin is not supported.__")
     resp = requests.get(rawurl)
     try:
         resp.raise_for_status()
@@ -247,12 +249,12 @@ async def get_dogbin_content(event):
             )
         )
     reply_text = f"**Fetched dogbin URL content successfully!**\n\n**Content:** \n```{resp.text}```"
-    await edit_or_reply(lionxevent, reply_text)
+    await eor(lionxevent, reply_text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="paster(?:\s|$)([\s\S]*)",
-    command=("paster", plugin_category),
+    command=("paster", plugin_type),
     info={
         "header": "Create a instant view or a paste it in telegraph file.",
         "usage": ["{tr}paster <reply>", "{tr}paster text"],
@@ -260,7 +262,7 @@ async def get_dogbin_content(event):
 )
 async def _(event):
     "Create a instant view or a paste it in telegraph file."
-    lionxevent = await edit_or_reply(event, "`pasting text to paste bin....`")
+    lionxevent = await eor(event, "`pasting text to paste bin....`")
     input_str = event.pattern_match.group(1)
     reply = await event.get_reply_message()
     pastetype = "d"
@@ -275,20 +277,20 @@ async def _(event):
         if reply and reply.text:
             text_to_print = reply.raw_text
         else:
-            return await edit_delete(
+            return await eod(
                 lionxevent,
                 "`Either reply to text/code file or reply to text message or give text along with command`",
             )
     try:
         response = await pastetext(text_to_print, pastetype, extension="txt")
         if "error" in response:
-            return await edit_delete(
+            return await eod(
                 lionxevent,
                 "**Error while pasting text:**\n`Unable to process your request may be pastebins are down.`",
             )
 
     except Exception as e:
-        return await edit_delete(lionxevent, f"**Error while pasting text:**\n`{e}`")
+        return await eod(lionxevent, f"**Error while pasting text:**\n`{e}`")
     url = response["url"]
     chat = "@CorsaBot"
     await lionxevent.edit("`Making instant view...`")

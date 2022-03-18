@@ -6,12 +6,12 @@ from time import time
 
 import speedtest
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers.utils import reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 def convert_from_bytes(size):
@@ -24,9 +24,9 @@ def convert_from_bytes(size):
     return f"{round(size, 2)} {units[n]}"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="speedtest(?:\s|$)([\s\S]*)",
-    command=("speedtest", plugin_category),
+    command=("speedtest", plugin_type),
     info={
         "header": "Botserver's speedtest by ookla.",
         "options": {
@@ -51,9 +51,7 @@ async def _(event):
         as_document = True
     elif input_str == "text":
         as_text = True
-    lionxevent = await edit_or_reply(
-        event, "`Calculating my internet speed. Please wait!`"
-    )
+    lionxevent = await eor(event, "`Calculating my internet speed. Please wait!`")
     start = time()
     s = speedtest.Speedtest()
     s.get_best_server()
@@ -75,7 +73,6 @@ async def _(event):
         if as_text:
             await lionxevent.edit(
                 """`SpeedTest completed in {} seconds`
-
 `Download: {} (or) {} MB/s`
 `Upload: {} (or) {} MB/s`
 `Ping: {} ms`
@@ -107,7 +104,6 @@ async def _(event):
 Download: {} (or) {} MB/s
 Upload: {} (or) {} MB/s
 Ping: {} ms
-
 __With the Following ERRORs__
 {}""".format(
                 ms,

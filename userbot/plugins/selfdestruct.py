@@ -1,18 +1,18 @@
 from asyncio import sleep
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
-plugin_category = "tools"
+plugin_type = "tools"
 LOGS = logging.getLogger(__name__)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="sdm (\d*) ([\s\S]*)",
-    command=("sdm", plugin_category),
+    command=("sdm", plugin_type),
     info={
         "header": "To self destruct the message after paticualr time.",
-        "description": "Suppose if you use .sdm 10 hi then message will be immediately send new message as hi and then after 10 sec this message will auto delete.",
+        "description": "Suppose if you use .sdm 10 hi then message will be immediately send new message as hi and then after 10 sec this message will auto delete.`",
         "usage": "{tr}sdm [number] [text]",
         "examples": "{tr}sdm 10 hi",
     },
@@ -28,9 +28,9 @@ async def selfdestruct(destroy):
     await smsg.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="selfdm (\d*) ([\s\S]*)",
-    command=("selfdm", plugin_category),
+    command=("selfdm", plugin_type),
     info={
         "header": "To self destruct the message after paticualr time. and in message will show the time.",
         "description": "Suppose if you use .sdm 10 hi then message will be immediately will send new message as hi and then after 10 sec this message will auto delete.",

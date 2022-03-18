@@ -1,16 +1,16 @@
 import random
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
-from . import lionxmemes
+from ..funcs.managers import eor
+from . import swtmemes
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="congo$",
-    command=("congo", plugin_category),
+    command=("congo", plugin_type),
     info={
         "header": " Congratulate the people..",
         "usage": "{tr}congo",
@@ -18,13 +18,13 @@ plugin_category = "fun"
 )
 async def _(e):
     "Congratulate the people."
-    txt = random.choice(lionxmemes.CONGOREACTS)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.CONGOREACTS)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="shg$",
-    command=("shg", plugin_category),
+    command=("shg", plugin_type),
     info={
         "header": "Shrug at it !!",
         "usage": "{tr}shg",
@@ -32,13 +32,13 @@ async def _(e):
 )
 async def shrugger(e):
     "Shrug at it !!"
-    txt = random.choice(lionxmemes.SHGS)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.SHGS)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="runs$",
-    command=("runs", plugin_category),
+    command=("runs", plugin_type),
     info={
         "header": "Run, run, RUNNN!.",
         "usage": "{tr}runs",
@@ -46,13 +46,13 @@ async def shrugger(e):
 )
 async def runner_lol(e):
     "Run, run, RUNNN!"
-    txt = random.choice(lionxmemes.RUNSREACTS)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.RUNSREACTS)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="noob$",
-    command=("noob", plugin_category),
+    command=("noob", plugin_type),
     info={
         "header": "Whadya want to know? Are you a NOOB?",
         "usage": "{tr}noob",
@@ -60,13 +60,13 @@ async def runner_lol(e):
 )
 async def metoo(e):
     "Whadya want to know? Are you a NOOB?"
-    txt = random.choice(lionxmemes.NOOBSTR)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.NOOBSTR)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="insult$",
-    command=("insult", plugin_category),
+    command=("insult", plugin_type),
     info={
         "header": "insult someone.",
         "usage": "{tr}insult",
@@ -74,13 +74,41 @@ async def metoo(e):
 )
 async def insult(e):
     "insult someone."
-    txt = random.choice(lionxmemes.INSULT_STRINGS)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.INSULT_STRINGS)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
+    pattern="love$",
+    command=("love", plugin_type),
+    info={
+        "header": "Chutiyappa suru",
+        "usage": "{tr}love",
+    },
+)
+async def suru(chutiyappa):
+    "Chutiyappa suru"
+    txt = random.choice(swtmemes.LOVESTR)
+    await eor(chutiyappa, txt)
+
+
+@lionx.lion_cmd(
+    pattern="dhoka$",
+    command=("dhoka", plugin_type),
+    info={
+        "header": "Dhokha kha gya",
+        "usage": "{tr}dhoka",
+    },
+)
+async def katgya(chutiya):
+    "Dhokha kha gya"
+    txt = random.choice(swtmemes.DHOKA)
+    await eor(chutiya, txt)
+
+
+@lionx.lion_cmd(
     pattern="hey$",
-    command=("hey", plugin_category),
+    command=("hey", plugin_type),
     info={
         "header": "start a conversation with people",
         "usage": "{tr}hey",
@@ -88,13 +116,13 @@ async def insult(e):
 )
 async def hoi(e):
     "start a conversation with people."
-    txt = random.choice(lionxmemes.HELLOSTR)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.HELLOSTR)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pro$",
-    command=("pro", plugin_category),
+    command=("pro", plugin_type),
     info={
         "header": "If you think you're pro, try this.",
         "usage": "{tr}pro",
@@ -102,16 +130,16 @@ async def hoi(e):
 )
 async def proo(e):
     "If you think you're pro, try this."
-    txt = random.choice(lionxmemes.PRO_STRINGS)
-    await edit_or_reply(e, txt)
+    txt = random.choice(swtmemes.PRO_STRINGS)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="react ?([\s\S]*)",
-    command=("react", plugin_category),
+    command=("react", plugin_type),
     info={
         "header": "Make your userbot react",
-        "types": [
+        "flags": [
             "happy",
             "think",
             "wave",
@@ -129,32 +157,32 @@ async def _(e):
     "Make your userbot react."
     input_str = e.pattern_match.group(1)
     if input_str in "happy":
-        emoticons = lionxmemes.FACEREACTS[0]
+        emoticons = swtmemes.FACEREACTS[0]
     elif input_str in "think":
-        emoticons = lionxmemes.FACEREACTS[1]
+        emoticons = swtmemes.FACEREACTS[1]
     elif input_str in "wave":
-        emoticons = lionxmemes.FACEREACTS[2]
+        emoticons = swtmemes.FACEREACTS[2]
     elif input_str in "wtf":
-        emoticons = lionxmemes.FACEREACTS[3]
+        emoticons = swtmemes.FACEREACTS[3]
     elif input_str in "love":
-        emoticons = lionxmemes.FACEREACTS[4]
+        emoticons = swtmemes.FACEREACTS[4]
     elif input_str in "confused":
-        emoticons = lionxmemes.FACEREACTS[5]
+        emoticons = swtmemes.FACEREACTS[5]
     elif input_str in "dead":
-        emoticons = lionxmemes.FACEREACTS[6]
+        emoticons = swtmemes.FACEREACTS[6]
     elif input_str in "sad":
-        emoticons = lionxmemes.FACEREACTS[7]
+        emoticons = swtmemes.FACEREACTS[7]
     elif input_str in "dog":
-        emoticons = lionxmemes.FACEREACTS[8]
+        emoticons = swtmemes.FACEREACTS[8]
     else:
-        emoticons = lionxmemes.FACEREACTS[9]
+        emoticons = swtmemes.FACEREACTS[9]
     txt = random.choice(emoticons)
-    await edit_or_reply(e, txt)
+    await eor(e, txt)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="10iq$",
-    command=("10iq", plugin_category),
+    command=("10iq", plugin_type),
     info={
         "header": "You retard !!",
         "usage": "{tr}10iq",
@@ -162,12 +190,12 @@ async def _(e):
 )
 async def iqless(e):
     "You retard !!"
-    await edit_or_reply(e, "♿")
+    await eor(e, "♿")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="fp$",
-    command=("fp", plugin_category),
+    command=("fp", plugin_type),
     info={
         "header": "send you face pam emoji!",
         "usage": "{tr}fp",
@@ -175,12 +203,12 @@ async def iqless(e):
 )
 async def facepalm(e):
     "send you face pam emoji!"
-    await edit_or_reply(e, "🤦‍♂")
+    await eor(e, "🤦‍♂")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="bt$",
-    command=("bt", plugin_category),
+    command=("bt", plugin_type),
     info={
         "header": "Believe me, you will find this useful.",
         "usage": "{tr}bt",
@@ -189,16 +217,16 @@ async def facepalm(e):
 )
 async def bluetext(e):
     """Believe me, you will find this useful."""
-    await edit_or_reply(
+    await eor(
         e,
         "/BLUETEXT /MUST /CLICK.\n"
         "/ARE /YOU /A /STUPID /ANIMAL /WHICH /IS /ATTRACTED /TO /COLOURS?",
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="session$",
-    command=("session", plugin_category),
+    command=("session", plugin_type),
     info={
         "header": "telethon session error code(fun)",
         "usage": "{tr}session",
@@ -207,4 +235,4 @@ async def bluetext(e):
 async def _(event):
     "telethon session error code(fun)."
     mentions = "**telethon.errors.rpcerrorlist.AuthKeyDuplicatedError: The authorization key (session file) was used under two different IP addresses simultaneously, and can no longer be used. Use the same session exclusively, or use different sessions (caused by GetMessagesRequest)**"
-    await edit_or_reply(event, mentions)
+    await eor(event, mentions)

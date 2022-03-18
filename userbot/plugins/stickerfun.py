@@ -1,33 +1,20 @@
-# Random RGB Sticklet by @PhycoNinja13b
-# modified by @UniBorg
-# imported from ppe-remix by @heyworld & @DeletedUser420
-# modified by @copyless786
-# pengin & gandhi Yato
-
 # RegEx by https://t.me/c/1220993104/500653 ( @SnapDragon7410 )
 import io
 import os
 import random
+import re
 import textwrap
-import urllib
 
 from PIL import Image, ImageDraw, ImageFont
 from telethon.tl.types import InputMessagesFilterDocument
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
-from ..helpers.functions import (
-    clippy,
-    convert_tosticker,
-    deEmojify,
-    hide_inlinebot,
-    higlighted_text,
-    waifutxt,
-)
+from ..funcs.managers import eor
+from ..helpers.functions import deEmojify, hide_inlinebot, waifutxt
 from ..helpers.utils import reply_id
 
-plugin_category = "fun"
+plugin_type = "fun"
 
 
 async def get_font_file(client, channel_id, search_kw=""):
@@ -47,9 +34,63 @@ async def get_font_file(client, channel_id, search_kw=""):
     return await client.download_media(font_file_message)
 
 
-@lionxub.lionx_cmd(
-    pattern="(?:st|sttxt)(?:\s|$)([\s\S]*)",
-    command=("sttxt", plugin_category),
+EMOJI_PATTERN = re.compile(
+    "["
+    "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+    "\U0001F300-\U0001F5FF"  # symbols & pictographs
+    "\U0001F600-\U0001F64F"  # emoticons
+    "\U0001F680-\U0001F6FF"  # transport & map symbols
+    "\U0001F700-\U0001F77F"  # alchemical symbols
+    "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+    "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+    "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+    "\U0001FA00-\U0001FA6F"  # Chess Symbols
+    "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+    "\U00002702-\U000027B0"  # Dingbats
+    "]+"
+)
+
+
+def dpEmojify(inputString: str) -> str:
+    """Remove emojis and other non-safe characters from string"""
+    return re.sub(EMOJI_PATTERN, "", inputString)
+
+
+@lionx.lion_cmd(
+    pattern="waifu(?:\s|$)([\s\S]*)",
+    command=("waifu", plugin_type),
+    info={
+        "header": "Anime that makes your writing fun.",
+        "usage": "{tr}waifu <text>",
+        "examples": "{tr}waifu hello",
+    },
+)
+async def waifu(animu):
+    # """Creates random anime sticker!"""
+
+    text = animu.pattern_match.group(1)
+    if not text:
+        if animu.is_reply:
+            text = (await animu.get_reply_message()).message
+        else:
+            await animu.edit("`You haven't written any article, Waifu is going away.`")
+            return
+    animus = [1, 3, 7, 9, 13, 22, 34, 35, 36, 37, 43, 44, 45, 52, 53, 55]
+    sticcers = await bot.inline_query(
+        "stickerizerbot", f"#{random.choice(animus)}{(dpEmojify(text))}"
+    )
+    await sticcers[0].click(
+        animu.chat_id,
+        reply_to=animu.reply_to_msg_id,
+        silent=True if animu.is_reply else False,
+        hide_via=True,
+    )
+    await animu.delete()
+
+
+@lionx.lion_cmd(
+    pattern="sttxt(?:\s|$)([\s\S]*)",
+    command=("sttxt", plugin_type),
     info={
         "header": "Anime that makes your writing fun.",
         "usage": "{tr}sttxt <text>",
@@ -64,7 +105,7 @@ async def waifu(animu):
         if animu.is_reply:
             text = (await animu.get_reply_message()).message
         else:
-            return await edit_or_reply(
+            return await eor(
                 animu, "`You haven't written any article, Waifu is going away.`"
             )
     text = deEmojify(text)
@@ -73,9 +114,9 @@ async def waifu(animu):
 
 
 # 12 21 28 30
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stcr ?(?:(.*?) ?; )?([\s\S]*)",
-    command=("stcr", plugin_category),
+    command=("stcr", plugin_type),
     info={
         "header": "your text as sticker.",
         "usage": [
@@ -102,7 +143,7 @@ async def sticklet(event):
         if event.reply_to_msg_id:
             sticktext = reply_message.message
         else:
-            return await edit_or_reply(event, "need something, hmm")
+            return await eor(event, "need something, hmm")
     # delete the userbot command,
     # i don't know why this is required
     await event.delete()
@@ -114,7 +155,7 @@ async def sticklet(event):
     image = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(image)
     fontsize = 230
-    FONT_FILE = await get_font_file(event.client, "@lionxfonts", font_file_name)
+    FONT_FILE = await get_font_file(event.client, "@Lionfonts", font_file_name)
     font = ImageFont.truetype(FONT_FILE, size=fontsize)
     while draw.multiline_textsize(sticktext, font=font) > (512, 512):
         fontsize -= 3
@@ -124,7 +165,7 @@ async def sticklet(event):
         ((512 - width) / 2, (512 - height) / 2), sticktext, font=font, fill=(R, G, B)
     )
     image_stream = io.BytesIO()
-    image_stream.name = "lionx.webp"
+    image_stream.name = "LionX.webp"
     image.save(image_stream, "WebP")
     image_stream.seek(0)
     # finally, reply the sticker
@@ -141,9 +182,9 @@ async def sticklet(event):
         pass
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="honk(?:\s|$)([\s\S]*)",
-    command=("honk", plugin_category),
+    command=("honk", plugin_type),
     info={
         "header": "Make honk say anything.",
         "usage": "{tr}honk <text/reply to msg>",
@@ -159,17 +200,15 @@ async def honk(event):
         if event.is_reply:
             text = (await event.get_reply_message()).message
         else:
-            return await edit_delete(
-                event, "__What is honk supposed to say? Give some text.__"
-            )
+            return await eod(event, "__What is honk supposed to say? Give some text.__")
     text = deEmojify(text)
     await event.delete()
     await hide_inlinebot(event.client, bot_name, text, event.chat_id, reply_to_id)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="twt(?:\s|$)([\s\S]*)",
-    command=("twt", plugin_category),
+    command=("twt", plugin_type),
     info={
         "header": "Make a cool tweet of your account",
         "usage": "{tr}twt <text/reply to msg>",
@@ -185,17 +224,15 @@ async def twt(event):
         if event.is_reply:
             text = (await event.get_reply_message()).message
         else:
-            return await edit_delete(
-                event, "__What am I supposed to Tweet? Give some text.__"
-            )
+            return await eod(event, "__What am I supposed to Tweet? Give some text.__")
     text = deEmojify(text)
     await event.delete()
     await hide_inlinebot(event.client, bot_name, text, event.chat_id, reply_to_id)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="glax(|r)(?:\s|$)([\s\S]*)",
-    command=("glax", plugin_category),
+    command=("glax", plugin_type),
     info={
         "header": "Make glax the dragon scream your text.",
         "flags": {
@@ -222,9 +259,7 @@ async def glax(event):
         if event.is_reply:
             text = (await event.get_reply_message()).message
         else:
-            return await edit_delete(
-                event, "What is glax supposed to scream? Give text.."
-            )
+            return await eod(event, "What is glax supposed to scream? Give text..")
     text = deEmojify(text)
     await event.delete()
     await hide_inlinebot(
@@ -232,333 +267,25 @@ async def glax(event):
     )
 
 
-@lionxub.lionx_cmd(
-    pattern="(|b)quby(?:\s|$)([\s\S]*)",
-    command=("quby", plugin_category),
+@lionx.lion_cmd(
+    pattern="googl(?:\s|$)([\s\S]*)",
+    command=("googl", plugin_type),
     info={
-        "header": "Make doge say anything.",
-        "flags": {
-            "b": "Give the sticker on background.",
-        },
-        "usage": [
-            "{tr}quby <text/reply to msg>",
-            "{tr}bquby <text/reply to msg>",
-        ],
-        "examples": [
-            "{tr}quby Gib money",
-            "{tr}bquby Gib money",
-        ],
+        "header": "Search in google animation",
+        "usage": "{tr}googl <text/reply to msg>",
+        "examples": "{tr}googl LionX",
     },
 )
-async def quby(event):
-    "Make a cool quby text sticker"
-    cmd = event.pattern_match.group(1).lower()
-    text = event.pattern_match.group(2)
+async def twt(event):
+    "Search in google animation."
+    text = event.pattern_match.group(1)
     reply_to_id = await reply_id(event)
-    if not text and event.is_reply:
-        text = (await event.get_reply_message()).message
+    bot_name = "@GooglaxBot"
     if not text:
-        return await edit_delete(
-            event, "__What is quby supposed to say? Give some text.__"
-        )
-    await edit_delete(event, "`Wait, processing.....`")
-    if not os.path.isdir("./temp"):
-        os.mkdir("./temp")
-    temp_name = "./temp/quby_temp.png"
-    file_name = "./temp/quby.png"
-    templait = urllib.request.urlretrieve(
-        "https://telegra.ph/file/09f4df5a129758a2e1c9c.jpg", temp_name
-    )
-    if len(text) < 40:
-        font = 80
-        wrap = 1.4
-        position = (100, 0)
-    else:
-        font = 60
-        wrap = 1.2
-        position = (0, 0)
+        if event.is_reply:
+            text = (await event.get_reply_message()).message
+        else:
+            return await eod(event, "__What am I supposed to search? Give some text.__")
     text = deEmojify(text)
-    higlighted_text(
-        temp_name,
-        text,
-        file_name,
-        text_wrap=wrap,
-        font_size=font,
-        linespace="+4",
-        position=position,
-    )
-    if cmd == "b":
-        lionx = convert_tosticker(file_name)
-        await event.client.send_file(
-            event.chat_id, lionx, reply_to=reply_to_id, force_document=False
-        )
-    else:
-        await clippy(event.client, file_name, event.chat_id, reply_to_id)
     await event.delete()
-    for files in (temp_name, file_name):
-        if files and os.path.exists(files):
-            os.remove(files)
-
-
-@lionxub.lionx_cmd(
-    pattern="(|b)blob(?:\s|$)([\s\S]*)",
-    command=("blob", plugin_category),
-    info={
-        "header": "Give the sticker on background.",
-        "flags": {
-            "b": "To create knife sticker transparent.",
-        },
-        "usage": [
-            "{tr}blob <text/reply to msg>",
-            "{tr}bblob <text/reply to msg>",
-        ],
-        "examples": [
-            "{tr}blob Gib money",
-            "{tr}bblob Gib money",
-        ],
-    },
-)
-async def knife(event):
-    "Make a blob knife text sticker"
-    cmd = event.pattern_match.group(1).lower
-    text = event.pattern_match.group(2)
-    reply_to_id = await reply_id(event)
-    if not text and event.is_reply:
-        text = (await event.get_reply_message()).message
-    if not text:
-        return await edit_delete(
-            event, "__What is knife supposed to say? Give some text.__"
-        )
-    await edit_delete(event, "`Wait, processing.....`")
-    if not os.path.isdir("./temp"):
-        os.mkdir("./temp")
-    temp_name = "./temp/knife_temp.png"
-    file_name = "./temp/knife.png"
-    templait = urllib.request.urlretrieve(
-        "https://telegra.ph/file/2188367c8c5f43c36aa59.jpg", temp_name
-    )
-    if len(text) < 50:
-        font = 90
-        wrap = 2
-        position = (250, -450)
-    else:
-        font = 60
-        wrap = 1.4
-        position = (150, 500)
-    text = deEmojify(text)
-    higlighted_text(
-        temp_name,
-        text,
-        file_name,
-        text_wrap=wrap,
-        font_size=font,
-        linespace="-5",
-        position=position,
-        direction="upwards",
-    )
-    if cmd == "b":
-        lionx = convert_tosticker(file_name)
-        await event.client.send_file(
-            event.chat_id, lionx, reply_to=reply_to_id, force_document=False
-        )
-    else:
-        await clippy(event.client, file_name, event.chat_id, reply_to_id)
-    await event.delete()
-    for files in (temp_name, file_name):
-        if files and os.path.exists(files):
-            os.remove(files)
-
-
-@lionxub.lionx_cmd(
-    pattern="(|h)doge(?:\s|$)([\s\S]*)",
-    command=("doge", plugin_category),
-    info={
-        "header": "Make doge say anything.",
-        "flags": {
-            "h": "To create doge sticker with highligted text.",
-        },
-        "usage": [
-            "{tr}doge <text/reply to msg>",
-            "{tr}tdoge <text/reply to msg>",
-        ],
-        "examples": [
-            "{tr}doge Gib money",
-            "{tr}hdoge Gib money",
-        ],
-    },
-)
-async def doge(event):
-    "Make a cool doge text sticker"
-    cmd = event.pattern_match.group(1).lower()
-    text = event.pattern_match.group(2)
-    reply_to_id = await reply_id(event)
-    if not text and event.is_reply:
-        text = (await event.get_reply_message()).message
-    if not text:
-        return await edit_delete(
-            event, "__What is doge supposed to say? Give some text.__"
-        )
-    await edit_delete(event, "`Wait, processing.....`")
-    if not os.path.isdir("./temp"):
-        os.mkdir("./temp")
-    temp_name = "./temp/doge_temp.jpg"
-    file_name = "./temp/doge.jpg"
-    templait = urllib.request.urlretrieve(
-        "https://telegra.ph/file/6f621b9782d9c925bd6c4.jpg", temp_name
-    )
-    text = deEmojify(text)
-    font, wrap = (90, 2) if len(text) < 90 else (70, 2.5)
-    bg, fg, alpha, ls = (
-        ("black", "white", 255, "5") if cmd == "h" else ("white", "black", 0, "-40")
-    )
-    higlighted_text(
-        temp_name,
-        text,
-        file_name,
-        text_wrap=wrap,
-        font_size=font,
-        linespace=ls,
-        position=(0, 10),
-        align="left",
-        background=bg,
-        foreground=fg,
-        transparency=alpha,
-    )
-    lionx = convert_tosticker(file_name)
-    await event.client.send_file(
-        event.chat_id, lionx, reply_to=reply_to_id, force_document=False
-    )
-    await event.delete()
-    for files in (temp_name, file_name):
-        if files and os.path.exists(files):
-            os.remove(files)
-
-
-@lionxub.lionx_cmd(
-    pattern="(|h)penguin(?:\s|$)([\s\S]*)",
-    command=("penguin", plugin_category),
-    info={
-        "header": "To make penguin meme sticker. ",
-        "flags": {
-            "h": "To create penguin sticker with highligted text.",
-        },
-        "usage": [
-            "{tr}penguin <text/reply to msg>",
-            "{tr}hpenguin <text/reply to msg>",
-        ],
-        "examples": [
-            "{tr}penguin Shut up Rash",
-            "{tr}hpenguin Shut up Rash",
-        ],
-    },
-)
-async def penguin(event):
-    "Make a cool penguin text sticker"
-    cmd = event.pattern_match.group(1).lower()
-    text = event.pattern_match.group(2)
-    reply_to_id = await reply_id(event)
-    if not text and event.is_reply:
-        text = (await event.get_reply_message()).message
-    if not text:
-        return await edit_delete(
-            event, "What is penguin supposed to say? Give some text."
-        )
-    await edit_delete(event, "Wait, processing.....")
-    if not os.path.isdir("./temp"):
-        os.mkdir("./temp")
-    temp_name = "./temp/peguin_temp.jpg"
-    file_name = "./temp/penguin.jpg"
-    templait = urllib.request.urlretrieve(
-        "https://telegra.ph/file/ee1fc91bbaef2cc808c7c.png", temp_name
-    )
-    text = deEmojify(text)
-    font, wrap = (90, 4) if len(text) < 50 else (70, 4.5)
-    bg, fg, alpha, ls = (
-        ("black", "white", 255, "-20") if cmd == "h" else ("white", "black", 0, "-40")
-    )
-    higlighted_text(
-        temp_name,
-        text,
-        file_name,
-        text_wrap=wrap,
-        font_size=font,
-        linespace=ls,
-        position=(0, 10),
-        align="left",
-        background=bg,
-        foreground=fg,
-        transparency=alpha,
-    )
-    lionx = convert_tosticker(file_name)
-    await event.client.send_file(
-        event.chat_id, lionx, reply_to=reply_to_id, force_document=False
-    )
-    await event.delete()
-    for files in (temp_name, file_name):
-        if files and os.path.exists(files):
-            os.remove(files)
-
-
-@lionxub.lionx_cmd(
-    pattern="(|h)gandhi(?:\s|$)([\s\S]*)",
-    command=("gandhi", plugin_category),
-    info={
-        "header": "Make gandhi text sticker.",
-        "flags": {
-            "h": "To create gandhi sticker with highligted text.",
-        },
-        "usage": [
-            "{tr}gandhi <text/reply to msg>",
-            "{tr}hgandhi <text/reply to msg>",
-        ],
-        "examples": [
-            "{tr}gandhi Nathu Killed me",
-            "{tr}hgandhi Nathu Killed me",
-        ],
-    },
-)
-async def gandhi(event):
-    "Make a cool gandhi text sticker"
-    cmd = event.pattern_match.group(1).lower()
-    text = event.pattern_match.group(2)
-    reply_to_id = await reply_id(event)
-    if not text and event.is_reply:
-        text = (await event.get_reply_message()).message
-    if not text:
-        return await edit_delete(
-            event, "What is gandhi supposed to write? Give some text."
-        )
-    await edit_delete(event, "Wait, processing.....")
-    if not os.path.isdir("./temp"):
-        os.mkdir("./temp")
-    temp_name = "./temp/gandhi_temp.jpg"
-    file_name = "./temp/gandhi.jpg"
-    templait = urllib.request.urlretrieve(
-        "https://telegra.ph/file/3bebc56ee82cce4f300ce.jpg", temp_name
-    )
-    text = deEmojify(text)
-    font, wrap = (90, 3) if len(text) < 60 else (70, 2.8)
-    bg, fg, alpha, ls = (
-        ("white", "black", 255, "-20") if cmd == "h" else ("black", "white", 0, "-40")
-    )
-    higlighted_text(
-        temp_name,
-        text,
-        file_name,
-        text_wrap=wrap,
-        font_size=font,
-        linespace=ls,
-        position=(470, 10),
-        align="center",
-        background=bg,
-        foreground=fg,
-        transparency=alpha,
-    )
-    lionx = convert_tosticker(file_name)
-    await event.client.send_file(
-        event.chat_id, lionx, reply_to=reply_to_id, force_document=False
-    )
-    await event.delete()
-    for files in (temp_name, file_name):
-        if files and os.path.exists(files):
-            os.remove(files)
+    await hide_inlinebot(event.client, bot_name, text, event.chat_id, reply_to_id)

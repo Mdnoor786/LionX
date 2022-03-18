@@ -1,16 +1,16 @@
 # plugin by @deleteduser420
-# ported to telethon by @copyless786 (@TeamLionX)
+# ported to telethon by @TeamLionX (@TeamLionX)
 import os
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers import humanbytes, post_to_telegraph
 from ..helpers.utils import _format, _lionxutils
 
-plugin_category = "utils"
+plugin_type = "utils"
 LOGS = logging.getLogger(__name__)
 
 
@@ -52,9 +52,9 @@ async def file_data(reply):
     return hmm
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="minfo$",
-    command=("minfo", plugin_category),
+    command=("minfo", plugin_type),
     info={
         "header": "To get media information.",
         "description": "reply to media to get information about it",
@@ -66,12 +66,12 @@ async def mediainfo(event):
     X_MEDIA = None
     reply = await event.get_reply_message()
     if not reply:
-        await edit_or_reply(event, "reply to media to get info")
+        await eor(event, "reply to media to get info")
         return
     if not reply.media:
-        await edit_or_reply(event, "reply to media to get info")
+        await eor(event, "reply to media to get info")
         return
-    lionxevent = await edit_or_reply(event, "`Gathering ...`")
+    lionxevent = await eor(event, "`Gathering ...`")
     X_MEDIA = reply.file.mime_type
     if (not X_MEDIA) or (X_MEDIA.startswith(("text"))):
         return await lionxevent.edit("Reply To a supported Media Format")

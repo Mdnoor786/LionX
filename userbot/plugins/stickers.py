@@ -9,7 +9,7 @@ import string
 import urllib.request
 
 import cloudscraper
-import emoji as lionxemoji
+import emoji as swtemoji
 from bs4 import BeautifulSoup as bs
 from PIL import Image
 from telethon import events
@@ -24,17 +24,17 @@ from telethon.tl.types import (
     MessageMediaPhoto,
 )
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.functions import animator, crop_and_divide
 from ..helpers.tools import media_type
 from ..helpers.utils import _lionxtools
 from ..sql_helper.globals import gvarstatus
 
-plugin_category = "fun"
+plugin_type = "fun"
 
-# modified and developed by @copyless786 , @TeamLionX
+# modified and developed by @TeamLionX
 
 
 combot_stickers_url = "https://combot.org/telegram/stickers?q="
@@ -62,52 +62,42 @@ KANGING_STR = [
 ]
 
 
-def verify_cond(lionxarray, text):
-    return any(i in text for i in lionxarray)
+def verify_cond(owoarray, text):
+    return any(i in text for i in owoarray)
 
 
-def pack_name(userid, pack, is_anim, is_video):
-    if is_anim:
-        return f"lionx_{userid}_{pack}_anim"
-    if is_video:
-        return f"lionx_{userid}_{pack}_vid"
-    return f"lionx_{userid}_{pack}"
+def pack_name(userid, pack, is_anim, is_vid):
+    if gvarstatus("CUSTOM_STICKER_SETNAME") is not None:
+        if is_anim:
+            return f"{gvarstatus('CUSTOM_STICKER_SETNAME')}_{userid}_{pack}_anim"
+        else:
+            return f"{gvarstatus('CUSTOM_STICKER_SETNAME')}_{userid}_{pack}"
+    elif is_anim:
+        return f"LionX_{userid}_{pack}_anim"
+    elif is_vid:
+        return f"LionX_{userid}_{pack}_vid"
+    else:
+        return f"LionX_{userid}_{pack}"
 
 
 def char_is_emoji(character):
-    return character in lionxemoji.UNICODE_EMOJI["en"]
+    return character in swtemoji.UNICODE_EMOJI["en"]
 
 
-def pack_nick(username, pack, is_anim, is_video):
-    if gvarstatus("CUSTOM_STICKER_PACKNAME"):
+def pack_nick(username, pack, is_anim, is_vid):
+    if gvarstatus("CUSTOM_STICKER_PACKNAME") is not None:
         if is_anim:
             return f"{gvarstatus('CUSTOM_STICKER_PACKNAME')} Vol.{pack} (Animated)"
-        if is_video:
-            return f"{gvarstatus('CUSTOM_STICKER_PACKNAME')} Vol. {pack} (Video)"
-        return f"{gvarstatus('CUSTOM_STICKER_PACKNAME')} Vol.{pack}"
-
-    if is_anim:
+        elif is_vid:
+            return f"{gvarstatus('CUSTOM_STICKER_PACKNAME')} Vol.{pack} (Video)"
+        else:
+            return f"{gvarstatus('CUSTOM_STICKER_PACKNAME')} Vol.{pack}"
+    elif is_anim:
         return f"@{username} Vol.{pack} (Animated)"
-    if is_video:
-        return f"@{username} Vol. {pack} (Video)"
-    return f"@{username} Vol.{pack}"
-
-
-async def delpack(lionxevent, conv, cmd, args, packname):
-    try:
-        await conv.send_message(cmd)
-    except YouBlockedUserError:
-        await lionxevent.edit("You have blocked the @stickers bot. unblock it and try.")
-        return None, None
-    await conv.send_message("/delpack")
-    await conv.get_response()
-    await args.client.send_read_acknowledge(conv.chat_id)
-    await conv.send_message(packname)
-    await conv.get_response()
-    await args.client.send_read_acknowledge(conv.chat_id)
-    await conv.send_message("Yes, I am totally sure.")
-    await conv.get_response()
-    await args.client.send_read_acknowledge(conv.chat_id)
+    elif is_vid:
+        return f"@{username} Vol.{pack} (Video)"
+    else:
+        return f"@{username} Vol.{pack}"
 
 
 async def resize_photo(photo):
@@ -134,6 +124,25 @@ async def resize_photo(photo):
     return image
 
 
+async def delpack(lionxevent, conv, cmd, args, packname):
+    try:
+        await conv.send_message(cmd)
+    except YouBlockedUserError:
+        await lionxevent.edit(
+            "You have blocked the @stickers bot. unblock it and try."
+        )
+        return None, None
+    await conv.send_message("/delpack")
+    await conv.get_response()
+    await args.client.send_read_acknowledge(conv.chat_id)
+    await conv.send_message(packname)
+    await conv.get_response()
+    await args.client.send_read_acknowledge(conv.chat_id)
+    await conv.send_message("Yes, I am totally sure.")
+    await conv.get_response()
+    await args.client.send_read_acknowledge(conv.chat_id)
+
+
 async def newpacksticker(
     lionxevent,
     conv,
@@ -141,7 +150,7 @@ async def newpacksticker(
     args,
     pack,
     packnick,
-    is_video,
+    is_vid,
     emoji,
     packname,
     is_anim,
@@ -152,7 +161,10 @@ async def newpacksticker(
     try:
         await conv.send_message(cmd)
     except YouBlockedUserError:
-        await lionxevent.edit("You have blocked the @stickers bot. unblock it and try.")
+        await args.client(functions.contacts.UnblockRequest("@Stickers"))
+        await lionxevent.edit(
+            "You have blocked the @stickers bot. Now Unblocked Try Again"
+        )
         if not pkang:
             return None, None, None
         return None, None
@@ -161,7 +173,7 @@ async def newpacksticker(
     await conv.send_message(packnick)
     await conv.get_response()
     await args.client.send_read_acknowledge(conv.chat_id)
-    if is_video:
+    if is_vid:
         await conv.send_file("animate.webm")
     elif is_anim:
         await conv.send_file("AnimatedSticker.tgs")
@@ -172,7 +184,7 @@ async def newpacksticker(
     rsp = await conv.get_response()
     if not verify_cond(EMOJI_SEN, rsp.text):
         await lionxevent.edit(
-            f"Failed to add sticker, use @Stickers bot to add the sticker manually.\n**error :**{rsp.text}"
+            f"Failed to add sticker, use @Stickers bot to add the sticker manually.\n**error :**{rsp}"
         )
         if not pkang:
             return None, None, None
@@ -206,7 +218,7 @@ async def add_to_pack(
     pack,
     userid,
     username,
-    is_video,
+    is_vid,
     is_anim,
     stfile,
     emoji,
@@ -216,7 +228,10 @@ async def add_to_pack(
     try:
         await conv.send_message("/addsticker")
     except YouBlockedUserError:
-        await lionxevent.edit("You have blocked the @stickers bot. unblock it and try.")
+        await args.client(functions.contacts.UnblockRequest("@Stickers"))
+        await lionxevent.edit(
+            "You have blocked the @stickers bot.Now unblocked Successfully and Now Try Again."
+        )
         if not pkang:
             return None, None
         return None, None
@@ -230,8 +245,8 @@ async def add_to_pack(
             pack = val + 1
         except ValueError:
             pack = 1
-        packname = pack_name(userid, pack, is_anim, is_video)
-        packnick = pack_nick(username, pack, is_anim, is_video)
+        packname = pack_name(userid, pack, is_anim, is_vid)
+        packnick = pack_nick(username, pack, is_anim, is_vid)
         await lionxevent.edit(f"`Switching to Pack {pack} due to insufficient space`")
         await conv.send_message(packname)
         x = await conv.get_response()
@@ -243,7 +258,7 @@ async def add_to_pack(
                 args,
                 pack,
                 packnick,
-                is_video,
+                is_vid,
                 emoji,
                 packname,
                 is_anim,
@@ -251,10 +266,10 @@ async def add_to_pack(
                 otherpack=True,
                 pkang=pkang,
             )
-    if is_video:
+    if is_vid:
         await conv.send_file("animate.webm")
         os.remove("animate.webm")
-    elif is_anim:
+    if is_anim:
         await conv.send_file("AnimatedSticker.tgs")
         os.remove("AnimatedSticker.tgs")
     else:
@@ -263,7 +278,7 @@ async def add_to_pack(
     rsp = await conv.get_response()
     if not verify_cond(EMOJI_SEN, rsp.text):
         await lionxevent.edit(
-            f"Failed to add sticker, use @Stickers bot to add the sticker manually.\n**error :**{rsp.text}"
+            f"Failed to add sticker, use @Stickers bot to add the sticker manually.\n**error :**{rsp}"
         )
         if not pkang:
             return None, None
@@ -279,12 +294,12 @@ async def add_to_pack(
     return pack, packname
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kang(?:\s|$)([\s\S]*)",
-    command=("kang", plugin_category),
+    command=("kang", plugin_type),
     info={
         "header": "To kang a sticker.",
-        "description": "Kang's the sticker/image/video/gif/webm file to the specified pack and uses the emoji('s) you picked",
+        "description": "Kang's the sticker/image/video/gifs to the specified pack and uses the emoji('s) you picked",
         "usage": "{tr}kang [emoji('s)] [number]",
     },
 )
@@ -293,7 +308,7 @@ async def kang(args):  # sourcery no-metrics
     photo = None
     emojibypass = False
     is_anim = False
-    is_video = False
+    is_vid = False
     emoji = None
     message = await args.get_reply_message()
     user = await args.client.get_me()
@@ -302,17 +317,17 @@ async def kang(args):  # sourcery no-metrics
             user.first_name.encode("utf-8").decode("ascii")
             username = user.first_name
         except UnicodeDecodeError:
-            username = f"lionx_{user.id}"
+            username = f"swt_{user.id}"
     else:
         username = user.username
     userid = user.id
     if message and message.media:
         if isinstance(message.media, MessageMediaPhoto):
-            lionxevent = await edit_or_reply(args, f"`{random.choice(KANGING_STR)}`")
+            lionxevent = await eor(args, f"`{random.choice(KANGING_STR)}`")
             photo = io.BytesIO()
             photo = await args.client.download_media(message.photo, photo)
         elif "image" in message.media.document.mime_type.split("/"):
-            lionxevent = await edit_or_reply(args, f"`{random.choice(KANGING_STR)}`")
+            lionxevent = await eor(args, f"`{random.choice(KANGING_STR)}`")
             photo = io.BytesIO()
             await args.client.download_media(message.media.document, photo)
             if (
@@ -322,10 +337,11 @@ async def kang(args):  # sourcery no-metrics
                 emoji = message.media.document.attributes[1].alt
                 emojibypass = True
         elif "tgsticker" in message.media.document.mime_type:
-            lionxevent = await edit_or_reply(args, f"`{random.choice(KANGING_STR)}`")
+            lionxevent = await eor(args, f"`{random.choice(KANGING_STR)}`")
             await args.client.download_media(
                 message.media.document, "AnimatedSticker.tgs"
             )
+
             attributes = message.media.document.attributes
             for attribute in attributes:
                 if isinstance(attribute, DocumentAttributeSticker):
@@ -334,43 +350,28 @@ async def kang(args):  # sourcery no-metrics
             is_anim = True
             photo = 1
         elif message.media.document.mime_type in ["video/mp4", "video/webm"]:
-            emojibypass = False
-            is_video = True
-            photo = 1
             if message.media.document.mime_type == "video/webm":
-                attributes = message.media.document.attributes
-                for attribute in attributes:
-                    if isinstance(attribute, DocumentAttributeSticker):
-                        if message.media.document.size / 1024 > 255:
-                            lionxevent = await edit_or_reply(
-                                args, "__⌛ File size big,,, Downloading..__"
-                            )
-                            sticker = await animator(message, args, lionxevent)
-                            await edit_or_reply(
-                                lionxevent, f"`{random.choice(KANGING_STR)}`"
-                            )
-                        else:
-                            lionxevent = await edit_or_reply(
-                                args, f"`{random.choice(KANGING_STR)}`"
-                            )
-                            sticker = await args.client.download_media(
-                                message.media.document, "animate.webm"
-                            )
-                        emoji = attribute.alt
-                        emojibypass = True
+                await eor(args, f"`{random.choice(KANGING_STR)}`")
+                sticker = await args.client.download_media(
+                    message.media.document, "animate.webm"
+                )
             else:
-                lionxevent = await edit_or_reply(args, "__⌛ Downloading..__")
+                lionxevent = await eor(args, "__⌛ Downloading..__")
                 sticker = await animator(message, args, lionxevent)
-                await edit_or_reply(lionxevent, f"`{random.choice(KANGING_STR)}`")
+                await eor(lionxevent, f"`{random.choice(KANGING_STR)}`")
+            is_vid = True
+            emoji = "😂"
+            emojibypass = True
+            photo = 1
         else:
-            await edit_delete(args, "`Unsupported File!`")
+            await eod(args, "`Unsupported File!`")
             return
     else:
-        await edit_delete(args, "`I can't kang that...`")
+        await eod(args, "`I can't kang that...`")
         return
     if photo:
         splat = ("".join(args.text.split(maxsplit=1)[1:])).split()
-        emoji = emoji if emojibypass else "😂"
+        emoji = emoji if emojibypass else "⚜"
         pack = 1
         if len(splat) == 2:
             if char_is_emoji(splat[0][0]):
@@ -388,11 +389,11 @@ async def kang(args):  # sourcery no-metrics
                 emoji = splat[0]
             else:
                 pack = splat[0]
-        packname = pack_name(userid, pack, is_anim, is_video)
-        packnick = pack_nick(username, pack, is_anim, is_video)
+        packnick = pack_nick(username, pack, is_anim, is_vid)
+        packname = pack_name(userid, pack, is_anim, is_vid)
         cmd = "/newpack"
         stfile = io.BytesIO()
-        if is_video:
+        if is_vid:
             cmd = "/newvideo"
         elif is_anim:
             cmd = "/newanimated"
@@ -417,7 +418,7 @@ async def kang(args):  # sourcery no-metrics
                     pack,
                     userid,
                     username,
-                    is_video,
+                    is_vid,
                     is_anim,
                     stfile,
                     emoji,
@@ -425,7 +426,7 @@ async def kang(args):  # sourcery no-metrics
                 )
             if packname is None:
                 return
-            await edit_delete(
+            await eod(
                 lionxevent,
                 f"`Sticker kanged successfully!\
                     \nYour Pack is` [here](t.me/addstickers/{packname}) `and emoji for the kanged sticker is {emoji}`",
@@ -442,18 +443,18 @@ async def kang(args):  # sourcery no-metrics
                     args,
                     pack,
                     packnick,
-                    is_video,
+                    is_vid,
                     emoji,
                     packname,
                     is_anim,
                     stfile,
                 )
-            if is_video and os.path.exists(sticker):
+            if is_vid and os.path.exists(sticker):
                 os.remove(sticker)
             if otherpack is None:
                 return
             if otherpack:
-                await edit_delete(
+                await eod(
                     lionxevent,
                     f"`Sticker kanged to a Different Pack !\
                     \nAnd Newly created pack is` [here](t.me/addstickers/{packname}) `and emoji for the kanged sticker is {emoji}`",
@@ -461,7 +462,7 @@ async def kang(args):  # sourcery no-metrics
                     time=10,
                 )
             else:
-                await edit_delete(
+                await eod(
                     lionxevent,
                     f"`Sticker kanged successfully!\
                     \nYour Pack is` [here](t.me/addstickers/{packname}) `and emoji for the kanged sticker is {emoji}`",
@@ -470,18 +471,18 @@ async def kang(args):  # sourcery no-metrics
                 )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pkang(?:\s|$)([\s\S]*)",
-    command=("pkang", plugin_category),
+    command=("pkang", plugin_type),
     info={
         "header": "To kang entire sticker sticker.",
         "description": "Kang's the entire sticker pack of replied sticker to the specified pack",
         "usage": "{tr}pkang [number]",
     },
 )
-async def pack_kang(event):  # sourcery no-metrics
+async def pack_kang(args):  # sourcery no-metrics
     "To kang entire sticker sticker."
-    user = await event.client.get_me()
+    user = await args.client.get_me()
     if user.username:
         username = user.username
     else:
@@ -489,49 +490,45 @@ async def pack_kang(event):  # sourcery no-metrics
             user.first_name.encode("utf-8").decode("ascii")
             username = user.first_name
         except UnicodeDecodeError:
-            username = f"lionx_{user.id}"
+            username = f"swt_{user.id}"
     photo = None
     userid = user.id
     is_anim = False
-    is_video = False
+    is_vid = False
     emoji = None
-    reply = await event.get_reply_message()
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    reply = await args.get_reply_message()
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     if not reply or media_type(reply) is None or media_type(reply) != "Sticker":
-        return await edit_delete(
-            event, "`reply to any sticker to send all stickers in that pack`"
+        return await eod(
+            args, "`reply to any sticker to send all stickers in that pack`"
         )
     try:
         stickerset_attr = reply.document.attributes[1]
-        lionxevent = await edit_or_reply(
-            event, "`Fetching details of the sticker pack, please wait..`"
+        lionxevent = await eor(
+            args, "`Fetching details of the sticker pack, please wait..`"
         )
     except BaseException:
-        return await edit_delete(
-            event, "`This is not a sticker. Reply to a sticker.`", 5
-        )
+        return await eod(args, "`This is not a sticker. Reply to a sticker.`", 5)
     try:
-        get_stickerset = await event.client(
+        get_stickerset = await args.client(
             GetStickerSetRequest(
                 InputStickerSetID(
                     id=stickerset_attr.stickerset.id,
                     access_hash=stickerset_attr.stickerset.access_hash,
-                ),
-                hash=0,
+                )
             )
         )
     except Exception:
-        return await edit_delete(
+        return await eod(
             lionxevent,
             "`I guess this sticker is not part of any pack. So, i cant kang this sticker pack try kang for this sticker`",
         )
     kangst = 1
-    reqd_sticker_set = await event.client(
+    reqd_sticker_set = await args.client(
         functions.messages.GetStickerSetRequest(
             stickerset=types.InputStickerSetShortName(
                 short_name=f"{get_stickerset.set.short_name}"
-            ),
-            hash=0,
+            )
         )
     )
     noofst = get_stickerset.set.count
@@ -540,71 +537,54 @@ async def pack_kang(event):  # sourcery no-metrics
     pack = None
     for message in reqd_sticker_set.documents:
         if "image" in message.mime_type.split("/"):
-            await edit_or_reply(
+            await eor(
                 lionxevent,
                 f"`This sticker pack is kanging now . Status of kang process : {kangst}/{noofst}`",
             )
             photo = io.BytesIO()
-            await event.client.download_media(message, photo)
+            await args.client.download_media(message, photo)
             if (
                 DocumentAttributeFilename(file_name="sticker.webp")
                 in message.attributes
             ):
                 emoji = message.attributes[1].alt
         elif "tgsticker" in message.mime_type:
-            await edit_or_reply(
+            await eor(
                 lionxevent,
                 f"`This sticker pack is kanging now . Status of kang process : {kangst}/{noofst}`",
             )
-            await event.client.download_media(message, "AnimatedSticker.tgs")
+            await args.client.download_media(message, "AnimatedSticker.tgs")
             attributes = message.attributes
             for attribute in attributes:
                 if isinstance(attribute, DocumentAttributeSticker):
                     emoji = attribute.alt
             is_anim = True
             photo = 1
-        elif "video/webm" in message.mime_type:
-            await edit_or_reply(
-                lionxevent,
-                f"`This sticker pack is kanging now . Status of kang process : {kangst}/{noofst}`",
-            )
-            if message.size / 1024 > 255:
-                await animator(message, event)
-            else:
-                await event.client.download_media(message, "animate.webm")
-            attributes = message.attributes
-            for attribute in attributes:
-                if isinstance(attribute, DocumentAttributeSticker):
-                    emoji = attribute.alt
-            is_video = True
-            photo = 1
         else:
-            await edit_delete(lionxevent, "`Unsupported File!`")
+            await eod(lionxevent, "`Unsupported File!`")
             return
         if photo:
-            splat = ("".join(event.text.split(maxsplit=1)[1:])).split()
-            emoji = emoji or "😂"
+            splat = ("".join(args.text.split(maxsplit=1)[1:])).split()
+            emoji = emoji or "⚜"
             if pack is None:
                 pack = 1
                 if len(splat) == 1:
                     pack = splat[0]
                 elif len(splat) > 1:
-                    return await edit_delete(
+                    return await eod(
                         lionxevent,
                         "`Sorry the given name cant be used for pack or there is no pack with that name`",
                     )
             try:
                 lionx = Get(lionx)
-                await event.client(lionx)
+                await args.client(lionx)
             except BaseException:
                 pass
-            packnick = pack_nick(username, pack, is_anim, is_video)
-            packname = pack_name(userid, pack, is_anim, is_video)
+            packnick = pack_nick(username, pack, is_anim, is_vid)
+            packname = pack_name(userid, pack, is_anim, is_vid)
             cmd = "/newpack"
             stfile = io.BytesIO()
-            if is_video:
-                cmd = "/newvideo"
-            elif is_anim:
+            if is_anim:
                 cmd = "/newanimated"
             else:
                 image = await resize_photo(photo)
@@ -618,15 +598,15 @@ async def pack_kang(event):  # sourcery no-metrics
                 "  A <strong>Telegram</strong> user has created the <strong>Sticker&nbsp;Set</strong>."
                 in htmlstr
             ):
-                async with event.client.conversation("@Stickers") as conv:
-                    pack, lionxpackname = await newpacksticker(
+                async with args.client.conversation("@Stickers") as conv:
+                    pack, LionXname = await newpacksticker(
                         lionxevent,
                         conv,
                         cmd,
-                        event,
+                        args,
                         pack,
                         packnick,
-                        is_video,
+                        is_vid,
                         emoji,
                         packname,
                         is_anim,
@@ -634,26 +614,26 @@ async def pack_kang(event):  # sourcery no-metrics
                         pkang=True,
                     )
             else:
-                async with event.client.conversation("@Stickers") as conv:
-                    pack, lionxpackname = await add_to_pack(
+                async with args.client.conversation("@Stickers") as conv:
+                    pack, LionXname = await add_to_pack(
                         lionxevent,
                         conv,
-                        event,
+                        args,
                         packname,
                         pack,
                         userid,
                         username,
-                        is_video,
+                        is_vid,
                         is_anim,
                         stfile,
                         emoji,
                         cmd,
                         pkang=True,
                     )
-            if lionxpackname is None:
+            if LionXname is None:
                 return
-            if lionxpackname not in blablapacks:
-                blablapacks.append(lionxpackname)
+            if LionXname not in blablapacks:
+                blablapacks.append(LionXname)
                 blablapacknames.append(pack)
         kangst += 1
         await asyncio.sleep(2)
@@ -665,33 +645,33 @@ async def pack_kang(event):  # sourcery no-metrics
     await lionxevent.edit(result)
 
 
-@lionxub.lionx_cmd(
-    pattern="vas$",
-    command=("vas", plugin_category),
+@lionx.lion_cmd(
+    pattern="vmake$",
+    command=("vmake", plugin_type),
     info={
         "header": "Converts video/gif to animated sticker",
         "description": "Converts video/gif to .webm file and send a temporary animated sticker of that file",
-        "usage": "{tr}vas <Reply to Video/Gif>",
+        "usage": "{tr}vmake <Reply to Video/Gif>",
     },
 )
-async def pussycat(args):
-    "To kang a sticker."  # scam :('  Dom't kamg :/@TeamLionX
+async def lol(args):
+    "To kang a sticker."
     message = await args.get_reply_message()
     user = await args.client.get_me()
     userid = user.id
     if message and message.media:
         if "video/mp4" in message.media.document.mime_type:
-            lionxevent = await edit_or_reply(args, "__⌛ Downloading..__")
+            lionxevent = await eor(args, "__⌛ Downloading..__")
             sticker = await animator(message, args, lionxevent)
-            await edit_or_reply(lionxevent, f"`{random.choice(KANGING_STR)}`")
+            await eor(lionxevent, f"`{random.choice(KANGING_STR)}`")
         else:
-            await edit_delete(args, "`Reply to video/gif...!`")
+            await eod(args, "`Reply to video/gif...!`")
             return
     else:
-        await edit_delete(args, "`I can't convert that...`")
+        await eor(args, "`I can't convert that...`")
         return
     cmd = "/newvideo"
-    packname = f"LionX_{userid}_temp_pack"
+    packname = f"SimpleBoy_{userid}_temp_pack"
     response = urllib.request.urlopen(
         urllib.request.Request(f"http://t.me/addstickers/{packname}")
     )
@@ -716,9 +696,9 @@ async def pussycat(args):
             "/newvideo",
             args,
             1,
-            "LionX",
+            "SimpleBoy",
             True,
-            "😂",
+            "⚜",
             packname,
             False,
             io.BytesIO(),
@@ -730,16 +710,16 @@ async def pussycat(args):
         args.chat_id,
         sticker,
         force_document=True,
-        caption=f"**[Sticker Preview](t.me/addstickers/{packname})**\n*__It will remove automatically on your next convert.__",
+        caption=f"**[Sticker Preview](t.me/addstickers/{packname})**\n__It will remove automatically on your next convert.__",
         reply_to=message,
     )
     if os.path.exists(sticker):
         os.remove(sticker)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gridpack(?:\s|$)([\s\S]*)",
-    command=("gridpack", plugin_category),
+    command=("gridpack", plugin_type),
     info={
         "header": "To split the replied image and make sticker pack.",
         "flags": {
@@ -759,32 +739,30 @@ async def pic2packcmd(event):
     reply = await event.get_reply_message()
     mediatype = media_type(reply)
     if not reply or not mediatype or mediatype not in ["Photo", "Sticker"]:
-        return await edit_delete(event, "__Reply to photo or sticker to make pack.__")
+        return await eod(event, "__Reply to photo or sticker to make pack.__")
     if mediatype == "Sticker" and reply.document.mime_type == "application/x-tgsticker":
-        return await edit_delete(
+        return await eod(
             event,
             "__Reply to photo or sticker to make pack. Animated sticker is not supported__",
         )
     args = event.pattern_match.group(1)
     if not args:
-        return await edit_delete(
-            event, "__What's your packname ?. pass along with cmd.__"
-        )
-    lionxevent = await edit_or_reply(event, "__🔪Cropping and adjusting the image...__")
+        return await eod(event, "__What's your packname ?. pass along with cmd.__")
+    lionxevent = await eor(event, "__🔪Cropping and adjusting the image...__")
     try:
         emoji = (re.findall(r"-e[\U00010000-\U0010ffff]+", args))[0]
         args = args.replace(emoji, "")
         emoji = emoji.replace("-e", "")
     except Exception:
-        emoji = "▫️"
+        emoji = "🤖"
     chat = "@Stickers"
-    name = "LionX_" + "".join(
+    name = "LionXupdates" + "".join(
         random.choice(list(string.ascii_lowercase + string.ascii_uppercase))
         for _ in range(16)
     )
     image = await _lionxtools.media_to_pic(lionxevent, reply, noedits=True)
     if image[1] is None:
-        return await edit_delete(
+        return await eod(
             image[0], "__Unable to extract image from the replied message.__"
         )
     image = Image.open(image[1])
@@ -840,14 +818,15 @@ async def pic2packcmd(event):
             )
 
         except YouBlockedUserError:
+            await event.client(functions.contacts.UnblockRequest("@Stickers"))
             await lionxevent.edit(
-                "__You blocked @Stickers bot. unblock it and try again__"
+                "__You blocked @Stickers bot. Now unblocked Successfully and Now try again__"
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stkrinfo$",
-    command=("stkrinfo", plugin_category),
+    command=("stkrinfo", plugin_type),
     info={
         "header": "To get information about a sticker pick.",
         "description": "Gets info about the sticker packk",
@@ -857,23 +836,17 @@ async def pic2packcmd(event):
 async def get_pack_info(event):
     "To get information about a sticker pick."
     if not event.is_reply:
-        return await edit_delete(
-            event, "`I can't fetch info from nothing, can I ?!`", 5
-        )
+        return await eod(event, "`I can't fetch info from nothing, can I ?!`", 5)
     rep_msg = await event.get_reply_message()
     if not rep_msg.document:
-        return await edit_delete(
-            event, "`Reply to a sticker to get the pack details`", 5
-        )
+        return await eod(event, "`Reply to a sticker to get the pack details`", 5)
     try:
         stickerset_attr = rep_msg.document.attributes[1]
-        lionxevent = await edit_or_reply(
+        lionxevent = await eor(
             event, "`Fetching details of the sticker pack, please wait..`"
         )
     except BaseException:
-        return await edit_delete(
-            event, "`This is not a sticker. Reply to a sticker.`", 5
-        )
+        return await eod(event, "`This is not a sticker. Reply to a sticker.`", 5)
     if not isinstance(stickerset_attr, DocumentAttributeSticker):
         return await lionxevent.edit("`This is not a sticker. Reply to a sticker.`")
     get_stickerset = await event.client(
@@ -881,8 +854,7 @@ async def get_pack_info(event):
             InputStickerSetID(
                 id=stickerset_attr.stickerset.id,
                 access_hash=stickerset_attr.stickerset.access_hash,
-            ),
-            hash=0,
+            )
         )
     )
     pack_emojis = []
@@ -890,19 +862,19 @@ async def get_pack_info(event):
         if document_sticker.emoticon not in pack_emojis:
             pack_emojis.append(document_sticker.emoticon)
     OUTPUT = (
-        f"**Sticker Title:** `{get_stickerset.set.title}\n`"
-        f"**Sticker Short Name:** `{get_stickerset.set.short_name}`\n"
-        f"**Official:** `{get_stickerset.set.official}`\n"
-        f"**Archived:** `{get_stickerset.set.archived}`\n"
-        f"**Stickers In Pack:** `{get_stickerset.set.count}`\n"
-        f"**Emojis In Pack:**\n{' '.join(pack_emojis)}"
+        f"🔸️**Sticker Title:** `{get_stickerset.set.title}\n`"
+        f"🔹️**Sticker Short Name:** `{get_stickerset.set.short_name}`\n"
+        f"🔸️**Official:** `{get_stickerset.set.official}`\n"
+        f"🔹️**Archived:** `{get_stickerset.set.archived}`\n"
+        f"🔸️**Stickers In Pack:** `{get_stickerset.set.count}`\n"
+        f"🔹️**Emojis In Pack:**\n{' '.join(pack_emojis)}"
     )
     await lionxevent.edit(OUTPUT)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stickers ?([\s\S]*)",
-    command=("stickers", plugin_category),
+    command=("stickers", plugin_type),
     info={
         "header": "To get list of sticker packs with given name.",
         "description": "shows you the list of non-animated sticker packs with that name.",
@@ -913,14 +885,14 @@ async def cb_sticker(event):
     "To get list of sticker packs with given name."
     split = event.pattern_match.group(1)
     if not split:
-        return await edit_delete(event, "`Provide some name to search for pack.`", 5)
-    lionxevent = await edit_or_reply(event, "`Searching sticker packs....`")
+        return await eod(event, "`Provide some name to search for pack.`", 5)
+    lionxevent = await eor(event, "`Searching sticker packs....`")
     scraper = cloudscraper.create_scraper()
     text = scraper.get(combot_stickers_url + split).text
     soup = bs(text, "lxml")
     results = soup.find_all("div", {"class": "sticker-pack__header"})
     if not results:
-        return await edit_delete(lionxevent, "`No results found :(.`", 5)
+        return await eod(lionxevent, "`No results found :(.`", 5)
     reply = f"**Sticker packs found for {split} are :**"
     for pack in results:
         if pack.button:

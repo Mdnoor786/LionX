@@ -4,14 +4,14 @@ import random
 import requests
 from bs4 import BeautifulSoup
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.utils import reply_id
 
 LOGS = logging.getLogger(os.path.basename(__name__))
-plugin_category = "extra"
+plugin_type = "extra"
 
 
 async def wall_download(piclink, query):
@@ -32,41 +32,39 @@ async def wall_download(piclink, query):
         return None
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="wall(?:\s|$)([\s\S]*)",
-    command=("wall", plugin_category),
+    command=("wall", plugin_type),
     info={
         "header": "Searches and uploads wallpaper",
         "usage": ["{tr}wall <query>", "{tr}wall <query> ; <1-10>"],
         "examples": ["{tr}wall one piece", "{tr}wall one piece ; 2"],
     },
 )
-async def noods(event):  # sourcery no-metrics
+async def noods(event):
     "Wallpaper searcher"
     query = event.pattern_match.group(1)
     reply_to_id = await reply_id(event)
     limit = 1
     if not query:
-        return await edit_delete(event, "`what should i search`", 10)
+        return await eod(event, "`what should i search`", 10)
     if ";" in query:
         query, limit = query.split(";")
     if int(limit) > 10:
-        return await edit_delete(event, "`Wallpaper search limit is 1-10`", 10)
-    lionxevent = await edit_or_reply(event, "🔍 `Searching...`")
+        return await eod(event, "`Wallpaper search limit is 1-10`", 10)
+    lionxevent = await eor(event, "🔍 `Searching...`")
     r = requests.get(
         f"https://wall.alphacoders.com/search.php?search={query.replace(' ','+')}"
     )
     soup = BeautifulSoup(r.content, "lxml")
     walls = soup.find_all("img", class_="img-responsive")
     if not walls:
-        return await edit_delete(
-            lionxevent, f"**Can't find anything with** `{query}`", 10
-        )
+        return await eod(lionxevent, f"**Can't find anything with** `{query}`", 10)
     i = count = 0
     piclist = []
     piclinks = []
     captionlist = []
-    await edit_or_reply(lionxevent, "⏳ `Processing..`")
+    await eor(lionxevent, "⏳ `Processing..`")
     url2 = "https://api.alphacoders.com/content/get-download-link"
     for x in walls:
         wall = random.choice(walls)["src"][8:-4]
@@ -81,12 +79,10 @@ async def noods(event):  # sourcery no-metrics
         res = requests.post(url2, data=data)
         a = res.json()["link"]
         if "We are sorry," not in requests.get(a).text and a not in piclinks:
-            await edit_or_reply(lionxevent, "📥** Downloading...**")
+            await eor(lionxevent, "📥** Downloading...**")
             pic = await wall_download(a, query)
             if pic is None:
-                return await edit_delete(
-                    lionxevent, "__Sorry i can't download wallpaper.__"
-                )
+                return await eod(lionxevent, "__Sorry i can't download wallpaper.__")
             piclist.append(pic)
             piclinks.append(a)
             captionlist.append("")
@@ -94,15 +90,15 @@ async def noods(event):  # sourcery no-metrics
             i = 0
         else:
             i += 1
-        await edit_or_reply(
+        await eor(
             lionxevent, f"**📥 Downloaded : {count}/{limit}\n\n❌ Errors : {i}/5**"
         )
         if count == int(limit):
             break
         if i == 5:
-            await edit_or_reply(lionxevent, "`Max search error limit exceed..`")
+            await eor(lionxevent, "`Max search error limit exceed..`")
     try:
-        await edit_or_reply(lionxevent, "`Sending...`")
+        await eor(lionxevent, "`Sending...`")
         captionlist[-1] = f"**➥ Query :-** `{query.title()}`"
         await event.client.send_file(
             event.chat_id,

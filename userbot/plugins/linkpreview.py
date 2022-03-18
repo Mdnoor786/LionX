@@ -1,16 +1,16 @@
 from telethon import events
 from telethon.errors.rpcerrorlist import YouBlockedUserError
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ctg$",
-    command=("ctg", plugin_category),
+    command=("ctg", plugin_type),
     info={
         "header": "Reply to link To get link preview using telegrah.s.",
         "usage": "{tr}ctg",
@@ -20,13 +20,13 @@ async def _(event):
     "To get link preview"
     reply_message = await event.get_reply_message()
     if not reply_message:
-        await edit_or_reply(event, "```Reply to a Link.```")
+        await eor(event, "```Reply to a Link.```")
         return
     if not reply_message.text:
-        await edit_or_reply(event, "```Reply to a Link```")
+        await eor(event, "```Reply to a Link```")
         return
     chat = "@chotamreaderbot"
-    lionxevent = await edit_or_reply(event, "```Processing```")
+    lionxevent = await eor(event, "```Processing```")
     async with event.client.conversation(chat) as conv:
         try:
             response = conv.wait_event(

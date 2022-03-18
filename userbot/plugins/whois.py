@@ -6,41 +6,45 @@ import os
 from requests import get
 from telethon.tl.functions.photos import GetUserPhotosRequest
 from telethon.tl.functions.users import GetFullUserRequest
+from telethon.utils import get_input_location
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers import get_user_from_event, reply_id
 from . import spamwatch
 
-plugin_category = "utils"
+plugin_type = "utils"
 LOGS = logging.getLogger(__name__)
 
 
 async def fetch_info(replied_user, event):
     """Get details from the User object."""
-    FullUser = (await event.client(GetFullUserRequest(replied_user.id))).full_user
     replied_user_profile_photos = await event.client(
-        GetUserPhotosRequest(user_id=replied_user.id, offset=42, max_id=0, limit=80)
+        GetUserPhotosRequest(
+            user_id=replied_user.user.id, offset=42, max_id=0, limit=80
+        )
     )
     replied_user_profile_photos_count = "User haven't set profile pic"
-    dc_id = "Can't get dc id"
     try:
         replied_user_profile_photos_count = replied_user_profile_photos.count
-        dc_id = replied_user.photo.dc_id
     except AttributeError:
         pass
-    user_id = replied_user.id
-    first_name = replied_user.first_name
-    full_name = FullUser.private_forward_name
-    common_chat = FullUser.common_chats_count
-    username = replied_user.username
-    user_bio = FullUser.about
-    is_bot = replied_user.bot
-    restricted = replied_user.restricted
-    verified = replied_user.verified
+    user_id = replied_user.user.id
+    first_name = replied_user.user.first_name
+    last_name = replied_user.user.last_name
+    try:
+        dc_id, location = get_input_location(replied_user.profile_photo)
+    except Exception:
+        dc_id = "Couldn't fetch DC ID!"
+    common_chat = replied_user.common_chats_count
+    username = replied_user.user.username
+    user_bio = replied_user.about
+    is_bot = replied_user.user.bot
+    restricted = replied_user.user.restricted
+    verified = replied_user.user.verified
     photo = await event.client.download_profile_photo(
         user_id,
         Config.TMP_DOWNLOAD_DIRECTORY + str(user_id) + ".jpg",
@@ -51,14 +55,13 @@ async def fetch_info(replied_user, event):
         if first_name
         else ("This User has no First Name")
     )
-    full_name = full_name or first_name
+    last_name = last_name.replace("\u2060", "") if last_name else (" ")
     username = "@{}".format(username) if username else ("This User has no Username")
     user_bio = "This User has no About" if not user_bio else user_bio
-    caption = "<b><i>USER INFO from Durov's Database :</i></b>\n\n"
-    caption += f"<b>👤 Name:</b> {full_name}\n"
+    caption = f"<b>👤 First Name:</b> {first_name} {last_name}\n"
     caption += f"<b>🤵 Username:</b> {username}\n"
     caption += f"<b>🔖 ID:</b> <code>{user_id}</code>\n"
-    caption += f"<b>🌏 Data Centre ID:</b> {dc_id}\n"
+    caption += f"<b>🌏 DC ID:</b> {dc_id}\n"
     caption += f"<b>🖼 Number of Profile Pics:</b> {replied_user_profile_photos_count}\n"
     caption += f"<b>🤖 Is Bot:</b> {is_bot}\n"
     caption += f"<b>🔏 Is Restricted:</b> {restricted}\n"
@@ -70,9 +73,9 @@ async def fetch_info(replied_user, event):
     return photo, caption
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="userinfo(?:\s|$)([\s\S]*)",
-    command=("userinfo", plugin_category),
+    command=("userinfo", plugin_type),
     info={
         "header": "Gets information of an user such as restrictions ban by spamwatch or cas.",
         "description": "That is like whether he banned is spamwatch or cas and small info like groups in common, dc ..etc.",
@@ -81,14 +84,14 @@ async def fetch_info(replied_user, event):
 )
 async def _(event):
     "Gets information of an user such as restrictions ban by spamwatch or cas"
-    replied_user, reason = await get_user_from_event(event)
+    replied_user, error_i_a = await get_user_from_event(event)
     if not replied_user:
         return
-    lionxevent = await edit_or_reply(event, "`Fetching userinfo wait....`")
-    FullUser = (await event.client(GetFullUserRequest(replied_user.id))).full_user
-    user_id = replied_user.id
+    lionxevent = await eor(event, "`Fetching userinfo wait....`")
+    replied_user = await event.client(GetFullUserRequest(replied_user.id))
+    user_id = replied_user.user.id
     # some people have weird HTML in their names
-    first_name = html.escape(replied_user.first_name)
+    first_name = html.escape(replied_user.user.first_name)
     # https://stackoverflow.com/a/5072031/4723940
     # some Deleted Accounts do not have first_name
     if first_name is not None:
@@ -96,16 +99,17 @@ async def _(event):
         # names
         first_name = first_name.replace("\u2060", "")
     # inspired by https://telegram.dog/afsaI181
-    common_chats = FullUser.common_chats_count
+    common_chats = replied_user.common_chats_count
     try:
-        dc_id = replied_user.photo.dc_id
-    except AttributeError:
-        dc_id = "Can't get dc id"
+        dc_id, location = get_input_location(replied_user.profile_photo)
+    except Exception:
+        dc_id = "Couldn't fetch DC ID!"
     if spamwatch:
-        if ban := spamwatch.get_ban(user_id):
+        ban = spamwatch.get_ban(user_id)
+        if ban:
             sw = f"**Spamwatch Banned :** `True` \n       **-**🤷‍♂️**Reason : **`{ban.reason}`"
         else:
-            sw = "**Spamwatch Banned :** `False`"
+            sw = f"**Spamwatch Banned :** `False`"
     else:
         sw = "**Spamwatch Banned :**`Not Connected`"
     try:
@@ -124,7 +128,7 @@ async def _(event):
     caption = """**Info of [{}](tg://user?id={}):
    -🔖ID : **`{}`
    **-**👥**Groups in Common : **`{}`
-   **-**🌏**Data Centre Number : **`{}`
+   **-**🌏**DC Number : **`{}`
    **-**🔏**Restricted by telegram : **`{}`
    **-**🦅{}
    **-**👮‍♂️{}
@@ -134,20 +138,20 @@ async def _(event):
         user_id,
         common_chats,
         dc_id,
-        replied_user.restricted,
+        replied_user.user.restricted,
         sw,
         cas,
     )
-    await edit_or_reply(lionxevent, caption)
+    await eor(lionxevent, caption)
 
 
-@lionxub.lionx_cmd(
-    pattern="whois(?:\s|$)([\s\S]*)",
-    command=("whois", plugin_category),
+@lionx.lion_cmd(
+    pattern="info(?:\s|$)([\s\S]*)",
+    command=("info", plugin_type),
     info={
         "header": "Gets info of an user.",
         "description": "User compelete details.",
-        "usage": "{tr}whois <username/userid/reply>",
+        "usage": "{tr}info <username/userid/reply>",
     },
 )
 async def who(event):
@@ -157,11 +161,12 @@ async def who(event):
     replied_user, reason = await get_user_from_event(event)
     if not replied_user:
         return
-    lionx = await edit_or_reply(event, "`Fetching userinfo wait....`")
+    lionx = await eor(event, "`Fetching userinfo wait....`")
+    replied_user = await event.client(GetFullUserRequest(replied_user.id))
     try:
         photo, caption = await fetch_info(replied_user, event)
     except AttributeError:
-        return await edit_or_reply(lionx, "`Could not fetch info of that user.`")
+        return await eor(event, "`Could not fetch info of that user.`")
     message_id_to_reply = await reply_id(event)
     try:
         await event.client.send_file(
@@ -180,9 +185,9 @@ async def who(event):
         await lionx.edit(caption, parse_mode="html")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="link(?:\s|$)([\s\S]*)",
-    command=("link", plugin_category),
+    command=("link", plugin_type),
     info={
         "header": "Generates a link to the user's PM .",
         "usage": "{tr}link <username/userid/reply>",
@@ -194,6 +199,6 @@ async def permalink(mention):
     if not user:
         return
     if custom:
-        return await edit_or_reply(mention, f"[{custom}](tg://user?id={user.id})")
+        return await eor(mention, f"[{custom}](tg://user?id={user.id})")
     tag = user.first_name.replace("\u2060", "") if user.first_name else user.username
-    await edit_or_reply(mention, f"[{tag}](tg://user?id={user.id})")
+    await eor(mention, f"[{tag}](tg://user?id={user.id})")

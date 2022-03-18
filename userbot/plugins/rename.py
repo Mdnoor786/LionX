@@ -3,25 +3,25 @@ import os
 import time
 from datetime import datetime
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.utils import reply_id
 from . import progress, reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 thumb_image_path = os.path.join(Config.TMP_DOWNLOAD_DIRECTORY, "thumb_image.jpg")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="rnup ?(-f)? ([\s\S]*)",
-    command=("rnup", plugin_category),
+    command=("rnup", plugin_type),
     info={
         "header": "To rename and upload the replied file.",
         "flags": {"f": "will upload as file that is document not streamable."},
-        "description": "If flag is not used then will upload as steamable file",
+        "description": "If type is not used then will upload as steamable file",
         "usage": [
             "{tr}rnup <new file name>",
             "{tr}rnup -f <new file name>",
@@ -31,10 +31,10 @@ thumb_image_path = os.path.join(Config.TMP_DOWNLOAD_DIRECTORY, "thumb_image.jpg"
 async def _(event):
     "To rename and upload the file"
     thumb = thumb_image_path if os.path.exists(thumb_image_path) else None
-    flags = event.pattern_match.group(1)
-    forcedoc = bool(flags)
-    supsstream = not flags
-    lionxevent = await edit_or_reply(
+    types = event.pattern_match.group(1)
+    forcedoc = bool(types)
+    supsstream = not types
+    lionxevent = await eor(
         event,
         "`Rename & Upload in process 🙄🙇‍♂️🙇‍♂️🙇‍♀️ It might take some time if file size is big`",
     )
@@ -80,7 +80,7 @@ async def _(event):
     end_two = datetime.now()
     os.remove(downloaded_file_name)
     ms_two = (end_two - end).seconds
-    await edit_delete(
+    await eod(
         lionxevent,
         f"`Downloaded file in {ms_one} seconds.\nAnd Uploaded in {ms_two} seconds.`",
     )

@@ -13,23 +13,23 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageColor
 from telethon.errors.rpcerrorlist import YouBlockedUserError
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import AioHttp
 from ..helpers.utils import _format, _lionxutils, reply_id
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 
 LOGS = logging.getLogger(__name__)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="cur(?:\s|$)([\s\S]*)",
-    command=("cur", plugin_category),
+    command=("cur", plugin_type),
     info={
         "header": "To convert one currency value to other.",
         "description": "To find exchange rates of currencies.",
@@ -41,7 +41,7 @@ LOGS = logging.getLogger(__name__)
 async def currency(event):
     """To convert one currency value to other."""
     if Config.CURRENCY_API is None:
-        return await edit_delete(
+        return await eod(
             event,
             "__You haven't set the api value. Set Api var __`CURRENCY_API` __in heroku get value from https://free.currencyconverterapi.com__.",
             link_preview=False,
@@ -52,7 +52,7 @@ async def currency(event):
     if len(values) == 3:
         value, fromcurrency, tocurrency = values
     else:
-        return await edit_delete(event, "__Use proper syntax. check__ `.help -c cur`")
+        return await eod(event, "__Use proper syntax. check__ `.help -c cur`")
     fromcurrency = fromcurrency.upper()
     tocurrency = tocurrency.upper()
     try:
@@ -61,49 +61,49 @@ async def currency(event):
             f"https://free.currconv.com/api/v7/convert?q={fromcurrency}_{tocurrency}&compact=ultra&apiKey={Config.CURRENCY_API}"
         )
         symbols = await AioHttp().get_raw(
-            "https://raw.githubusercontent.com/TeamLionX/LionX-Resources/master/Resources/Data/currency.py"
+            "https://raw.githubusercontent.com/TEAMLIONX/RESOURCES/master/Resources/Data/currency.py"
         )
 
         symbols = json.loads(re.sub(", *\n *}", "}", symbols.decode("utf-8")))
         try:
             result = aresponse[f"{fromcurrency}_{tocurrency}"]
         except KeyError:
-            return await edit_delete(
+            return await eod(
                 event,
                 "__You have used wrong currency codes or Api can't fetch details or try by restarting bot it will work if everything is fine.__",
                 time=10,
             )
         output = float(value) * float(result)
         output = round(output, 4)
-        await edit_or_reply(
+        await eor(
             event,
             f"The Currency value of **{symbols[fromcurrency]}{value} {fromcurrency}** in **{tocurrency}** is **{symbols[tocurrency]}{output}**",
         )
     except Exception:
-        await edit_or_reply(
+        await eor(
             event,
             "__It seems you are using different currency value. which doesn't exist on earth.__",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="scan( -i)?$",
-    command=("scan", plugin_category),
+    command=("scan", plugin_type),
     info={
         "header": "To scan the replied file for virus.",
-        "flag": {"i": "to get output as image."},
+        "type": {"i": "to get output as image."},
         "usage": ["{tr}scan", "{tr}scan -i"],
     },
 )
 async def _(event):
     input_str = event.pattern_match.group(1)
     if not event.reply_to_msg_id:
-        return await edit_or_reply(event, "```Reply to any user message.```")
+        return await eor(event, "```Reply to any user message.```")
     reply_message = await event.get_reply_message()
     if not reply_message.media:
-        return await edit_or_reply(event, "```reply to a media message```")
+        return await eor(event, "```reply to a media message```")
     chat = "@VS_Robot"
-    lionxevent = await edit_or_reply(event, " `Sliding my tip, of fingers over it`")
+    lionxevent = await eor(event, " `Sliding my tip, of fingers over it`")
     async with event.client.conversation(chat) as conv:
         try:
             await conv.send_message("/start")
@@ -125,16 +125,16 @@ async def _(event):
                 "`You blocked `@VS_Robot` Unblock it and give a try`"
             )
         if not input_str:
-            return await edit_or_reply(lionxevent, response4.text)
+            return await eor(lionxevent, response4.text)
         await lionxevent.delete()
         await event.client.send_file(
             event.chat_id, response3.media, reply_to=(await reply_id(event))
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="decode$",
-    command=("decode", plugin_category),
+    command=("decode", plugin_type),
     info={
         "header": "To decode qrcode or barcode",
         "description": "Reply to qrcode or barcode to decode it and get text.",
@@ -143,7 +143,7 @@ async def _(event):
 )
 async def parseqr(event):
     "To decode qrcode or barcode"
-    lionxevent = await edit_or_reply(event, "`Decoding....`")
+    lionxevent = await eor(event, "`Decoding....`")
     reply = await event.get_reply_message()
     downloaded_file_name = await reply.download_media()
     # parse the Official ZXing webpage to decode the QRCode
@@ -154,19 +154,17 @@ async def parseqr(event):
     soup = BeautifulSoup(t_response, "html.parser")
     try:
         qr_contents = soup.find_all("pre")[0].text
-        await edit_or_reply(
-            lionxevent, f"**The decoded message is :**\n`{qr_contents}`"
-        )
+        await eor(lionxevent, f"**The decoded message is :**\n`{qr_contents}`")
     except IndexError:
         result = soup.text
-        await edit_or_reply(lionxevent, f"**Failed to Decode:**\n`{result}`")
+        await eor(lionxevent, f"**Failed to Decode:**\n`{result}`")
     except Exception as e:
-        await edit_or_reply(lionxevent, f"**Error:**\n`{e}`")
+        await eor(lionxevent, f"**Error:**\n`{e}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="barcode ?([\s\S]*)",
-    command=("barcode", plugin_category),
+    command=("barcode", plugin_type),
     info={
         "header": "To get barcode of given text.",
         "usage": "{tr}barcode <text>",
@@ -175,7 +173,7 @@ async def parseqr(event):
 )
 async def _(event):
     "to make barcode of given content."
-    lionxevent = await edit_or_reply(event, "...")
+    lionxevent = await eor(event, "...")
     start = datetime.now()
     input_str = event.pattern_match.group(1)
     message = "SYNTAX: `.barcode <long text to include>`"
@@ -213,12 +211,12 @@ async def _(event):
         return await lionxevent.edit(str(e))
     end = datetime.now()
     ms = (end - start).seconds
-    await edit_delete(lionxevent, "Created BarCode in {} seconds".format(ms))
+    await eod(lionxevent, "Created BarCode in {} seconds".format(ms))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="makeqr(?: |$)([\s\S]*)",
-    command=("makeqr", plugin_category),
+    command=("makeqr", plugin_type),
     info={
         "header": "To get makeqr of given text.",
         "usage": "{tr}makeqr <text>",
@@ -260,9 +258,9 @@ async def make_qr(makeqr):
     await makeqr.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="cal ([\s\S]*)",
-    command=("cal", plugin_category),
+    command=("cal", plugin_type),
     info={
         "header": "To get calendar of given month and year.",
         "usage": "{tr}cal year ; month",
@@ -274,20 +272,20 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     input_sgra = input_str.split(";")
     if len(input_sgra) != 2:
-        return await edit_delete(event, "**Syntax : **`.cal year ; month `", 5)
+        return await eod(event, "**Syntax : **`.cal year ; month `", 5)
 
     yyyy = input_sgra[0]
     mm = input_sgra[1]
     try:
         output_result = calendar.month(int(yyyy.strip()), int(mm.strip()))
-        await edit_or_reply(event, f"```{output_result}```")
+        await eor(event, f"```{output_result}```")
     except Exception as e:
-        await edit_delete(event, f"**Error:**\n`{e}`", 5)
+        await eod(event, f"**Error:**\n`{e}`", 5)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ip(?:\s|$)([\s\S]*)",
-    command=("ip", plugin_category),
+    command=("ip", plugin_type),
     info={
         "header": "Find details of an IP address",
         "description": "To check detailed info of provided ip address.",
@@ -302,11 +300,11 @@ async def spy(event):
     "To see details of an ip."
     inpt = event.pattern_match.group(1)
     if not inpt:
-        return await edit_delete(event, "**Give an ip address to lookup...**", 20)
+        return await eod(event, "**Give an ip address to lookup...**", 20)
     check = "" if inpt == "mine" else inpt
     API = Config.IPDATA_API
     if API is None:
-        return await edit_delete(
+        return await eod(
             event,
             "**Get an API key from [Ipdata](https://dashboard.ipdata.co/sign-up.html) & set that in heroku var `IPDATA_API`**",
             80,
@@ -314,9 +312,9 @@ async def spy(event):
     url = requests.get(f"https://api.ipdata.co/{check}?api-key={API}")
     r = url.json()
     try:
-        return await edit_delete(event, f"**{r['message']}**", 60)
+        return await eod(event, f"**{r['message']}**", 60)
     except KeyError:
-        await edit_or_reply(event, "🔍 **Searching...**")
+        await eor(event, "🔍 **Searching...**")
     ip = r["ip"]
     city = r["city"]
     postal = r["postal"]
@@ -336,7 +334,7 @@ async def spy(event):
     curnative = r["currency"]["native"]
     lang1 = r["languages"][0]["name"]
     time_zone = r["time_zone"]["name"]
-    emoji_flag = r["emoji_flag"]
+    emoji_type = r["emoji_type"]
     continent_code = r["continent_code"]
     native = r["languages"][0]["native"]
     current_time = r["time_zone"]["current_time"]
@@ -353,7 +351,7 @@ async def spy(event):
     except IndexError:
         lang2 = ""
 
-    string = f"✘ <b>Lookup For Ip : {ip}</b> {emoji_flag}\n\n\
+    string = f"✘ <b>Lookup For Ip : {ip}</b> {emoji_type}\n\n\
     <b>• City Name :</b>  <code>{city}</code>\n\
     <b>• Region Name :</b>  <code>{region}</code> [<code>{region_code}</code>]\n\
     <b>• Country Name :</b>  <code>{country}</code> [<code>{country_code}</code>]\n\
@@ -368,12 +366,12 @@ async def spy(event):
     <b>• Time :</b> <code>{current_time[11:16]}</code>\n\
     <b>• Date :</b> <code>{current_time[:10]}</code>\n\
     <b>• Time Offset :</b> <code>{current_time[-6:]}</code>"
-    await edit_or_reply(event, string, parse_mode="html")
+    await eor(event, string, parse_mode="html")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ifsc ([\s\S]*)",
-    command=("ifsc", plugin_category),
+    command=("ifsc", plugin_type),
     info={
         "header": "to get details of the relevant bank or branch.",
         "usage": "{tr}ifsc <ifsc code>",
@@ -386,17 +384,17 @@ async def _(event):
     url = "https://ifsc.razorpay.com/{}".format(input_str)
     r = requests.get(url)
     if r.status_code != 200:
-        return await edit_or_reply(event, "`{}`: {}".format(input_str, r.text))
+        return await eor(event, "`{}`: {}".format(input_str, r.text))
 
     b = r.json()
     a = json.dumps(b, sort_keys=True, indent=4)
     # https://stackoverflow.com/a/9105132/4723940
-    await edit_or_reply(event, str(a))
+    await eor(event, str(a))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="color ([\s\S]*)",
-    command=("color", plugin_category),
+    command=("color", plugin_type),
     info={
         "header": "To get color pic of given hexa color code.",
         "usage": "{tr}color <colour code>",
@@ -408,7 +406,7 @@ async def _(event):
     input_str = event.pattern_match.group(1)
     message_id = await reply_id(event)
     if not input_str.startswith("#"):
-        return await edit_or_reply(
+        return await eor(
             event, "**Syntax : **`.color <color_code>` example : `.color #ff0000`"
         )
     try:
@@ -430,9 +428,9 @@ async def _(event):
         await event.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="xkcd(?:\s|$)([\s\S]*)",
-    command=("xkcd", plugin_category),
+    command=("xkcd", plugin_type),
     info={
         "header": "Searches for the query for the relevant XKCD comic.",
         "usage": "{tr}xkcd <query>",
@@ -440,7 +438,7 @@ async def _(event):
 )
 async def _(event):
     "Searches for the query for the relevant XKCD comic."
-    lionxevent = await edit_or_reply(event, "`processiong...........`")
+    lionxevent = await eor(event, "`processiong...........`")
     input_str = event.pattern_match.group(1)
     xkcd_id = None
     if input_str:

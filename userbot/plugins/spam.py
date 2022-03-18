@@ -6,38 +6,38 @@ from telethon.tl.functions.messages import GetStickerSetRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest as Get
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.tools import media_type
 from ..helpers.utils import _lionxutils
 from ..sql_helper.globals import addgvar, gvarstatus
-from . import BOTLOG, BOTLOG_CHATID
+from . import BOTLOG, BOTLOG_CHATID, useless
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 
-async def spam_function(event, amaan, lionx, sleeptimem, sleeptimet, DelaySpam=False):
+async def spam_function(event, LIONX, lol, sleeptimem, sleeptimet, DelaySpam=False):
     # sourcery no-metrics
-    counter = int(lionx[0])
-    if len(lionx) == 2:
-        spam_message = str(lionx[1])
+    counter = int(lol[0])
+    if len(lol) == 2:
+        spam_message = str(lol[1])
         for _ in range(counter):
             if gvarstatus("spamwork") is None:
                 return
             if event.reply_to_msg_id:
-                await amaan.reply(spam_message)
+                await LIONX.reply(spam_message)
             else:
                 await event.client.send_message(event.chat_id, spam_message)
             await asyncio.sleep(sleeptimet)
-    elif event.reply_to_msg_id and amaan.media:
+    elif event.reply_to_msg_id and LIONX.media:
         for _ in range(counter):
             if gvarstatus("spamwork") is None:
                 return
-            amaan = await event.client.send_file(
-                event.chat_id, amaan, caption=amaan.text
+            LIONX = await event.client.send_file(
+                event.chat_id, LIONX, caption=LIONX.text
             )
-            await _lionxutils.unsavegif(event, amaan)
+            await _lionxutils.unsavegif(event, LIONX)
             await asyncio.sleep(sleeptimem)
         if BOTLOG:
             if DelaySpam is not True:
@@ -66,11 +66,11 @@ async def spam_function(event, amaan, lionx, sleeptimem, sleeptimet, DelaySpam=F
                     + f"Delay spam was executed successfully in {get_display_name(await event.get_chat())}(`{event.chat_id}`) with {counter} times with below message with delay {sleeptimet} seconds",
                 )
 
-            amaan = await event.client.send_file(BOTLOG_CHATID, amaan)
-            await _lionxutils.unsavegif(event, amaan)
+            LIONX = await event.client.send_file(BOTLOG_CHATID, LIONX)
+            await _lionxutils.unsavegif(event, LIONX)
         return
-    elif event.reply_to_msg_id and amaan.text:
-        spam_message = amaan.text
+    elif event.reply_to_msg_id and LIONX.text:
+        spam_message = LIONX.text
         for _ in range(counter):
             if gvarstatus("spamwork") is None:
                 return
@@ -111,9 +111,9 @@ async def spam_function(event, amaan, lionx, sleeptimem, sleeptimet, DelaySpam=F
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="spam ([\s\S]*)",
-    command=("spam", plugin_category),
+    command=("spam", plugin_type),
     info={
         "header": "Floods the text in the chat !! with given number of times,",
         "description": "Sends the replied media/message <count> times !! in the chat",
@@ -123,12 +123,15 @@ async def spam_function(event, amaan, lionx, sleeptimem, sleeptimet, DelaySpam=F
 )
 async def spammer(event):
     "Floods the text in the chat !!"
-    amaan = await event.get_reply_message()
-    lionx = ("".join(event.text.split(maxsplit=1)[1:])).split(" ", 1)
+    LIONX = await event.get_reply_message()
+    type = await useless.importent(event)
+    if type:
+        return
+    lol = ("".join(event.text.split(maxsplit=1)[1:])).split(" ", 1)
     try:
-        counter = int(lionx[0])
+        counter = int(lol[0])
     except Exception:
-        return await edit_delete(
+        return await eod(
             event, "__Use proper syntax to spam. For syntax refer help menu.__"
         )
     if counter > 50:
@@ -139,12 +142,12 @@ async def spammer(event):
         sleeptimem = 0.3
     await event.delete()
     addgvar("spamwork", True)
-    await spam_function(event, amaan, lionx, sleeptimem, sleeptimet)
+    await spam_function(event, LIONX, lol, sleeptimem, sleeptimet)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="spspam$",
-    command=("spspam", plugin_category),
+    command=("spspam", plugin_type),
     info={
         "header": "To spam the chat with stickers.",
         "description": "To spam chat with all stickers in that replied message sticker pack.",
@@ -154,18 +157,21 @@ async def spammer(event):
 async def stickerpack_spam(event):
     "To spam the chat with stickers."
     reply = await event.get_reply_message()
+    type = await useless.importent(event)
+    if type:
+        return
     if not reply or media_type(reply) is None or media_type(reply) != "Sticker":
-        return await edit_delete(
+        return await eod(
             event, "`reply to any sticker to send all stickers in that pack`"
         )
-    hmm = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    hmm = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     try:
         stickerset_attr = reply.document.attributes[1]
-        lionxevent = await edit_or_reply(
+        lionxevent = await eor(
             event, "`Fetching details of the sticker pack, please wait..`"
         )
     except BaseException:
-        await edit_delete(event, "`This is not a sticker. Reply to a sticker.`", 5)
+        await eod(event, "`This is not a sticker. Reply to a sticker.`", 5)
         return
     try:
         get_stickerset = await event.client(
@@ -173,12 +179,11 @@ async def stickerpack_spam(event):
                 types.InputStickerSetID(
                     id=stickerset_attr.stickerset.id,
                     access_hash=stickerset_attr.stickerset.access_hash,
-                ),
-                hash=0,
+                )
             )
         )
     except Exception:
-        return await edit_delete(
+        return await eod(
             lionxevent,
             "`I guess this sticker is not part of any pack so i cant kang this sticker pack try kang for this sticker`",
         )
@@ -191,8 +196,7 @@ async def stickerpack_spam(event):
         functions.messages.GetStickerSetRequest(
             stickerset=types.InputStickerSetShortName(
                 short_name=f"{get_stickerset.set.short_name}"
-            ),
-            hash=0,
+            )
         )
     )
     addgvar("spamwork", True)
@@ -201,7 +205,6 @@ async def stickerpack_spam(event):
             return
         await event.client.send_file(event.chat_id, m)
         await asyncio.sleep(0.7)
-    await lionxevent.delete()
     if BOTLOG:
         if event.is_private:
             await event.client.send_message(
@@ -218,9 +221,47 @@ async def stickerpack_spam(event):
         await event.client.send_file(BOTLOG_CHATID, reqd_sticker_set.documents[0])
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
+    pattern="mspam ([\s\S]*)",
+    command=("mspam", plugin_type),
+    info={
+        "header": "To spam the chat with stickers.",
+        "description": "To spam chat with all stickers in that replied message sticker pack.",
+        "usage": "{tr}spspam",
+    },
+)
+async def tiny_pic_spam(e):
+    type = await useless.importent(event)
+    if type:
+        return
+    await e.get_sender()
+    await e.client.get_me()
+    try:
+        await e.delete()
+    except:
+        pass
+    try:
+        counter = int(e.pattern_match.group(1).split(" ", 1)[0])
+        reply_message = await e.get_reply_message()
+        if (
+            not reply_message
+            or not e.reply_to_msg_id
+            or not reply_message.media
+            or not reply_message.media
+        ):
+            return await e.edit("```Reply to a pic/sticker/gif/video message```")
+        message = reply_message.media
+        for i in range(1, counter):
+            await e.client.send_file(e.chat_id, message)
+    except:
+        return await e.reply(
+            f"**Error**\nUsage `.mspam <count> reply to a sticker/gif/photo/video`"
+        )
+
+
+@lionx.lion_cmd(
     pattern="cspam ([\s\S]*)",
-    command=("cspam", plugin_category),
+    command=("cspam", plugin_type),
     info={
         "header": "Spam the text letter by letter",
         "description": "Spam the chat with every letter in given text as new message.",
@@ -230,6 +271,9 @@ async def stickerpack_spam(event):
 )
 async def tmeme(event):
     "Spam the text letter by letter."
+    type = await useless.importent(event)
+    if type:
+        return
     cspam = str("".join(event.text.split(maxsplit=1)[1:]))
     message = cspam.replace(" ", "")
     await event.delete()
@@ -253,18 +297,21 @@ async def tmeme(event):
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="wspam ([\s\S]*)",
-    command=("wspam", plugin_category),
+    command=("wspam", plugin_type),
     info={
         "header": "Spam the text word by word.",
         "description": "Spams the chat with every word in given text as new message.",
         "usage": "{tr}wspam <text>",
-        "examples": "{tr}wspam I am using lionx",
+        "examples": "{tr}wspam I am using LionX",
     },
 )
 async def tmeme(event):
     "Spam the text word by word"
+    type = await useless.importent(event)
+    if type:
+        return
     wspam = str("".join(event.text.split(maxsplit=1)[1:]))
     message = wspam.split()
     await event.delete()
@@ -288,9 +335,9 @@ async def tmeme(event):
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="(delayspam|dspam) ([\s\S]*)",
-    command=("delayspam", plugin_category),
+    command=("delayspam", plugin_type),
     info={
         "header": "To spam the chat with count number of times with given text and given delay sleep time.",
         "description": "For example if you see this dspam 2 10 hi. Then you will send 10 hi text messages with 2 seconds gap between each message.",
@@ -304,20 +351,23 @@ async def tmeme(event):
 async def spammer(event):
     "To spam with custom sleep time between each message"
     reply = await event.get_reply_message()
+    type = await useless.importent(event)
+    if type:
+        return
     input_str = "".join(event.text.split(maxsplit=1)[1:]).split(" ", 2)
     try:
         sleeptimet = sleeptimem = float(input_str[0])
     except Exception:
-        return await edit_delete(
+        return await eod(
             event, "__Use proper syntax to spam. For syntax refer help menu.__"
         )
-    lionx = input_str[1:]
+    lol = input_str[1:]
     try:
-        int(lionx[0])
+        int(lol[0])
     except Exception:
-        return await edit_delete(
+        return await eod(
             event, "__Use proper syntax for delay spam. For syntax refer help menu.__"
         )
     await event.delete()
     addgvar("spamwork", True)
-    await spam_function(event, reply, lionx, sleeptimem, sleeptimet, DelaySpam=True)
+    await spam_function(event, reply, lol, sleeptimem, sleeptimet, DelaySpam=True)

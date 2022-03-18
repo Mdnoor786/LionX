@@ -19,12 +19,12 @@ from telethon.tl.types import (
 )
 from telethon.utils import add_surrogate, del_surrogate
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 LOGS = logging.getLogger(__name__)
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 usernexp = re.compile(r"@(\w{3,32})\[(.+?)\]")
 nameexp = re.compile(r"\[([\w\S]+)\]\(tg://user\?id=(\d+)\)\[(.+?)\]")
@@ -70,7 +70,7 @@ def parse_b_meme(m):
 
 
 def parse_subreddit(m):
-    text = f"/{m.group(3)}"
+    text = "/" + m.group(3)
     entity = MessageEntityTextUrl(
         offset=m.start(2), length=len(text), url=f"https://reddit.com{text}"
     )
@@ -157,7 +157,7 @@ def parse(message, old_entities=None):
         LOGS.info(str(e))
 
 
-@lionxub.lionx_cmd(outgoing=True)
+@lionx.lion_cmd(outgoing=True)
 async def reparse(event):
     old_entities = event.message.entities or []
     parser = partial(parse, old_entities=old_entities)
@@ -179,7 +179,7 @@ async def reparse(event):
         raise events.StopPropagation
 
 
-@lionxub.lionx_cmd(outgoing=True)
+@lionx.lion_cmd(outgoing=True)
 async def mention(event):
     newstr = event.text
     if event.entities:

@@ -7,14 +7,14 @@ from telethon.tl.functions.channels import GetAdminedPublicChannelsRequest
 from telethon.tl.functions.photos import DeletePhotosRequest, GetUserPhotosRequest
 from telethon.tl.types import Channel, Chat, InputPhoto, User
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 # ====================== CONSTANT ===============================
@@ -29,9 +29,9 @@ USERNAME_TAKEN = "```This username is already taken.```"
 # ===============================================================
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pbio ([\s\S]*)",
-    command=("pbio", plugin_category),
+    command=("pbio", plugin_type),
     info={
         "header": "To set bio for this account.",
         "usage": "{tr}pbio <your bio>",
@@ -42,14 +42,14 @@ async def _(event):
     bio = event.pattern_match.group(1)
     try:
         await event.client(functions.account.UpdateProfileRequest(about=bio))
-        await edit_delete(event, "`successfully changed my profile bio`")
+        await eod(event, "`successfully changed my profile bio`")
     except Exception as e:
-        await edit_or_reply(event, f"**Error:**\n`{e}`")
+        await eor(event, f"**Error:**\n`{e}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pname ([\s\S]*)",
-    command=("pname", plugin_category),
+    command=("pname", plugin_type),
     info={
         "header": "To set/change name for this account.",
         "usage": ["{tr}pname firstname ; last name", "{tr}pname firstname"],
@@ -68,14 +68,14 @@ async def _(event):
                 first_name=first_name, last_name=last_name
             )
         )
-        await edit_delete(event, "`My name was changed successfully`")
+        await eod(event, "`My name was changed successfully`")
     except Exception as e:
-        await edit_or_reply(event, f"**Error:**\n`{e}`")
+        await eor(event, f"**Error:**\n`{e}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ppic$",
-    command=("ppic", plugin_category),
+    command=("ppic", plugin_type),
     info={
         "header": "To set profile pic for this account.",
         "usage": "{tr}ppic <reply to image or gif>",
@@ -84,9 +84,7 @@ async def _(event):
 async def _(event):
     "To set profile pic for this account."
     reply_message = await event.get_reply_message()
-    lionxevent = await edit_or_reply(
-        event, "`Downloading Profile Picture to my local ...`"
-    )
+    lionxevent = await eor(event, "`Downloading Profile Picture to my local ...`")
     if not os.path.isdir(Config.TMP_DOWNLOAD_DIRECTORY):
         os.makedirs(Config.TMP_DOWNLOAD_DIRECTORY)
     photo = None
@@ -106,32 +104,30 @@ async def _(event):
                     await lionxevent.edit("`size must be less than 2 mb`")
                     os.remove(photo)
                     return
-                lionxic = None
-                lionxvideo = await event.client.upload_file(photo)
+                lolpic = None
+                lolvideo = await event.client.upload_file(photo)
             else:
-                lionxic = await event.client.upload_file(photo)
-                lionxvideo = None
+                lolpic = await event.client.upload_file(photo)
+                lolvideo = None
             try:
                 await event.client(
                     functions.photos.UploadProfilePhotoRequest(
-                        file=lionxic, video=lionxvideo, video_start_ts=0.01
+                        file=lolpic, video=lolvideo, video_start_ts=0.01
                     )
                 )
             except Exception as e:
                 await lionxevent.edit(f"**Error:**\n`{e}`")
             else:
-                await edit_or_reply(
-                    lionxevent, "`My profile picture was successfully changed`"
-                )
+                await eor(lionxevent, "`My profile picture was successfully changed`")
     try:
         os.remove(photo)
     except Exception as e:
         LOGS.info(str(e))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="pusername ([\s\S]*)",
-    command=("pusername", plugin_category),
+    command=("pusername", plugin_type),
     info={
         "header": "To set/update username for this account.",
         "usage": "{tr}pusername <new username>",
@@ -142,16 +138,16 @@ async def update_username(event):
     newusername = event.pattern_match.group(1)
     try:
         await event.client(UpdateUsernameRequest(newusername))
-        await edit_delete(event, USERNAME_SUCCESS)
+        await eod(event, USERNAME_SUCCESS)
     except UsernameOccupiedError:
-        await edit_or_reply(event, USERNAME_TAKEN)
+        await eor(event, USERNAME_TAKEN)
     except Exception as e:
-        await edit_or_reply(event, f"**Error:**\n`{e}`")
+        await eor(event, f"**Error:**\n`{e}`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="count$",
-    command=("count", plugin_category),
+    command=("count", plugin_type),
     info={
         "header": "To get your profile stats for this account.",
         "usage": "{tr}count",
@@ -165,7 +161,7 @@ async def count(event):
     bc = 0
     b = 0
     result = ""
-    lionxevent = await edit_or_reply(event, "`Processing..`")
+    lionxevent = await eor(event, "`Processing..`")
     dialogs = await event.client.get_dialogs(limit=None, ignore_migrated=True)
     for d in dialogs:
         currrent_entity = d.entity
@@ -193,9 +189,9 @@ async def count(event):
     await lionxevent.edit(result)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="delpfp ?([\s\S]*)",
-    command=("delpfp", plugin_category),
+    command=("delpfp", plugin_type),
     info={
         "header": "To delete profile pic for this account.",
         "description": "If you havent mentioned no of profile pics then only 1 will be deleted.",
@@ -223,14 +219,12 @@ async def remove_profilepic(delpfp):
         for sep in pfplist.photos
     ]
     await delpfp.client(DeletePhotosRequest(id=input_photos))
-    await edit_delete(
-        delpfp, f"`Successfully deleted {len(input_photos)} profile picture(s).`"
-    )
+    await eod(delpfp, f"`Successfully deleted {len(input_photos)} profile picture(s).`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="myusernames$",
-    command=("myusernames", plugin_category),
+    command=("myusernames", plugin_type),
     info={
         "header": "To list public channels or groups created by this account.",
         "usage": "{tr}myusernames",
@@ -244,4 +238,4 @@ async def _(event):
         f" - {channel_obj.title} @{channel_obj.username} \n"
         for channel_obj in result.chats
     )
-    await edit_or_reply(event, output_str)
+    await eor(event, output_str)
