@@ -5,17 +5,17 @@ import os
 import time
 from datetime import datetime
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import _lionxtools, media_type, progress, reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 FF_MPEG_DOWN_LOAD_MEDIA_PATH = os.path.join(
-    Config.TMP_DOWNLOAD_DIRECTORY, "lionx.media.ffmpeg"
+    Config.TMP_DOWNLOAD_DIRECTORY, "LionX.media.ffmpeg"
 )
 
 # https://github.com/Nekmo/telegram-upload/blob/master/telegram_upload/video.py#L26
@@ -56,9 +56,9 @@ async def cult_small_video(
     return None
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ffmpegsave$",
-    command=("ffmpegsave", plugin_category),
+    command=("ffmpegsave", plugin_type),
     info={
         "header": "Saves the media file in bot to trim mutliple times",
         "description": "Will download the replied media into the bot so that you an trim it as your needs.",
@@ -73,8 +73,8 @@ async def ff_mpeg_trim_cmd(event):
             start = datetime.now()
             media = media_type(reply_message)
             if media not in ["Video", "Audio", "Voice", "Round Video", "Gif"]:
-                return await edit_delete(event, "`Only media files are supported`", 5)
-            lionxevent = await edit_or_reply(event, "`Saving the file...`")
+                return await eod(event, "`Only media files are supported`", 5)
+            lionxevent = await eor(event, "`Saving the file...`")
             try:
                 c_time = time.time()
                 dl = io.FileIO(FF_MPEG_DOWN_LOAD_MEDIA_PATH, "a")
@@ -95,17 +95,17 @@ async def ff_mpeg_trim_cmd(event):
                     f"Saved file to `{FF_MPEG_DOWN_LOAD_MEDIA_PATH}` in `{ms}` seconds."
                 )
         else:
-            await edit_delete(event, "`Reply to a any media file`")
+            await eod(event, "`Reply to a any media file`")
     else:
-        await edit_delete(
+        await eod(
             event,
             "A media file already exists in path. Please remove the media and try again!\n`.ffmpegclear`",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="vtrim(?:\s|$)([\s\S]*)",
-    command=("vtrim", plugin_category),
+    command=("vtrim", plugin_type),
     info={
         "header": "Trims the saved media with specific given time internval and outputs as video if it is video",
         "description": "Will trim the saved media with given given time interval.",
@@ -117,12 +117,12 @@ async def ff_mpeg_trim_cmd(event):
 async def ff_mpeg_trim_cmd(event):
     "Trims the saved media with specific given time internval and outputs as video if it is video"
     if not os.path.exists(FF_MPEG_DOWN_LOAD_MEDIA_PATH):
-        return await edit_delete(
+        return await eod(
             event,
             f"a media file needs to be download, and save to the following path: `{FF_MPEG_DOWN_LOAD_MEDIA_PATH}`",
         )
     reply_to_id = await reply_id(event)
-    lionxevent = await edit_or_reply(event, "`Triming the media......`")
+    lionxevent = await eor(event, "`Triming the media......`")
     current_message_text = event.raw_text
     cmt = current_message_text.split(" ")
     start = datetime.now()
@@ -136,9 +136,7 @@ async def ff_mpeg_trim_cmd(event):
             end_time,
         )
         if o is None:
-            return await edit_delete(
-                lionxevent, "**Error : **`Can't complete the process`"
-            )
+            return await eod(lionxevent, f"**Error : **`Can't complete the process`")
         try:
             c_time = time.time()
             await event.client.send_file(
@@ -155,15 +153,15 @@ async def ff_mpeg_trim_cmd(event):
             )
             os.remove(o)
         except Exception as e:
-            return await edit_delete(lionxevent, f"**Error : **`{e}`")
+            return await eod(lionxevent, f"**Error : **`{e}`")
     elif len(cmt) == 2:
         # output should be image
         cmd, start_time = cmt
-        o = await _lionxtools.take_screen_shot(FF_MPEG_DOWN_LOAD_MEDIA_PATH, start_time)
+        o = await _lionxtools.take_screen_shot(
+            FF_MPEG_DOWN_LOAD_MEDIA_PATH, start_time
+        )
         if o is None:
-            return await edit_delete(
-                lionxevent, "**Error : **`Can't complete the process`"
-            )
+            return await eod(lionxevent, "**Error : **`Can't complete the process`")
         try:
             c_time = time.time()
             await event.client.send_file(
@@ -180,18 +178,18 @@ async def ff_mpeg_trim_cmd(event):
             )
             os.remove(o)
         except Exception as e:
-            return await edit_delete(lionxevent, f"**Error : **`{e}`")
+            return await eod(lionxevent, f"**Error : **`{e}`")
     else:
-        await edit_delete(lionxevent, "RTFM")
+        await eod(lionxevent, "RTFM")
         return
     end = datetime.now()
     ms = (end - start).seconds
-    await edit_delete(lionxevent, f"`Completed Process in {ms} seconds`", 3)
+    await eod(lionxevent, f"`Completed Process in {ms} seconds`", 3)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="atrim(?:\s|$)([\s\S]*)",
-    command=("atrim", plugin_category),
+    command=("atrim", plugin_type),
     info={
         "header": "Trims the saved media with specific given time internval and outputs as audio",
         "description": "Will trim the saved media with given given time interval. and output only audio part",
@@ -202,12 +200,12 @@ async def ff_mpeg_trim_cmd(event):
 async def ff_mpeg_trim_cmd(event):
     "Trims the saved media with specific given time internval and outputs as audio"
     if not os.path.exists(FF_MPEG_DOWN_LOAD_MEDIA_PATH):
-        return await edit_delete(
+        return await eod(
             event,
             f"a media file needs to be download, and save to the following path: `{FF_MPEG_DOWN_LOAD_MEDIA_PATH}`",
         )
     reply_to_id = await reply_id(event)
-    lionxevent = await edit_or_reply(event, "`Triming the media...........`")
+    lionxevent = await eor(event, "`Triming the media...........`")
     current_message_text = event.raw_text
     cmt = current_message_text.split(" ")
     start = datetime.now()
@@ -226,9 +224,7 @@ async def ff_mpeg_trim_cmd(event):
             out_put_file_name,
         )
         if o is None:
-            return await edit_delete(
-                lionxevent, "**Error : **`Can't complete the process`"
-            )
+            return await eod(lionxevent, "**Error : **`Can't complete the process`")
         try:
             c_time = time.time()
             await event.client.send_file(
@@ -245,18 +241,18 @@ async def ff_mpeg_trim_cmd(event):
             )
             os.remove(o)
         except Exception as e:
-            return await edit_delete(lionxevent, f"**Error : **`{e}`")
+            return await eod(lionxevent, f"**Error : **`{e}`")
     else:
-        await edit_delete(lionxevent, "RTFM")
+        await eod(lionxevent, "RTFM")
         return
     end = datetime.now()
     ms = (end - start).seconds
-    await edit_delete(lionxevent, f"`Completed Process in {ms} seconds`", 3)
+    await eod(lionxevent, f"`Completed Process in {ms} seconds`", 3)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ffmpegclear$",
-    command=("ffmpegclear", plugin_category),
+    command=("ffmpegclear", plugin_type),
     info={
         "header": "Deletes the saved media so you can save new one",
         "description": "Only after deleting the old saved file you can add new file",
@@ -266,10 +262,10 @@ async def ff_mpeg_trim_cmd(event):
 async def ff_mpeg_trim_cmd(event):
     "Deletes the saved media so you can save new one"
     if not os.path.exists(FF_MPEG_DOWN_LOAD_MEDIA_PATH):
-        await edit_delete(event, "`There is no media saved in bot for triming`")
+        await eod(event, "`There is no media saved in bot for triming`")
     else:
         os.remove(FF_MPEG_DOWN_LOAD_MEDIA_PATH)
-        await edit_delete(
+        await eod(
             event,
             "`The media saved in bot for triming is deleted now . you can save now new one `",
         )

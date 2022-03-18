@@ -1,18 +1,18 @@
-#    Credts @copyless786
+#    Credts @TeamLionX
 from geopy.geocoders import Nominatim
 from telethon.tl import types
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..helpers import reply_id
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gps ([\s\S]*)",
-    command=("gps", plugin_category),
+    command=("gps", plugin_type),
     info={
         "header": "To send the map of the given location.",
         "usage": "{tr}gps <place>",
@@ -23,9 +23,10 @@ async def gps(event):
     "Map of the given location."
     reply_to_id = await reply_id(event)
     input_str = event.pattern_match.group(1)
-    lionxevent = await edit_or_reply(event, "`finding.....`")
-    geolocator = Nominatim(user_agent="lionx")
-    if geoloc := geolocator.geocode(input_str):
+    lionxevent = await eor(event, "`finding.....`")
+    geolocator = Nominatim(user_agent="LionX")
+    geoloc = geolocator.geocode(input_str)
+    if geoloc:
         lon = geoloc.longitude
         lat = geoloc.latitude
         await event.client.send_file(

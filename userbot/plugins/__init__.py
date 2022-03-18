@@ -12,28 +12,66 @@ from validators.url import url
 from .. import *
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
-from ..funcs.session import lionxub
+from ..funcs.managers import eod, eor
+from ..funcs.session import lionx
 from ..helpers import *
 from ..helpers.utils import _format, _lionxtools, _lionxutils, install_pip, reply_id
-from ..sql_helper.globals import gvarstatus
 
 # =================== CONSTANT ===================
-bot = lionxub
+bot = lionx
 LOGS = logging.getLogger(__name__)
-USERID = lionxub.uid if Config.OWNER_ID == 0 else Config.OWNER_ID
+USERID = lionx.uid if Config.OWNER_ID == 0 else Config.OWNER_ID
 ALIVE_NAME = Config.ALIVE_NAME
+AUTONAME = Config.AUTONAME
+DEFAULT_BIO = Config.DEFAULT_BIO
 
-Heroku = heroku3.from_key(Config.HEROKU_API_KEY)
+
+Heroku = heroku3.from_key(Config.API_KEY)
 heroku_api = "https://api.heroku.com"
-HEROKU_APP_NAME = Config.HEROKU_APP_NAME
-HEROKU_API_KEY = Config.HEROKU_API_KEY
+APP_NAME = Config.APP_NAME
+API_KEY = Config.API_KEY
 
 thumb_image_path = os.path.join(Config.TMP_DOWNLOAD_DIRECTORY, "thumb_image.jpg")
+
 
 # mention user
 mention = f"[{Config.ALIVE_NAME}](tg://user?id={USERID})"
 hmention = f"<a href = tg://user?id={USERID}>{Config.ALIVE_NAME}</a>"
+
+
+LIONX_USER = lionx.me.first_name
+LionX_Boy = lionx.uid
+lionx_mention = f"[{LIONX_USER}](tg://user?id={LionX_Boy})"
+
+
+# pic
+gban_pic = "./userbot/resources/pics/gban.mp4"
+main_pic = "./userbot/resources/pics/main.jpg"
+core_pic = "./userbot/resources/pics/core.jpg"
+chup_pic = "./userbot/resources/pics/chup.mp4"
+bsdk_pic = "./userbot/resources/pics/bsdk.jpg"
+bsdkwale_pic = "./userbot/resources/pics/bsdk_wale.jpg"
+chutiya_pic = "./userbot/resources/pics/chutiya.jpg"
+promote_pic = "./userbot/resources/pics/promote.jpg"
+demote_pic = "./userbot/resources/pics/demote.jpg"
+mute_pic = "./userbot/resources/pics/mute.jpg"
+ban_pic = "./userbot/resources/pics/ban.jpg"
+
+
+# channel
+my_channel = Config.YOUR_CHANNEL or "LionXsupport"
+my_group = Config.YOUR_GROUP or "TeamLionX"
+if "@" in my_channel:
+    my_channel = my_channel.replace("@", "")
+if "@" in my_group:
+    my_group = my_group.replace("@", "")
+
+# My Channel
+chnl_link = "https://t.me/TeamLionX"
+LionX_channel = f"[LɪᴏɴXᵘᵇ ]({chnl_link})"
+grp_link = "https://t.me/LionXsupport"
+LionX_grp = f"[LɪᴏɴXᵘᵇ ]({grp_link})"
+
 
 PM_START = []
 PMMESSAGE_CACHE = {}

@@ -11,18 +11,19 @@ from PIL import Image
 from search_engine_parser import BingSearch, GoogleSearch, YahooSearch
 from search_engine_parser.core.exceptions import NoResultsOrTrafficError
 
-from userbot import BOTLOG, BOTLOG_CHATID, lionxub
+from userbot import lionx
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.functions import deEmojify
 from ..helpers.utils import reply_id
+from . import BOTLOG, BOTLOG_CHATID
 
 opener = urllib.request.build_opener()
 useragent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36"
 opener.addheaders = [("User-agent", useragent)]
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 
 async def ParseSauce(googleurl):
@@ -59,9 +60,9 @@ async def scam(results, lim):
     return imglinks
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gs ([\s\S]*)",
-    command=("gs", plugin_category),
+    command=("gs", plugin_type),
     info={
         "header": "Google search command.",
         "flags": {
@@ -69,33 +70,33 @@ async def scam(results, lim):
             "-p": "for choosing which page results should be showed.",
         },
         "usage": [
-            "{tr}gs <flags> <query>",
+            "{tr}gs <types> <query>",
             "{tr}gs <query>",
         ],
         "examples": [
-            "{tr}gs lionx",
-            "{tr}gs -l6 lionx",
-            "{tr}gs -p2 lionx",
-            "{tr}gs -p2 -l7 lionx",
+            "{tr}gs LionX",
+            "{tr}gs -l6 LionX",
+            "{tr}gs -p2 LionX",
+            "{tr}gs -p2 -l7 LionX",
         ],
     },
 )
 async def gsearch(q_event):
     "Google search command."
-    lionxevent = await edit_or_reply(q_event, "`searching........`")
+    lionxevent = await eor(q_event, "`searching........`")
     match = q_event.pattern_match.group(1)
     page = re.findall(r"-p\d+", match)
     lim = re.findall(r"-l\d+", match)
     try:
         page = page[0]
         page = page.replace("-p", "")
-        match = match.replace(f"-p{page}", "")
+        match = match.replace("-p" + page, "")
     except IndexError:
         page = 1
     try:
         lim = lim[0]
         lim = lim.replace("-l", "")
-        match = match.replace(f"-l{lim}", "")
+        match = match.replace("-l" + lim, "")
         lim = int(lim)
         if lim <= 0:
             lim = int(5)
@@ -116,7 +117,7 @@ async def gsearch(q_event):
             try:
                 gresults = await ysearch.async_search(*search_args)
             except Exception as e:
-                return await edit_delete(lionxevent, f"**Error:**\n`{e}`", time=10)
+                return await eod(lionxevent, f"**Error:**\n`{e}`", time=10)
     msg = ""
     for i in range(lim):
         if i > len(gresults["links"]):
@@ -128,7 +129,7 @@ async def gsearch(q_event):
             msg += f"👉[{title}]({link})\n`{desc}`\n\n"
         except IndexError:
             break
-    await edit_or_reply(
+    await eor(
         lionxevent,
         "**Search Query:**\n`" + match + "`\n\n**Results:**\n" + msg,
         link_preview=False,
@@ -138,13 +139,13 @@ async def gsearch(q_event):
     if BOTLOG:
         await q_event.client.send_message(
             BOTLOG_CHATID,
-            f"Google Search query `{match}` was executed successfully",
+            "Google Search query `" + match + "` was executed successfully",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gis ([\s\S]*)",
-    command=("gis", plugin_category),
+    command=("gis", plugin_type),
     info={
         "header": "Google search in image format",
         "usage": "{tr}gis <query>",
@@ -155,9 +156,9 @@ async def _(event):
     "To search in google and send result in picture."
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="grs$",
-    command=("grs", plugin_category),
+    command=("grs", plugin_type),
     info={
         "header": "Google reverse search command.",
         "description": "reverse search replied image or sticker in google and shows results.",
@@ -169,7 +170,7 @@ async def _(event):
     start = datetime.now()
     OUTPUT_STR = "Reply to an image to do Google Reverse Search"
     if event.reply_to_msg_id:
-        lionxevent = await edit_or_reply(event, "Pre Processing Media")
+        lionxevent = await eor(event, "Pre Processing Media")
         previous_message = await event.get_reply_message()
         previous_message_text = previous_message.message
         BASE_URL = "http://www.google.com"
@@ -213,9 +214,7 @@ async def _(event):
             img_size_div = soup.find(id="jHnbRc")
             img_size = img_size_div.find_all("div")
         except Exception:
-            return await edit_delete(
-                lionxevent, "`Sorry. I am unable to find similar images`"
-            )
+            return await eod(lionxevent, "`Sorry. I am unable to find similar images`")
         end = datetime.now()
         ms = (end - start).seconds
         OUTPUT_STR = """{img_size}
@@ -226,12 +225,12 @@ async def _(event):
         )
     else:
         lionxevent = event
-    await edit_or_reply(lionxevent, OUTPUT_STR, parse_mode="HTML", link_preview=False)
+    await eor(lionxevent, OUTPUT_STR, parse_mode="HTML", link_preview=False)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="reverse(?:\s|$)([\s\S]*)",
-    command=("reverse", plugin_category),
+    command=("reverse", plugin_type),
     info={
         "header": "Google reverse search command.",
         "description": "reverse search replied image or sticker in google and shows results. if count is not used then it send 1 image by default.",
@@ -248,10 +247,10 @@ async def _(img):
         photo = io.BytesIO()
         await img.client.download_media(message, photo)
     else:
-        await edit_or_reply(img, "`Reply to photo or sticker nigger.`")
+        await eor(img, "`Reply to photo or sticker nigger.`")
         return
     if photo:
-        lionxevent = await edit_or_reply(img, "`Processing...`")
+        lionxevent = await eor(img, "`Processing...`")
         try:
             image = Image.open(photo)
         except OSError:
@@ -300,9 +299,9 @@ async def _(img):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="google(?:\s|$)([\s\S]*)",
-    command=("google", plugin_category),
+    command=("google", plugin_type),
     info={
         "header": "To get link for google search",
         "description": "Will show google search link as button instead of google search results try {tr}gs for google search results.",
@@ -316,16 +315,14 @@ async def google_search(event):
     input_str = event.pattern_match.group(1)
     reply_to_id = await reply_id(event)
     if not input_str:
-        return await edit_delete(
-            event, "__What should i search? Give search query plox.__"
-        )
+        return await eod(event, "__What should i search? Give search query plox.__")
     input_str = deEmojify(input_str).strip()
     if len(input_str) > 195 or len(input_str) < 1:
-        return await edit_delete(
+        return await eod(
             event,
             "__Plox your search query exceeds 200 characters or you search query is empty.__",
         )
-    query = f"#12{input_str}"
+    query = "#12" + input_str
     results = await event.client.inline_query("@StickerizerBot", query)
     await results[0].click(event.chat_id, reply_to=reply_to_id, hide_via=True)
     await event.delete()

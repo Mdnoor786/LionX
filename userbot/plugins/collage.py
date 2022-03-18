@@ -1,4 +1,4 @@
-# collage plugin for lionx by @TeamLionX
+# collage plugin for LionX by @TeamLionX
 
 # Copyright (C) 2020 Alfiananda P.A
 #
@@ -7,22 +7,22 @@
 
 import os
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import _lionxutils, reply_id
 from . import make_gif
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="collage(?:\s|$)([\s\S]*)",
-    command=("collage", plugin_category),
+    command=("collage", plugin_type),
     info={
         "header": "To create collage from still images extracted from video/gif.",
         "description": "Shows you the grid image of images extracted from video/gif. you can customize the Grid size by giving integer between 1 to 9 to cmd by default it is 3",
-        "usage": "{tr}collage <1-9>",
+        "usage": "{tr}collage <1-9> <reply to  ani sticker/mp4.",
     },
 )
 async def collage(event):
@@ -30,9 +30,7 @@ async def collage(event):
     lionxinput = event.pattern_match.group(1)
     reply = await event.get_reply_message()
     lionxid = await reply_id(event)
-    event = await edit_or_reply(
-        event, "```collaging this may take several minutes too..... 😁```"
-    )
+    event = await eor(event, "```Wait A Minute Its Collaging😁```")
     if not (reply and (reply.media)):
         await event.edit("`Media not found...`")
         return
@@ -72,7 +70,7 @@ async def collage(event):
         for files in (lionxsticker, collagefile):
             if files and os.path.exists(files):
                 os.remove(files)
-        return await edit_delete(
+        return await eod(
             event, "`media is not supported or try with smaller grid size`", 5
         )
 

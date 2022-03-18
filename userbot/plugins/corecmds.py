@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 from ..Config import Config
@@ -7,57 +8,102 @@ from . import (
     CMD_HELP,
     CMD_LIST,
     SUDO_LIST,
-    edit_delete,
-    edit_or_reply,
-    lionxub,
+    chnl_link,
+    eod,
+    eor,
+    hmention,
+    lionx,
+    mention,
     reply_id,
 )
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 DELETE_TIMEOUT = 5
 thumb_image_path = os.path.join(Config.TMP_DOWNLOAD_DIRECTORY, "thumb_image.jpg")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="install$",
-    command=("install", plugin_category),
+    command=("install", plugin_type),
     info={
         "header": "To install an external plugin.",
-        "description": "Reply to any external plugin(supported by lionx) to install it in your bot.",
+        "description": "Reply to any external plugin(supported by LionX) to install it in your bot.",
         "usage": "{tr}install",
     },
 )
 async def install(event):
     "To install an external plugin."
+    b = 1
+    owo = event.text[9:]
+    lionx = await eor(event, "__Installing.__")
     if event.reply_to_msg_id:
         try:
-            downloaded_file_name = await event.client.download_media(
-                await event.get_reply_message(),
-                "userbot/plugins/",
+            downloaded_file_name = (
+                await event.client.download_media(  # pylint:disable=E0602
+                    await event.get_reply_message(),
+                    "./userbot/plugins/",  # pylint:disable=E0602
+                )
             )
-            if "(" not in downloaded_file_name:
-                path1 = Path(downloaded_file_name)
-                shortname = path1.stem
-                load_module(shortname.replace(".py", ""))
-                await edit_delete(
-                    event,
-                    f"Installed Plugin `{os.path.basename(downloaded_file_name)}`",
-                    10,
-                )
-            else:
-                os.remove(downloaded_file_name)
-                await edit_delete(
-                    event, "Errors! This plugin is already installed/pre-installed.", 10
-                )
+            op = open(downloaded_file_name, "r")
+            rd = op.read()
+            op.close()
+            try:
+                if "session" in rd:
+                    os.remove(downloaded_file_name)
+                    await lionx.edit(
+                        f"**⚠️ WARNING !!** \n\n__Replied plugin file contains some harmful codes__."
+                    )
+                    return
+                elif "os.environ" in rd:
+                    os.remove(downloaded_file_name)
+                    await lionx.edit(
+                        f"**⚠️ WARNING !!** \n\n__Replied plugin file contains some harmful codes__."
+                    )
+                    return
+                elif "(" not in downloaded_file_name:
+                    path1 = Path(downloaded_file_name)
+                    shortname = path1.stem
+                    load_module(shortname.replace(".py", ""))
+                    if shortname in CMD_LIST:
+                        string = "**Commands found in** `{}`\n".format(
+                            (os.path.basename(downloaded_file_name))
+                        )
+                        for i in CMD_LIST[shortname]:
+                            string += "  •  `" + i
+                            string += "`\n"
+                            if b == 1:
+                                a = "__Installing..__"
+                                b = 2
+                            else:
+                                a = "__Installing...__"
+                                b = 1
+                            await lionx.edit(a)
+                        return await lionx.edit(
+                            f"✅ **Installed module** :- `{shortname}` \n✨ BY :- {mention}\n\n{string}\n\n        ⚡ **[LɪᴏɴXᵘᵇ]({chnl_link})** ⚡",
+                            link_preview=False,
+                        )
+
+                    return await lionx.edit(
+                        f"Installed module `{os.path.basename(downloaded_file_name)}`"
+                    )
+                else:
+                    os.remove(downloaded_file_name)
+                    return await eod(
+                        lionx,
+                        f"**Failed to Install** \n`Error`, Module already installed",
+                    )
+            except Exception as e:
+                await eod(lionx, f"{e}")
+                return os.remove(downloaded_file_name)
         except Exception as e:
-            await edit_delete(event, f"**Error:**\n`{e}`", 10)
-            os.remove(downloaded_file_name)
+            await eod(lionx, f"**Failed to Install** \n`Error`\n{str(e)}")
+            return os.remove(downloaded_file_name)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="load ([\s\S]*)",
-    command=("load", plugin_category),
+    command=("load", plugin_type),
     info={
         "header": "To load a plugin again. if you have unloaded it",
         "description": "To load a plugin again which you unloaded by {tr}unload",
@@ -74,17 +120,17 @@ async def load(event):
         except BaseException:
             pass
         load_module(shortname)
-        await edit_delete(event, f"`Successfully loaded {shortname}`", 10)
+        await eod(event, f"`Successfully loaded {shortname}`", 10)
     except Exception as e:
-        await edit_or_reply(
+        await eor(
             event,
             f"Could not load {shortname} because of the following error.\n{e}",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="send ([\s\S]*)",
-    command=("send", plugin_category),
+    command=("send", plugin_type),
     info={
         "header": "To upload a plugin file to telegram chat",
         "usage": "{tr}send <plugin name>",
@@ -98,6 +144,7 @@ async def send(event):
     input_str = event.pattern_match.group(1)
     the_plugin_file = f"./userbot/plugins/{input_str}.py"
     if os.path.exists(the_plugin_file):
+        start = datetime.now()
         caat = await event.client.send_file(
             event.chat_id,
             the_plugin_file,
@@ -105,16 +152,21 @@ async def send(event):
             allow_cache=False,
             reply_to=reply_to_id,
             thumb=thumb,
-            caption=f"**➥ Plugin Name:-** `{input_str}`",
         )
+        end = datetime.now()
+        ms = (end - start).seconds
         await event.delete()
+        await caat.edit(
+            f"<b><i>➥⍟ Plugin Name :- {input_str} .</i></b>\n<b><i>➥⍟ Uploaded in {ms} seconds.</i></b>\n<b><i>➥⍟ Uploaded by :- {hmention}</i></b>",
+            parse_mode="html",
+        )
     else:
-        await edit_or_reply(event, "404: File Not Found")
+        await eor(event, f"__There Is no any file with name {input_str}__")
 
 
-@lionxub.lionx_cmd(
-    pattern="unload ([\s\S]*)",
-    command=("unload", plugin_category),
+@lionx.lion_cmd(
+    pattern="upload ([\s\S]*)",
+    command=("upload", plugin_type),
     info={
         "header": "To unload a plugin temporarily.",
         "description": "You can load this unloaded plugin by restarting or using {tr}load cmd. Useful for cases like seting notes in rose bot({tr}unload markdown).",
@@ -127,14 +179,14 @@ async def unload(event):
     shortname = event.pattern_match.group(1)
     try:
         remove_plugin(shortname)
-        await edit_or_reply(event, f"Unloaded {shortname} successfully")
+        await eor(event, f"Unloaded {shortname} successfully")
     except Exception as e:
-        await edit_or_reply(event, f"Successfully unload {shortname}\n{e}")
+        await eor(event, f"Successfully unload {shortname}\n{e}")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="uninstall ([\s\S]*)",
-    command=("uninstall", plugin_category),
+    command=("uninstall", plugin_type),
     info={
         "header": "To uninstall a plugin temporarily.",
         "description": "To stop functioning of that plugin and remove that plugin from bot.",
@@ -148,9 +200,7 @@ async def unload(event):
     shortname = event.pattern_match.group(1)
     path = Path(f"userbot/plugins/{shortname}.py")
     if not os.path.exists(path):
-        return await edit_delete(
-            event, f"There is no plugin with path {path} to uninstall it"
-        )
+        return await eod(event, f"There is no plugin with path {path} to uninstall it")
     os.remove(path)
     if shortname in CMD_LIST:
         CMD_LIST.pop(shortname)
@@ -160,6 +210,6 @@ async def unload(event):
         CMD_HELP.pop(shortname)
     try:
         remove_plugin(shortname)
-        await edit_or_reply(event, f"{shortname} is Uninstalled successfully")
+        await eor(event, f"{shortname} is Uninstalled successfully")
     except Exception as e:
-        await edit_or_reply(event, f"Successfully uninstalled {shortname}\n{e}")
+        await eor(event, f"Successfully uninstalled {shortname}\n{e}")

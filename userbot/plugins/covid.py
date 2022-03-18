@@ -1,14 +1,14 @@
-# corona virus stats for lionx
+# corona virus stats for LionX
 from covid import Covid
 
-from . import covidindia, edit_delete, edit_or_reply, lionxub
+from . import covidindia, eod, eor, lionx
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="covid(?:\s|$)([\s\S]*)",
-    command=("covid", plugin_category),
+    command=("covid", plugin_type),
     info={
         "header": "To get latest information about covid-19.",
         "description": "Get information about covid-19 data in the given country/state(only Indian States).",
@@ -20,7 +20,7 @@ async def corona(event):
     "To get latest information about covid-19."
     input_str = event.pattern_match.group(1)
     country = (input_str).title() if input_str else "World"
-    lionxevent = await edit_or_reply(event, "`Collecting data...`")
+    lionxevent = await eor(event, "`Collecting data...`")
     covid = Covid(source="worldometers")
     try:
         country_data = covid.get_status_by_country_name(country)
@@ -45,20 +45,20 @@ async def corona(event):
     else:
         data = await covidindia(country)
         if data:
-            cat1 = int(data["new_positive"]) - int(data["positive"])
-            cat2 = int(data["new_death"]) - int(data["death"])
-            cat3 = int(data["new_cured"]) - int(data["cured"])
+            swt1 = int(data["new_positive"]) - int(data["positive"])
+            swt2 = int(data["new_death"]) - int(data["death"])
+            swt3 = int(data["new_cured"]) - int(data["cured"])
             result = f"<b>Corona virus info of {data['state_name']}\
                 \n\n⚠️ Confirmed   : <code>{data['new_positive']}</code>\
                 \n😔 Active           : <code>{data['new_active']}</code>\
                 \n⚰️ Deaths         : <code>{data['new_death']}</code>\
                 \n😊 Recovered   : <code>{data['new_cured']}</code>\
-                \n🥺 New Cases   : <code>{cat1}</code>\
-                \n😟 New Deaths : <code>{cat2}</code>\
-                \n😃 New cured  : <code>{cat3}</code> </b>"
+                \n🥺 New Cases   : <code>{swt1}</code>\
+                \n😟 New Deaths : <code>{swt2}</code>\
+                \n😃 New cured  : <code>{swt3}</code> </b>"
             await lionxevent.edit(result, parse_mode="html")
         else:
-            await edit_delete(
+            await eod(
                 lionxevent,
                 "`Corona Virus Info of {} is not avaiable or unable to fetch`".format(
                     country

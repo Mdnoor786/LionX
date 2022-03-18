@@ -2,23 +2,104 @@ import base64
 from asyncio import sleep
 
 from telethon.tl.functions.messages import ImportChatInviteRequest as Get
-from telethon.utils import get_display_name
 
-from .. import lionxub
+from .. import lionx
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.utils import _format, get_user_from_event
 from ..sql_helper import broadcast_sql as sql
 from . import BOTLOG, BOTLOG_CHATID
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 LOGS = logging.getLogger(__name__)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
+    pattern="gcast(?:\s|$)([\s\S]*)",
+    command=("gcast", plugin_type),
+    info={
+        "header": "To Send A Message/Media In All.",
+        "description": "It Can Help U Ti Send Message/Media To All Group/usee According to type",
+        "flags": {
+            "-a": "To Send Message In All User & Group",
+            "-g": "To Send Message In All Group",
+            "-p": "To Send Message In All User",
+        },
+        "usage": [
+            "{tr}gcast <type> <message>",
+        ],
+        "examples": [
+            "{tr}gcast -a LionX",
+        ],
+    },
+)
+async def _(event):
+    "Help U To Send Message In All Group & User"
+    reply_msg = await event.get_reply_message()
+    type = event.text[7:9] or "-a"
+    if reply_msg:
+        tol = reply_msg.text
+        file = reply_msg.media
+    else:
+        tol = event.text[9:]
+        file = None
+    if tol == "":
+        return await eod(event, "I need something to Gcast.")
+    hol = await eor(event, "`Gcasting message...`")
+    sed = 0
+    lol = 0
+    if type == "-a":
+        async for aman in event.client.iter_dialogs():
+            chat = aman.id
+            try:
+                if chat != -1001551357238:
+                    await event.client.send_message(chat, tol, file=file)
+                    lol += 1
+                elif chat == -1001551357238:
+                    pass
+            except BaseException:
+                sed += 1
+    elif type == "-p":
+        async for krishna in event.client.iter_dialogs():
+            if krishna.is_user and not krishna.entity.bot:
+                chat = krishna.id
+                try:
+                    await event.client.send_message(chat, tol, file=file)
+                    lol += 1
+                except BaseException:
+                    sed += 1
+    elif type == "-g":
+        async for sweetie in event.client.iter_dialogs():
+            if sweetie.is_group:
+                chat = sweetie.id
+                try:
+                    if chat != -1001551357238:
+                        await event.client.send_message(chat, tol, file=file)
+                        lol += 1
+                    elif chat == -1001551357238:
+                        pass
+                except BaseException:
+                    sed += 1
+    else:
+        return await hol.edit(
+            "Please give a flag to Gcast message. \n\n**Available flags are :** \n• -a : To Gcast in all chats. \n• -p : To Gcast in private chats. \n• -g : To Gcast in groups."
+        )
+    UwU = sed + lol
+    if type == "-a":
+        omk = "Chats"
+    elif type == "-p":
+        omk = "PM"
+    elif type == "-g":
+        omk = "Groups"
+    await hol.edit(
+        f"**Gcast Executed Successfully !!** \n\n** Sent in :** `{lol} {omk}`\n**✓ Failed in :** `{sed} {omk}`\n**✓ Total :** `{UwU} {omk}`"
+    )
+
+
+@lionx.lion_cmd(
     pattern="msgto(?:\s|$)([\s\S]*)",
-    command=("msgto", plugin_category),
+    command=("msgto", plugin_type),
     info={
         "header": "To message to person or to a chat.",
         "description": "Suppose you want to message directly to a person/chat from a paticular chat. Then simply reply to a person with this cmd and text or to a text with cmd and username/userid/chatid,",
@@ -26,7 +107,7 @@ LOGS = logging.getLogger(__name__)
             "{tr}msgto <username/userid/chatid/chatusername> reply to message",
             "{tr}msgto <username/userid/chatid/chatusername> <text>",
         ],
-        "examples": "{tr}msgto @ChattingZoneXd just a testmessage",
+        "examples": "{tr}msgto @TeamLionX just a testmessage",
     },
 )
 async def lionxbroadcast_add(event):
@@ -36,7 +117,7 @@ async def lionxbroadcast_add(event):
     if not user:
         return
     if not reason and not reply:
-        return await edit_delete(
+        return await eod(
             event, "__What should i send to the person. reply to msg or give text__"
         )
     if reply and reason and user.id != reply.sender_id:
@@ -48,7 +129,7 @@ async def lionxbroadcast_add(event):
                 reply_to=msg.id,
             )
         msglink = await event.clienr.get_msg_link(msg)
-        return await edit_or_reply(
+        return await eor(
             event,
             f"__Sorry! Confusion between users to whom should i send the person mentioned in message or to the person replied. text message was logged in [log group]({msglink}). you can resend message from there__",
         )
@@ -56,12 +137,12 @@ async def lionxbroadcast_add(event):
         msg = await event.client.send_message(user.id, reason)
     else:
         msg = await event.client.send_message(user.id, reply)
-    await edit_delete(event, "__Successfully sent the message.__")
+    await eod(event, "__Successfully sent the message.__")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="addto(?:\s|$)([\s\S]*)",
-    command=("addto", plugin_category),
+    command=("addto", plugin_type),
     info={
         "header": "Will add the specific chat to the mentioned category",
         "usage": "{tr}addto <category name>",
@@ -72,21 +153,21 @@ async def lionxbroadcast_add(event):
     "To add the chat to the mentioned category"
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
-            "In which category should i add this chat",
+            "In Which category should i add this chat",
             parse_mode=_format.parse_pre,
         )
     keyword = lionxinput_str.lower()
     check = sql.is_in_broadcastlist(keyword, event.chat_id)
     if check:
-        return await edit_delete(
+        return await eod(
             event,
             f"This chat is already in this category {keyword}",
             parse_mode=_format.parse_pre,
         )
     sql.add_to_broadcastlist(keyword, event.chat_id)
-    await edit_delete(
+    await eod(
         event,
         f"This chat is Now added to category {keyword}",
         parse_mode=_format.parse_pre,
@@ -96,7 +177,7 @@ async def lionxbroadcast_add(event):
         try:
             await event.client.send_message(
                 BOTLOG_CHATID,
-                f"The Chat {get_display_name(await event.get_chat())} is added to category {keyword}",
+                f"The Chat {chat.title} is added to category {keyword}",
                 parse_mode=_format.parse_pre,
             )
         except Exception:
@@ -107,9 +188,9 @@ async def lionxbroadcast_add(event):
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="list(?:\s|$)([\s\S]*)",
-    command=("list", plugin_category),
+    command=("list", plugin_type),
     info={
         "header": "will show the list of all chats in the given category",
         "usage": "{tr}list <category name>",
@@ -120,7 +201,7 @@ async def lionxbroadcast_list(event):
     "To list the all chats in the mentioned category."
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
             "Which category Chats should i list ?\nCheck .listall",
             parse_mode=_format.parse_pre,
@@ -128,13 +209,13 @@ async def lionxbroadcast_list(event):
     keyword = lionxinput_str.lower()
     no_of_chats = sql.num_broadcastlist_chat(keyword)
     if no_of_chats == 0:
-        return await edit_delete(
+        return await eod(
             event,
             f"There is no category with name {keyword}. Check '.listall'",
             parse_mode=_format.parse_pre,
         )
     chats = sql.get_chat_broadcastlist(keyword)
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event, f"Fetching info of the category {keyword}", parse_mode=_format.parse_pre
     )
     resultlist = f"**The category '{keyword}' have '{no_of_chats}' chats and these are listed below :**\n\n"
@@ -153,12 +234,12 @@ async def lionxbroadcast_list(event):
             errorlist += f" 👉 __This id {int(chat)} in database probably you may left the chat/channel or may be invalid id.\
                             \nRemove this id from the database by using this command__ `.frmfrom {keyword} {int(chat)}` \n\n"
     finaloutput = resultlist + errorlist
-    await edit_or_reply(lionxevent, finaloutput)
+    await eor(lionxevent, finaloutput)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="listall$",
-    command=("listall", plugin_category),
+    command=("listall", plugin_type),
     info={
         "header": "Will show the list of all category names.",
         "usage": "{tr}listall",
@@ -167,7 +248,7 @@ async def lionxbroadcast_list(event):
 async def lionxbroadcast_list(event):
     "To list all the category names."
     if sql.num_broadcastlist_chats() == 0:
-        return await edit_delete(
+        return await eod(
             event,
             "you haven't created at least one category  check info for more help",
             parse_mode=_format.parse_pre,
@@ -176,12 +257,12 @@ async def lionxbroadcast_list(event):
     resultext = "**Here are the list of your category's :**\n\n"
     for i in chats:
         resultext += f" 👉 `{i}` __contains {sql.num_broadcastlist_chat(i)} chats__\n"
-    await edit_or_reply(event, resultext)
+    await eor(event, resultext)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="sendto(?:\s|$)([\s\S]*)",
-    command=("sendto", plugin_category),
+    command=("sendto", plugin_type),
     info={
         "header": "will send the replied message to all chats in the given category",
         "usage": "{tr}sendto <category name>",
@@ -192,15 +273,15 @@ async def lionxbroadcast_send(event):
     "To send the message to all chats in the mentioned category."
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
             "To which category should i send this message",
             parse_mode=_format.parse_pre,
         )
     reply = await event.get_reply_message()
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     if not reply:
-        return await edit_delete(
+        return await eod(
             event,
             "what should i send to to this category ?",
             parse_mode=_format.parse_pre,
@@ -209,13 +290,13 @@ async def lionxbroadcast_send(event):
     no_of_chats = sql.num_broadcastlist_chat(keyword)
     group_ = Get(lionx)
     if no_of_chats == 0:
-        return await edit_delete(
+        return await eod(
             event,
             f"There is no category with name {keyword}. Check '.listall'",
             parse_mode=_format.parse_pre,
         )
     chats = sql.get_chat_broadcastlist(keyword)
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         "sending this message to all groups in the category",
         parse_mode=_format.parse_pre,
@@ -235,7 +316,7 @@ async def lionxbroadcast_send(event):
             LOGS.info(str(e))
         await sleep(0.5)
     resultext = f"`The message was sent to {i} chats out of {no_of_chats} chats in category {keyword}.`"
-    await edit_delete(lionxevent, resultext)
+    await eod(lionxevent, resultext)
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,
@@ -244,9 +325,9 @@ async def lionxbroadcast_send(event):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="fwdto(?:\s|$)([\s\S]*)",
-    command=("fwdto", plugin_category),
+    command=("fwdto", plugin_type),
     info={
         "header": "Will forward the replied message to all chats in the given category",
         "usage": "{tr}fwdto <category name>",
@@ -257,15 +338,15 @@ async def lionxbroadcast_send(event):
     "To forward the message to all chats in the mentioned category."
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
             "To which category should i send this message",
             parse_mode=_format.parse_pre,
         )
     reply = await event.get_reply_message()
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     if not reply:
-        return await edit_delete(
+        return await eod(
             event,
             "what should i send to to this category ?",
             parse_mode=_format.parse_pre,
@@ -274,13 +355,13 @@ async def lionxbroadcast_send(event):
     no_of_chats = sql.num_broadcastlist_chat(keyword)
     group_ = Get(lionx)
     if no_of_chats == 0:
-        return await edit_delete(
+        return await eod(
             event,
             f"There is no category with name {keyword}. Check '.listall'",
             parse_mode=_format.parse_pre,
         )
     chats = sql.get_chat_broadcastlist(keyword)
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         "sending this message to all groups in the category",
         parse_mode=_format.parse_pre,
@@ -300,7 +381,7 @@ async def lionxbroadcast_send(event):
             LOGS.info(str(e))
         await sleep(0.5)
     resultext = f"`The message was sent to {i} chats out of {no_of_chats} chats in category {keyword}.`"
-    await edit_delete(lionxevent, resultext)
+    await eod(lionxevent, resultext)
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,
@@ -309,9 +390,9 @@ async def lionxbroadcast_send(event):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="rmfrom(?:\s|$)([\s\S]*)",
-    command=("rmfrom", plugin_category),
+    command=("rmfrom", plugin_type),
     info={
         "header": "Will remove the specific chat to the mentioned category",
         "usage": "{tr}rmfrom <category name>",
@@ -322,7 +403,7 @@ async def lionxbroadcast_remove(event):
     "To remove the chat from the mentioned category"
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
             "From which category should i remove this chat",
             parse_mode=_format.parse_pre,
@@ -330,13 +411,13 @@ async def lionxbroadcast_remove(event):
     keyword = lionxinput_str.lower()
     check = sql.is_in_broadcastlist(keyword, event.chat_id)
     if not check:
-        return await edit_delete(
+        return await eod(
             event,
             f"This chat is not in the category {keyword}",
             parse_mode=_format.parse_pre,
         )
     sql.rm_from_broadcastlist(keyword, event.chat_id)
-    await edit_delete(
+    await eod(
         event,
         f"This chat is Now removed from the category {keyword}",
         parse_mode=_format.parse_pre,
@@ -346,7 +427,7 @@ async def lionxbroadcast_remove(event):
         try:
             await event.client.send_message(
                 BOTLOG_CHATID,
-                f"The Chat {get_display_name(await event.get_chat())} is removed from category {keyword}",
+                f"The Chat {chat.title} is removed from category {keyword}",
                 parse_mode=_format.parse_pre,
             )
         except Exception:
@@ -357,9 +438,9 @@ async def lionxbroadcast_remove(event):
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="frmfrom(?:\s|$)([\s\S]*)",
-    command=("frmfrom", plugin_category),
+    command=("frmfrom", plugin_type),
     info={
         "header": " To force remove the given chat from a category.",
         "description": "Suppose if you are muted or group/channel is deleted you cant send message there so you can use this cmd to the chat from that category",
@@ -371,14 +452,14 @@ async def lionxbroadcast_remove(event):
     "To force remove the given chat from a category."
     lionxinput_str = event.pattern_match.group(1)
     if not lionxinput_str:
-        return await edit_delete(
+        return await eod(
             event,
             "From which category should i remove this chat",
             parse_mode=_format.parse_pre,
         )
     args = lionxinput_str.split(" ")
     if len(args) != 2:
-        return await edit_delete(
+        return await eod(
             event,
             "Use proper syntax as shown .frmfrom category_name groupid",
             parse_mode=_format.parse_pre,
@@ -391,7 +472,7 @@ async def lionxbroadcast_remove(event):
             groupid = int(args[1])
             keyword = args[0].lower()
         except ValueError:
-            return await edit_delete(
+            return await eod(
                 event,
                 "Use proper syntax as shown .frmfrom category_name groupid",
                 parse_mode=_format.parse_pre,
@@ -399,13 +480,13 @@ async def lionxbroadcast_remove(event):
     keyword = keyword.lower()
     check = sql.is_in_broadcastlist(keyword, int(groupid))
     if not check:
-        return await edit_delete(
+        return await eod(
             event,
             f"This chat {groupid} is not in the category {keyword}",
             parse_mode=_format.parse_pre,
         )
     sql.rm_from_broadcastlist(keyword, groupid)
-    await edit_delete(
+    await eod(
         event,
         f"This chat {groupid} is Now removed from the category {keyword}",
         parse_mode=_format.parse_pre,
@@ -415,7 +496,7 @@ async def lionxbroadcast_remove(event):
         try:
             await event.client.send_message(
                 BOTLOG_CHATID,
-                f"The Chat {get_display_name(await event.get_chat())} is removed from category {keyword}",
+                f"The Chat {chat.title} is removed from category {keyword}",
                 parse_mode=_format.parse_pre,
             )
         except Exception:
@@ -426,9 +507,9 @@ async def lionxbroadcast_remove(event):
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="delc(?:\s|$)([\s\S]*)",
-    command=("delc", plugin_category),
+    command=("delc", plugin_type),
     info={
         "header": "To Deletes the category completely from database",
         "usage": "{tr}delc <category name>",
@@ -440,20 +521,20 @@ async def lionxbroadcast_delete(event):
     lionxinput_str = event.pattern_match.group(1)
     check1 = sql.num_broadcastlist_chat(lionxinput_str)
     if check1 < 1:
-        return await edit_delete(
+        return await eod(
             event,
             f"Are you sure that there is category {lionxinput_str}",
             parse_mode=_format.parse_pre,
         )
     try:
         sql.del_keyword_broadcastlist(lionxinput_str)
-        await edit_or_reply(
+        await eor(
             event,
             f"Successfully deleted the category {lionxinput_str}",
             parse_mode=_format.parse_pre,
         )
     except Exception as e:
-        await edit_delete(
+        await eod(
             event,
             str(e),
             parse_mode=_format.parse_pre,

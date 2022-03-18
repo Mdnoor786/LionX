@@ -14,9 +14,9 @@ from jikanpy.exceptions import APIException
 from pySmartDL import SmartDL
 from telegraph import exceptions, upload_file
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import media_type, readable_time, time_formatter
 from ..helpers.functions import (
     airing_query,
@@ -28,7 +28,6 @@ from ..helpers.functions import (
     get_filler_episodes,
     getBannerLink,
     memory_file,
-    replace_text,
     search_in_animefiller,
     weekdays,
 )
@@ -45,12 +44,12 @@ headers = {
 ppath = os.path.join(os.getcwd(), "temp", "anilistuser.jpg")
 anime_path = os.path.join(os.getcwd(), "temp", "animeresult.jpg")
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="aq$",
-    command=("aq", plugin_category),
+    command=("aq", plugin_type),
     info={
         "header": "Get random Anime quotes.",
         "usage": "{tr}aq",
@@ -62,16 +61,16 @@ async def anime_quote(event):
     anime = data["anime"]
     character = data["character"]
     quote = data["quote"]
-    await edit_or_reply(
+    await eor(
         event,
         f"• <b>Anime</b> (アニメ) <b>:</b>\n ➥ <i>{anime}</i>\n\n• <b>Character:</b> (キャラクター) <b>:</b>\n ➥ <i>{character}</i>\n\n• <b>Quote:</b> (言っている) <b>:</b>\n ➥ <i>{quote}</i>",
         parse_mode="html",
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="aluser(?:\s|$)([\s\S]*)",
-    command=("aluser", plugin_category),
+    command=("aluser", plugin_type),
     info={
         "header": "Search User profiles in anilist.",
         "usage": "{tr}aluser <username>",
@@ -87,11 +86,11 @@ async def anilist_usersearch(event):
         if reply and reply.text:
             search_query = reply.text
         else:
-            return await edit_delete(event, "__Whom should i search.__")
-    lionxevent = await edit_or_reply(event, "`Searching user profile in anilist...`")
+            return await eod(event, "__Whom should i search.__")
+    lionxevent = await eor(event, "`Searching user profile in anilist...`")
     searchresult = await anilist_user(search_query)
     if len(searchresult) == 1:
-        return await edit_or_reply(
+        return await eor(
             lionxevent, f"**Error while searching user profile:**\n{searchresult[0]}"
         )
     downloader = SmartDL(searchresult[1], ppath, progress_bar=False)
@@ -108,9 +107,9 @@ async def anilist_usersearch(event):
     await lionxevent.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="mal(?:\s|$)([\s\S]*)",
-    command=("mal", plugin_category),
+    command=("mal", plugin_type),
     info={
         "header": "Search profiles of MAL.",
         "usage": "{tr}mal <username>",
@@ -125,11 +124,11 @@ async def user(event):
     if not search_query and reply and reply.text:
         search_query = reply.text
     elif not search_query:
-        return await edit_delete(event, "__Whom should i search.__")
+        return await eod(event, "__Whom should i search.__")
     try:
         user = jikan.user(search_query)
     except APIException:
-        return await edit_delete(event, "__No User found with given username__", 5)
+        return await eod(event, "__No User found with given username__", 5)
     date_format = "%Y-%m-%d"
     img = user["image_url"] or "https://telegra.ph//file/9b4205e1b1cc68a4ffd5e.jpg"
     try:
@@ -175,9 +174,9 @@ async def user(event):
     await event.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="airing(?:\s|$)([\s\S]*)",
-    command=("airing", plugin_category),
+    command=("airing", plugin_type),
     info={
         "header": "Shows you the time left for the new episode of current running anime show.",
         "usage": "{tr}airing",
@@ -188,13 +187,13 @@ async def anilist(event):
     "Get airing date & time of any anime"
     search = event.pattern_match.group(1)
     if not search:
-        return await edit_delete(event, "__which anime results should i fetch__")
+        return await eod(event, "__which anime results should i fetch__")
     variables = {"search": search}
     response = requests.post(
         anilistapiurl, json={"query": airing_query, "variables": variables}
     ).json()["data"]["Media"]
     if response is None:
-        return await edit_delete(event, "__Unable to find the anime.__")
+        return await eod(event, "__Unable to find the anime.__")
     ms_g = f"**Name**: **{response['title']['romaji']}**(`{response['title']['native']}`)\n**ID**: `{response['id']}`"
     if response["nextAiringEpisode"]:
         airing_time = response["nextAiringEpisode"]["timeUntilAiring"]
@@ -203,12 +202,12 @@ async def anilist(event):
         ms_g += f"\n**Episode**: `{response['nextAiringEpisode']['episode']}`\n**Airing In**: `{airing_time_final}`\n**Time: **`{datetime.fromtimestamp(airing_at)}`"
     else:
         ms_g += f"\n**Episode**:{response['episodes']}\n**Status**: `N/A`"
-    await edit_or_reply(event, ms_g)
+    await eor(event, ms_g)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="anime(?:\s|$)([\s\S]*)",
-    command=("anime", plugin_category),
+    command=("anime", plugin_type),
     info={
         "header": "Shows you the details of the anime.",
         "description": "Fectchs anime information from anilist",
@@ -220,18 +219,16 @@ async def anilist(event):
     "Get info on any anime."
     input_str = event.pattern_match.group(1)
     if not input_str:
-        return await edit_delete(
-            event, "__What should i search ? Gib me Something to Search__"
-        )
-    event = await edit_or_reply(event, "`Searching...`")
+        return await eod(event, "__What should i search ? Gib me Something to Search__")
+    event = await eor(event, "`Searching...`")
     result = await callAPI(input_str)
     msg = await formatJSON(result)
     await event.edit(msg, link_preview=True)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="manga(?:\s|$)([\s\S]*)",
-    command=("manga", plugin_category),
+    command=("manga", plugin_type),
     info={
         "header": "Searches for manga.",
         "usage": "{tr}manga <manga name",
@@ -247,10 +244,10 @@ async def get_manga(event):
         if reply:
             input_str = reply.text
         else:
-            return await edit_delete(
+            return await eod(
                 event, "__What should i search ? Gib me Something to Search__"
             )
-    lionxevent = await edit_or_reply(event, "`Searching Manga..`")
+    lionxevent = await eor(event, "`Searching Manga..`")
     jikan = jikanpy.jikan.Jikan()
     search_result = jikan.search("manga", input_str)
     first_mal_id = search_result["results"][0]["mal_id"]
@@ -261,9 +258,9 @@ async def get_manga(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="fillers(?:\s|$)([\s\S]*)",
-    command=("fillers", plugin_category),
+    command=("fillers", plugin_type),
     info={
         "header": "To get list of filler episodes.",
         "flags": {
@@ -284,21 +281,21 @@ async def get_anime(event):
         if reply:
             input_str = reply.text
         else:
-            return await edit_delete(
+            return await eod(
                 event, "__What should i search ? Gib me Something to Search__"
             )
     anime = re.findall(r"-n\d+", input_str)
     try:
         anime = anime[0]
         anime = anime.replace("-n", "")
-        input_str = input_str.replace(f"-n{anime}", "")
+        input_str = input_str.replace("-n" + anime, "")
         anime = int(anime)
     except IndexError:
         anime = 0
     input_str = input_str.strip()
     result = await search_in_animefiller(input_str)
     if result == {}:
-        return await edit_or_reply(
+        return await eor(
             event, f"**No filler episodes for the given anime**` {input_str}`"
         )
     if len(result) == 1:
@@ -315,19 +312,19 @@ async def get_anime(event):
             msg += "\n\n`**• Anime Canon episodes:**\n`"
             msg += str(response.get("anime_canon_episodes"))
         msg += "`"
-        return await edit_or_reply(event, msg)
+        return await eor(event, msg)
     if anime == 0:
-        msg = f"**More than 1 result found for {input_str}. so try as** `{Config.COMMAND_HAND_LER}fillers -n<number> {input_str}`\n\n"
+        msg = f"**More than 1 result found for {input_str}. so try as** `{Config.HANDLER}fillers -n<number> {input_str}`\n\n"
         for i, an in enumerate(list(result.keys()), start=1):
             msg += f"{i}. {an}\n"
-        return await edit_or_reply(event, msg)
+        return await eor(event, msg)
     try:
         response = await get_filler_episodes(result[list(result.keys())[anime - 1]])
     except IndexError:
-        msg = f"**Given index for {input_str} is wrong check again for correct index and then try** `{Config.COMMAND_HAND_LER}fillers -n<index> {input_str}`\n\n"
+        msg = f"**Given index for {input_str} is wrong check again for correct index and then try** `{Config.HANDLER}fillers -n<index> {input_str}`\n\n"
         for i, an in enumerate(list(result.keys()), start=1):
             msg += f"{i}. {an}\n"
-        return await edit_or_reply(event, msg)
+        return await eor(event, msg)
     msg = ""
     msg += f"**Fillers for anime** `{list(result.keys())[anime-1]}`**"
     msg += "\n\n• Manga Canon episodes:**`\n"
@@ -340,12 +337,12 @@ async def get_anime(event):
         msg += "\n\n`**• Anime Canon episodes:**\n`"
         msg += str(response.get("anime_canon_episodes"))
     msg += "`"
-    await edit_or_reply(event, msg)
+    await eor(event, msg)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="sanime(?:\s|$)([\s\S]*)",
-    command=("sanime", plugin_category),
+    command=("sanime", plugin_type),
     info={
         "header": "Searches for anime.",
         "usage": "{tr}sanime <anime name",
@@ -361,10 +358,10 @@ async def get_anime(event):
         if reply:
             input_str = reply.text
         else:
-            return await edit_delete(
+            return await eod(
                 event, "__What should i search ? Gib me Something to Search__"
             )
-    lionxevent = await edit_or_reply(event, "`Searching Anime..`")
+    lionxevent = await eor(event, "`Searching Anime..`")
     jikan = jikanpy.jikan.Jikan()
     search_result = jikan.search("anime", input_str)
     first_mal_id = search_result["results"][0]["mal_id"]
@@ -394,9 +391,10 @@ async def get_anime(event):
         )
 
 
-@lionxub.lionx_cmd(
+"""
+@lionx.lion_cmd(
     pattern="char(?:\s|$)([\s\S]*)",
-    command=("char", plugin_category),
+    command=("char", plugin_type),
     info={
         "header": "Shows you character infomation.",
         "usage": "{tr}char <char name>",
@@ -412,14 +410,14 @@ async def character(event):
         if reply:
             search_query = reply.text
         else:
-            return await edit_delete(
+            return await eod(
                 event, "__What should i search ? Gib me Something to Search__"
             )
-    lionxevent = await edit_or_reply(event, "`Searching Character...`")
+    lionxevent = await eor(event, "`Searching Character...`")
     try:
         search_result = jikan.search("character", search_query)
     except APIException:
-        return await edit_delete(lionxevent, "`Character not found.`")
+        return await eod(lionxevent, "`Character not found.`")
     first_mal_id = search_result["results"][0]["mal_id"]
     character = jikan.character(first_mal_id)
     caption = f"[{character['name']}]({character['url']})"
@@ -440,7 +438,7 @@ async def character(event):
     for entity in character:
         if character[entity] is None:
             character[entity] = "Unknown"
-    caption += f"\n🔰**Extracted Character Data**🔰\n\n{about_string}"
+    caption += f"\n🛡️**Extracted Character Data**🛡️\n\n{about_string}"
     caption += f" [Read More]({mal_url})..."
     await lionxevent.delete()
     await event.client.send_file(
@@ -449,11 +447,12 @@ async def character(event):
         caption=replace_text(caption),
         reply_to=reply_to,
     )
+"""
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="a(kaizoku|kayo|indi)(?: |$)([\S\s]*)",
-    command=("akaizoku", plugin_category),
+    command=("akaizoku", plugin_type),
     info={
         "header": "Shows you anime download link.",
         "usage": [
@@ -476,16 +475,15 @@ async def anime_download(event):  # sourcery no-metrics
     if not search_query and reply:
         search_query = reply.text
     elif not search_query:
-        return await edit_delete(
-            event, "__What should i search ? Gib me Something to Search__"
-        )
-    lionxevent = await edit_or_reply(event, "`Searching anime...`")
+        return await eod(event, "__What should i search ? Gib me Something to Search__")
+    lionxevent = await eor(event, "`Searching anime...`")
     search_query = search_query.replace(" ", "+")
     if input_str == "kaizoku":
         search_url = f"https://animekaizoku.com/?s={search_query}"
         html_text = requests.get(search_url, headers=headers).text
         soup = bs4.BeautifulSoup(html_text, "html.parser")
-        if search_result := soup.find_all("h2", {"class": "post-title"}):
+        search_result = soup.find_all("h2", {"class": "post-title"})
+        if search_result:
             result = f"<a href={search_url}>Click Here For More Results</a> <b>of</b> <code>{html.escape(search_query)}</code> <b>on</b> <code>AnimeKaizoku</code>: \n\n"
             for entry in search_result:
                 post_link = "https://animekaizoku.com/" + entry.a["href"]
@@ -528,9 +526,9 @@ async def anime_download(event):  # sourcery no-metrics
     await lionxevent.edit(result, parse_mode="html")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="upcoming$",
-    command=("upcoming", plugin_category),
+    command=("upcoming", plugin_type),
     info={
         "header": "Shows you upcoming anime's.",
         "usage": "{tr}upcoming",
@@ -547,12 +545,12 @@ async def upcoming(event):
         rep += f"• <a href='{a_url}'>{name}</a>\n"
         if len(rep) > 1000:
             break
-    await edit_or_reply(event, rep, parse_mode="html")
+    await eor(event, rep, parse_mode="html")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="aschedule(?: |$)([\S\s]*)",
-    command=("aschedule", plugin_category),
+    command=("aschedule", plugin_type),
     info={
         "header": "Shows you animes to be aired on that day.",
         "description": "To get list of animes to be aired on that day use can also use 0 for monday , 1 for tuesday.... 6 for sunday.",
@@ -568,16 +566,16 @@ async def aschedule_fetch(event):
     try:
         input_str = int(input_str)
     except ValueError:
-        return await edit_delete(event, "`You have given and invalid weekday`", 7)
+        return await eod(event, "`You have given and invalid weekday`", 7)
     if input_str not in [0, 1, 2, 3, 4, 5, 6]:
-        return await edit_delete(event, "`You have given and invalid weekday`", 7)
+        return await eod(event, "`You have given and invalid weekday`", 7)
     result = await get_anime_schedule(input_str)
-    await edit_or_reply(event, result[0])
+    await eor(event, result[0])
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="w(hat)?anime$",
-    command=("whatanime", plugin_category),
+    command=("whatanime", plugin_type),
     info={
         "header": "Reverse search of anime.",
         "usage": [
@@ -590,18 +588,16 @@ async def whatanime(event):
     "Reverse search of anime."
     reply = await event.get_reply_message()
     if not reply:
-        return await edit_delete(
-            event, "__reply to media to reverse search that anime__."
-        )
+        return await eod(event, "__reply to media to reverse search that anime__.")
     mediatype = media_type(reply)
     if mediatype not in ["Photo", "Video", "Gif", "Sticker"]:
-        return await edit_delete(
+        return await eod(
             event,
             f"__Reply to proper media that is expecting photo/video/gif/sticker. not {mediatype}__.",
         )
     output = await _lionxtools.media_to_pic(event, reply)
     if output[1] is None:
-        return await edit_delete(
+        return await eod(
             output[0], "__Unable to extract image from the replied message.__"
         )
     file = memory_file("anime.jpg", output[1])
@@ -611,7 +607,7 @@ async def whatanime(event):
         try:
             response = upload_file(output[1])
         except exceptions.TelegraphException as exc:
-            return await edit_delete(output[0], f"**Error :**\n__{exc}__")
+            return await eod(output[0], f"**Error :**\n__{exc}__")
     lionx = f"https://telegra.ph{response[0]}"
     await output[0].edit("`Searching for result..`")
     async with aiohttp.ClientSession() as session:
@@ -622,7 +618,7 @@ async def whatanime(event):
         framecount = resp0["frameCount"]
         error = resp0["error"]
         if error != "":
-            return await edit_delete(output[0], f"**Error:**\n__{error}__")
+            return await eod(output[0], f"**Error:**\n__{error}__")
         js0 = resp0["result"]
         if not js0:
             return await output[0].edit("`No results found.`")

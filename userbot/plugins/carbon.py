@@ -7,16 +7,16 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from ..Config import Config
-from . import deEmojify, edit_or_reply, lionxub
+from . import deEmojify, eor, lionx
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 CARBONLANG = "auto"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="carbon(?:\s|$)([\s\S]*)",
-    command=("carbon", plugin_category),
+    command=("carbon", plugin_type),
     info={
         "header": "Carbon generators for given text (Fixed style)",
         "usage": [
@@ -37,7 +37,7 @@ async def carbon_api(event):
         pcode = str(textx.message)
     pcode = deEmojify(pcode)
     code = quote_plus(pcode)
-    lionx = await edit_or_reply(event, "`Carbonizing...\n25%`")
+    lionx = await eor(event, "`Carbonizing...\n25%`")
     url = CARBON.format(code=code, lang=CARBONLANG)
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -84,9 +84,9 @@ async def carbon_api(event):
     await lionx.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="krb(?:\s|$)([\s\S]*)",
-    command=("krb", plugin_category),
+    command=("krb", plugin_type),
     info={
         "header": "Carbon generators for given text. each time gives  random style. You can also use patcicular style by using semicolon after text and name",
         "usage": [
@@ -98,25 +98,23 @@ async def carbon_api(event):
 )
 async def carbon_api(event):
     """A Wrapper for carbon.now.sh"""
-    lionx = await edit_or_reply(event, "`Processing....`")
+    LIONX = await eor(event, "`Processing....`")
     CARBON = "https://carbon.now.sh/?l={lang}&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text
     if pcode[5:]:
         pcodee = str(pcode[5:])
-        if ";" in pcodee:
-            pcode, skeme = pcodee.split(";")
+        if "|" in pcodee:
+            pcode, skeme = pcodee.split("|")
         else:
             pcode = pcodee
             skeme = None
     elif textx:
         pcode = str(textx.message)
-        skeme = None
-    pcode = pcode.strip()
-    skeme = skeme.strip()
+        skeme = None  # Importing message to module
     pcode = deEmojify(pcode)
-    code = quote_plus(pcode)
-    await lionx.edit("`Meking Carbon...`\n`25%`")
+    code = quote_plus(pcode)  # Converting to urlencoded
+    await LIONX.edit("`Meking Carbon...`\n`25%`")
     url = CARBON.format(code=code, lang=CARBONLANG)
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -131,7 +129,7 @@ async def carbon_api(event):
         executable_path=Config.CHROME_DRIVER, options=chrome_options
     )
     driver.get(url)
-    await lionx.edit("`Be Patient...\n50%`")
+    await LIONX.edit("`Be Patient...\n50%`")
     download_path = "./"
     driver.command_executor._commands["send_command"] = (
         "POST",
@@ -142,46 +140,30 @@ async def carbon_api(event):
         "params": {"behavior": "allow", "downloadPath": download_path},
     }
     driver.execute("send_command", params)
-    driver.find_element_by_xpath(
-        "/html/body/div[1]/main/div[3]/div[2]/div[1]/div[1]/div/span[2]"
-    ).click()
-    if skeme is not None:
-        k_skeme = driver.find_element_by_xpath(
-            "/html/body/div[1]/main/div[3]/div[2]/div[1]/div[1]/div/span[2]/input"
-        )
-        k_skeme.send_keys(skeme)
-        k_skeme.send_keys(Keys.DOWN)
-        k_skeme.send_keys(Keys.ENTER)
-    else:
-        color_scheme = str(random.randint(1, 29))
-        driver.find_element_by_id(f"downshift-0-item-{color_scheme}").click()
-    driver.find_element_by_id("export-menu").click()
-    driver.find_element_by_xpath("//button[contains(text(),'4x')]").click()
-    driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-    await lionx.edit("`Processing..\n75%`")
+    driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
 
-    await asyncio.sleep(2.5)
-    color_name = driver.find_element_by_xpath(
-        "/html/body/div[1]/main/div[3]/div[2]/div[1]/div[1]/div/span[2]/input"
-    ).get_attribute("value")
-    await lionx.edit("`Done Dana Done...\n100%`")
+    await LIONX.edit("`Processing..\n75%`")
+
+    await asyncio.sleep(2)
+    await LIONX.edit("`Done Dana Done...\n100%`")
     file = "./carbon.png"
-    await lionx.edit("`Uploading..`")
+    await LIONX.edit("`Uploading..`")
     await event.client.send_file(
         event.chat_id,
         file,
-        caption=f"`Here's your carbon!` \n**Colour Scheme: **`{color_name}`",
+        caption="Here's your carbon",
         force_document=True,
         reply_to=event.message.reply_to_msg_id,
     )
     os.remove("./carbon.png")
     driver.quit()
-    await lionx.delete()
+
+    await LIONX.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kar1(?:\s|$)([\s\S]*)",
-    command=("kar1", plugin_category),
+    command=("kar1", plugin_type),
     info={
         "header": "Carbon generators for given text (Fixed style)",
         "usage": [
@@ -192,7 +174,7 @@ async def carbon_api(event):
 )
 async def carbon_api(event):
     """A Wrapper for carbon.now.sh"""
-    lionx = await edit_or_reply(event, "🔲🔲🔲🔲🔲")
+    lionx = await eor(event, "🔲🔲🔲🔲🔲")
     CARBON = "https://carbon.now.sh/?bg=rgba(249%2C237%2C212%2C0)&t=synthwave-84&wt=none&l=application%2Fjson&ds=true&dsyoff=20px&dsblur=0px&wc=true&wa=true&pv=56px&ph=0px&ln=false&fl=1&fm=IBM%20Plex%20Mono&fs=14.5px&lh=153%25&si=false&es=4x&wm=false&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text
@@ -246,9 +228,9 @@ async def carbon_api(event):
     await lionx.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kar2(?:\s|$)([\s\S]*)",
-    command=("kar2", plugin_category),
+    command=("kar2", plugin_type),
     info={
         "header": "Carbon generators for given text (Fixed style)",
         "usage": [
@@ -259,7 +241,7 @@ async def carbon_api(event):
 )
 async def carbon_api(event):
     """A Wrapper for carbon.now.sh"""
-    lionx = await edit_or_reply(event, "📛📛📛📛📛")
+    lionx = await eor(event, "📛📛📛📛📛")
     CARBON = "https://carbon.now.sh/?bg=rgba(239%2C40%2C44%2C1)&t=one-light&wt=none&l=application%2Ftypescript&ds=true&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Hack&fs=14px&lh=143%25&si=false&es=2x&wm=false&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text
@@ -313,9 +295,9 @@ async def carbon_api(event):
     await lionx.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kar3(?:\s|$)([\s\S]*)",
-    command=("kar3", plugin_category),
+    command=("kar3", plugin_type),
     info={
         "header": "Carbon generators for given text (Fixed style)",
         "usage": [
@@ -326,7 +308,7 @@ async def carbon_api(event):
 )
 async def carbon_api(event):
     """A Wrapper for carbon.now.sh"""
-    lionx = await edit_or_reply(event, "🎛🎛🎛🎛🎛")
+    lionx = await eor(event, "🎛🎛🎛🎛🎛")
     CARBON = "https://carbon.now.sh/?bg=rgba(74%2C144%2C226%2C1)&t=material&wt=none&l=auto&ds=false&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Fira%20Code&fs=14px&lh=152%25&si=false&es=2x&wm=false&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text
@@ -381,9 +363,9 @@ async def carbon_api(event):
     await lionx.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kar4(?:\s|$)([\s\S]*)",
-    command=("kar4", plugin_category),
+    command=("kar4", plugin_type),
     info={
         "header": "Carbon generators for given text (Fixed style)",
         "usage": [
@@ -394,7 +376,7 @@ async def carbon_api(event):
 )
 async def carbon_api(event):
     """A Wrapper for carbon.now.sh"""
-    lionx = await edit_or_reply(event, "🌚🌚🌚🌚🌚")
+    lionx = await eor(event, "🌚🌚🌚🌚🌚")
     CARBON = "https://carbon.now.sh/?bg=rgba(29%2C40%2C104%2C1)&t=one-light&wt=none&l=application%2Ftypescript&ds=true&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Hack&fs=14px&lh=143%25&si=false&es=2x&wm=false&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text
@@ -447,9 +429,9 @@ async def carbon_api(event):
     await lionx.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kargb(?:\s|$)([\s\S]*)",
-    command=("kargb", plugin_category),
+    command=("kargb", plugin_type),
     info={
         "header": "Carbon generators for given text (random from some selected themes)",
         "usage": [
@@ -496,7 +478,7 @@ async def carbon_api(event):
     ]
     CUNTHE = random.randint(0, len(THEME) - 1)
     The = THEME[CUNTHE]
-    lionx = await edit_or_reply(event, "⬜⬜⬜⬜⬜")
+    lionx = await eor(event, "⬜⬜⬜⬜⬜")
     CARBON = "https://carbon.now.sh/?bg=rgba({R}%2C{G}%2C{B}%2C1)&t={T}&wt=none&l=auto&ds=false&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Fira%20Code&fs=14px&lh=152%25&si=false&es=2x&wm=false&code={code}"
     textx = await event.get_reply_message()
     pcode = event.text

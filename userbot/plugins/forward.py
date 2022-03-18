@@ -2,13 +2,13 @@ import string
 
 from telethon.tl.types import Channel, MessageMediaWebPage
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 LOGS = logging.getLogger(__name__)
 
@@ -31,9 +31,9 @@ async def all_groups_id(lionx):
     return lionxgroups
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="frwd$",
-    command=("frwd", plugin_category),
+    command=("frwd", plugin_type),
     info={
         "header": "To get view counter for the message. that is will delete old message and send new message where you can see how any people saw your message",
         "usage": "{tr}frwd",
@@ -42,14 +42,14 @@ async def all_groups_id(lionx):
 async def _(event):
     "To get view counter for the message"
     if Config.PRIVATE_CHANNEL_BOT_API_ID == 0:
-        return await edit_or_reply(
+        return await eor(
             event,
             "Please set the required environment variable `PRIVATE_CHANNEL_BOT_API_ID` for this plugin to work",
         )
     try:
         e = await event.client.get_entity(Config.PRIVATE_CHANNEL_BOT_API_ID)
     except Exception as e:
-        await edit_or_reply(event, str(e))
+        await eor(event, str(e))
     else:
         re_message = await event.get_reply_message()
         # https://t.me/telethonofftopic/78166
@@ -61,9 +61,9 @@ async def _(event):
             LOGS.info(str(e))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="resend$",
-    command=("resend", plugin_category),
+    command=("resend", plugin_type),
     info={
         "header": "To resend the message again. Useful to remove forword tag",
         "usage": "{tr}resend",
@@ -83,13 +83,13 @@ async def _(event):
     await event.client.send_message(event.chat_id, m.text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="fpost ([\s\S]*)",
-    command=("fpost", plugin_category),
+    command=("fpost", plugin_type),
     info={
         "header": "Split the word and forwards each letter from previous messages in that group",
         "usage": "{tr}fpost <text>",
-        "examples": "{tr}fpost lionx",
+        "examples": "{tr}fpost LionX",
     },
 )
 async def _(event):

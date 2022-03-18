@@ -6,14 +6,14 @@ from telethon.tl.types import InputMessagesFilterDocument
 from ..Config import Config
 from ..helpers.utils import install_pip
 from ..utils import load_module
-from . import BOTLOG, BOTLOG_CHATID, lionxub
+from . import BOTLOG, BOTLOG_CHATID, lionx
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 if Config.PLUGIN_CHANNEL:
 
     async def install():
-        documentss = await lionxub.get_messages(
+        documentss = await lionx.get_messages(
             Config.PLUGIN_CHANNEL, None, filter=InputMessagesFilterDocument
         )
         total = int(documentss.total)
@@ -22,17 +22,15 @@ if Config.PLUGIN_CHANNEL:
             plugin_name = documentss[module].file.name
             if os.path.exists(f"userbot/plugins/{plugin_name}"):
                 return
-            downloaded_file_name = await lionxub.download_media(
-                await lionxub.get_messages(
-                    Config.PLUGIN_CHANNEL, ids=plugin_to_install
-                ),
+            downloaded_file_name = await lionx.download_media(
+                await lionx.get_messages(Config.PLUGIN_CHANNEL, ids=plugin_to_install),
                 "userbot/plugins/",
             )
             path1 = Path(downloaded_file_name)
             shortname = path1.stem
-            flag = True
+            type = True
             check = 0
-            while flag:
+            while type:
                 try:
                     load_module(shortname.replace(".py", ""))
                     break
@@ -42,9 +40,9 @@ if Config.PLUGIN_CHANNEL:
                     if check > 5:
                         break
             if BOTLOG:
-                await lionxub.send_message(
+                await lionx.send_message(
                     BOTLOG_CHATID,
                     f"Installed Plugin `{os.path.basename(downloaded_file_name)}` successfully.",
                 )
 
-    lionxub.loop.create_task(install())
+    lionx.loop.create_task(install())

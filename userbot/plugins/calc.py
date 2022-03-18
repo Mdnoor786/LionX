@@ -2,14 +2,14 @@ import io
 import sys
 import traceback
 
-from . import edit_or_reply, lionxub
+from . import eor, lionx
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="calc ([\s\S]*)",
-    command=("calc", plugin_category),
+    command=("calc", plugin_type),
     info={
         "header": "To solve basic mathematics equations.",
         "description": "Solves the given maths equation by BODMAS rule.",
@@ -19,7 +19,7 @@ plugin_category = "utils"
 async def calculator(event):
     "To solve basic mathematics equations."
     cmd = event.text.split(" ", maxsplit=1)[1]
-    event = await edit_or_reply(event, "Calculating ...")
+    event = await eor(event, "Calculating ...")
     old_stderr = sys.stderr
     old_stdout = sys.stdout
     redirected_output = sys.stdout = io.StringIO()

@@ -22,16 +22,16 @@ from telethon.tl.types import (
 )
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import readable_time
 from ..utils import is_admin
 from . import BOTLOG, BOTLOG_CHATID
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "admin"
+plugin_type = "admin"
 
 BANNED_RIGHTS = ChatBannedRights(
     until_date=None,
@@ -48,15 +48,15 @@ BANNED_RIGHTS = ChatBannedRights(
 
 async def ban_user(chat_id, i, rights):
     try:
-        await lionxub(functions.channels.EditBannedRequest(chat_id, i, rights))
+        await lionx(functions.channels.EditBannedRequest(chat_id, i, rights))
         return True, None
     except Exception as exc:
         return False, str(exc)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kickme$",
-    command=("kickme", plugin_category),
+    command=("kickme", plugin_type),
     info={
         "header": "To kick myself from group.",
         "usage": [
@@ -71,9 +71,9 @@ async def kickme(leave):
     await leave.client.kick_participant(leave.chat_id, "me")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="kickall$",
-    command=("kickall", plugin_category),
+    command=("kickall", plugin_type),
     info={
         "header": "To kick everyone from group.",
         "description": "To Kick all from the group except admins.",
@@ -88,10 +88,10 @@ async def _(event):
     "To kick everyone from group."
     result = await event.client.get_permissions(event.chat_id, event.client.uid)
     if not result.participant.admin_rights.ban_users:
-        return await edit_or_reply(
+        return await eor(
             event, "`It seems like you dont have ban users permission in this group.`"
         )
-    lionxevent = await edit_or_reply(event, "`Kicking...`")
+    lionxevent = await eor(event, "`Kicking...`")
     admins = await event.client.get_participants(
         event.chat_id, filter=ChannelParticipantsAdmins
     )
@@ -113,14 +113,14 @@ async def _(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="banall$",
-    command=("banall", plugin_category),
+    command=("banall", plugin_type),
     info={
         "header": "To ban everyone from group.",
         "description": "To ban all from the group except admins.",
         "usage": [
-            "{tr}kickall",
+            "{tr}banall",
         ],
     },
     groups_only=True,
@@ -130,10 +130,10 @@ async def _(event):
     "To ban everyone from group."
     result = await event.client.get_permissions(event.chat_id, event.client.uid)
     if not result:
-        return await edit_or_reply(
+        return await eor(
             event, "`It seems like you dont have ban users permission in this group.`"
         )
-    lionxevent = await edit_or_reply(event, "`banning...`")
+    lionxevent = await eor(event, "`banning...`")
     admins = await event.client.get_participants(
         event.chat_id, filter=ChannelParticipantsAdmins
     )
@@ -157,9 +157,9 @@ async def _(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="unbanall$",
-    command=("unbanall", plugin_category),
+    command=("unbanall", plugin_type),
     info={
         "header": "To unban all banned users from group.",
         "usage": [
@@ -171,12 +171,10 @@ async def _(event):
 )
 async def _(event):
     "To unban all banned users from group."
-    lionxevent = await edit_or_reply(
-        event, "__Unbanning all banned accounts in this group.__"
-    )
+    lionxevent = await eor(event, "__Unbanning all banned accounts in this group.__")
     succ = 0
     total = 0
-    flag = False
+    type = False
     await event.get_chat()
     async for i in event.client.iter_participants(
         event.chat_id, filter=ChannelParticipantsKicked, aggressive=True
@@ -197,7 +195,7 @@ async def _(event):
             await lionxevent.edit(str(ex))
         else:
             succ += 1
-            if flag:
+            if type:
                 await sleep(2)
             else:
                 await sleep(1)
@@ -214,13 +212,13 @@ async def _(event):
 
 
 # Ported by ©[NIKITA](t.me/kirito6969) and ©[EYEPATCH](t.me/NeoMatrix90)
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="zombies( -r| )? ?([\s\S]*)",
-    command=("zombies", plugin_category),
+    command=("zombies", plugin_type),
     info={
         "header": "To check deleted accounts and clean",
         "description": "Searches for deleted accounts in a group. Use `.zombies clean` to remove deleted accounts from the group.",
-        "flag": {"-r": "Use this for check users from banned and restricted users"},
+        "type": {"-r": "Use this for check users from banned and restricted users"},
         "usage": [
             "{tr}zombies",
             "{tr}zombies clean",
@@ -232,15 +230,13 @@ async def _(event):
 )
 async def rm_deletedacc(show):  # sourcery no-metrics
     "To check deleted accounts and clean"
-    flag = show.pattern_match.group(1)
+    type = show.pattern_match.group(1)
     con = show.pattern_match.group(2).lower()
     del_u = 0
     del_status = "`No zombies or deleted accounts found in this group, Group is clean`"
     if con != "clean":
-        event = await edit_or_reply(
-            show, "`Searching for ghost/deleted/zombie accounts...`"
-        )
-        if flag != " -r":
+        event = await eor(show, "`Searching for ghost/deleted/zombie accounts...`")
+        if type != " -r":
             async for user in show.client.iter_participants(show.chat_id):
                 if user.deleted:
                     del_u += 1
@@ -250,7 +246,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
         else:
             lionxadmin = await is_admin(show.client, show.chat_id, show.client.uid)
             if not lionxadmin:
-                return await edit_delete(
+                return await eod(
                     event,
                     "`You must be admin to check zombies in restricted users`",
                     10,
@@ -274,14 +270,12 @@ async def rm_deletedacc(show):  # sourcery no-metrics
     admin = chat.admin_rights
     creator = chat.creator
     if not admin and not creator:
-        await edit_delete(show, "`I am not an admin here!`", 5)
+        await eod(show, "`I am not an admin here!`", 5)
         return
-    event = await edit_or_reply(
-        show, "`Deleting deleted accounts...\nOh I can do that?!?!`"
-    )
+    event = await eor(show, "`Deleting deleted accounts...\nOh I can do that?!?!`")
     del_u = 0
     del_a = 0
-    if flag != " -r":
+    if type != " -r":
         async for user in show.client.iter_participants(show.chat_id):
             if user.deleted:
                 try:
@@ -289,7 +283,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
                     await sleep(0.5)
                     del_u += 1
                 except ChatAdminRequiredError:
-                    return await edit_delete(
+                    return await eod(
                         event, "`I don't have ban rights in this group`", 5
                     )
                 except FloodWaitError as e:
@@ -301,7 +295,6 @@ async def rm_deletedacc(show):  # sourcery no-metrics
                     await event.edit(
                         "__Ok the wait is over .I am cleaning all deleted accounts in this group__"
                     )
-
                 except UserAdminInvalidError:
                     del_a += 1
                 except Exception as e:
@@ -316,7 +309,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
     else:
         lionxadmin = await is_admin(show.client, show.chat_id, show.client.uid)
         if not lionxadmin:
-            return await edit_delete(
+            return await eod(
                 event, "`You must be admin to clean zombies in restricted users`", 10
             )
         async for user in show.client.iter_participants(
@@ -328,7 +321,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
                     await sleep(0.5)
                     del_u += 1
                 except ChatAdminRequiredError:
-                    return await edit_delete(
+                    return await eod(
                         event, "`I don't have ban rights in this group`", 5
                     )
                 except FloodWaitError as e:
@@ -340,7 +333,6 @@ async def rm_deletedacc(show):  # sourcery no-metrics
                     await event.edit(
                         "__Ok the wait is over .I am cleaning all deleted accounts in restricted or banned users list in this group__"
                     )
-
                 except Exception as e:
                     LOGS.error(str(e))
                     del_a += 1
@@ -353,7 +345,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
                     await sleep(0.5)
                     del_u += 1
                 except ChatAdminRequiredError:
-                    return await edit_delete(
+                    return await eod(
                         event, "`I don't have ban rights in this group`", 5
                     )
                 except FloodWaitError as e:
@@ -370,7 +362,7 @@ async def rm_deletedacc(show):  # sourcery no-metrics
         if del_a > 0:
             del_status = f"`Successfully cleaned `**{del_u}**` deleted account(s) in the group who are banned or restricted.\
             \nFailed to kick `**{del_a}**` accounts.`"
-    await edit_delete(event, del_status, 15)
+    await eod(event, del_status, 15)
     if BOTLOG:
         await show.client.send_message(
             BOTLOG_CHATID,
@@ -380,9 +372,9 @@ async def rm_deletedacc(show):  # sourcery no-metrics
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ikuck ?([\s\S]*)",
-    command=("ikuck", plugin_category),
+    command=("ikuck", plugin_type),
     info={
         "header": "To get breif summary of members in the group",
         "description": "To get breif summary of members in the group . Need to add some features in future.",
@@ -398,7 +390,7 @@ async def _(event):  # sourcery no-metrics
     if input_str:
         chat = await event.get_chat()
         if not chat.admin_rights and not chat.creator:
-            await edit_or_reply(event, "`You aren't an admin here!`")
+            await eor(event, "`You aren't an admin here!`")
             return False
     p = 0
     b = 0
@@ -412,7 +404,7 @@ async def _(event):  # sourcery no-metrics
     o = 0
     q = 0
     r = 0
-    et = await edit_or_reply(event, "Searching Participant Lists.")
+    et = await eor(event, "Searching Participant Lists.")
     async for i in event.client.iter_participants(event.chat_id):
         p += 1
         #
@@ -502,26 +494,26 @@ async def _(event):  # sourcery no-metrics
             n += 1
     if input_str:
         required_string = """Kicked {} / {} users
-Deleted Accounts: {}
-UserStatusEmpty: {}
-UserStatusLastMonth: {}
-UserStatusLastWeek: {}
-UserStatusOffline: {}
-UserStatusOnline: {}
-UserStatusRecently: {}
-Bots: {}
-None: {}"""
+🗒Deleted Accounts: {}
+🚩UserStatusEmpty: {}
+🚩UserStatusLastMonth: {}
+🚩UserStatusLastWeek: {}
+🚩UserStatusOffline: {}
+🚩UserStatusOnline: {}
+🚩UserStatusRecently: {}
+🚩Bots: {}
+🚩None: {}"""
         await et.edit(required_string.format(c, p, d, y, m, w, o, q, r, b, n))
         await sleep(5)
     await et.edit(
         """Total: {} users
-Deleted Accounts: {}
-UserStatusEmpty: {}
-UserStatusLastMonth: {}
-UserStatusLastWeek: {}
-UserStatusOffline: {}
-UserStatusOnline: {}
-UserStatusRecently: {}
+🗒Deleted Accounts: {}
+🚩UserStatusEmpty: {}
+🚩UserStatusLastMonth: {}
+🚩UserStatusLastWeek: {}
+🚩UserStatusOffline: {}
+🚩UserStatusOnline: {}
+🚩UserStatusRecently: {}
 Bots: {}
 None: {}""".format(
             p, d, y, m, w, o, q, r, b, n

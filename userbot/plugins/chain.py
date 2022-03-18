@@ -1,13 +1,13 @@
 from telethon.tl.functions.messages import SaveDraftRequest
 
-from . import lionxub
+from . import lionx
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="chain$",
-    command=("chain", plugin_category),
+    command=("chain", plugin_type),
     info={
         "header": "Reply this command to any converstion(or message) and it will find the chain length of that message",
         "usage": "{tr}chain <reply>",

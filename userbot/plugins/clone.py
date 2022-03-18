@@ -1,30 +1,32 @@
-# Credits of Plugin @ViperAdnan and @copyless786(revert)[will add sql soon]
 import html
 
 from telethon.tl import functions
 from telethon.tl.functions.users import GetFullUserRequest
 
 from ..Config import Config
-from ..sql_helper.globals import gvarstatus
 from . import (
-    ALIVE_NAME,
+    AUTONAME,
     BOTLOG,
     BOTLOG_CHATID,
-    edit_delete,
+    DEFAULT_BIO,
+    LIONX_USER,
+    eod,
     get_user_from_event,
-    lionxub,
+    lionx,
 )
 
-plugin_category = "utils"
-DEFAULTUSER = gvarstatus("FIRST_NAME") or ALIVE_NAME
+plugin_type = "utils"
+DEFAULTUSER = str(AUTONAME) if AUTONAME else LIONX_USER
 DEFAULTUSERBIO = (
-    gvarstatus("DEFAULT_BIO") or "sıɥʇ ǝpoɔǝp uǝɥʇ llıʇu∩ ˙ǝɔɐds ǝʇɐʌıɹd ǝɯos ǝɯ ǝʌı⅁"
+    str(DEFAULT_BIO)
+    if DEFAULT_BIO
+    else "I Am LionX Because I Am A User Of @LionXupdates"
 )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="clone(?:\s|$)([\s\S]*)",
-    command=("clone", plugin_category),
+    command=("clone", plugin_type),
     info={
         "header": "To clone account of mentiond user or replied user",
         "usage": "{tr}clone <username/userid/reply>",
@@ -46,7 +48,7 @@ async def _(event):
         last_name = last_name.replace("\u2060", "")
     if last_name is None:
         last_name = "⁪⁬⁮⁮⁮⁮ ‌‌‌‌"
-    replied_user = (await event.client(GetFullUserRequest(replied_user.id))).full_user
+    replied_user = await event.client(GetFullUserRequest(replied_user.id))
     user_bio = replied_user.about
     if user_bio is not None:
         user_bio = replied_user.about
@@ -56,9 +58,9 @@ async def _(event):
     try:
         pfile = await event.client.upload_file(profile_pic)
     except Exception as e:
-        return await edit_delete(event, f"**Failed to clone due to error:**\n__{e}__")
+        return await eod(event, f"**Failed to clone due to error:**\n__{e}__")
     await event.client(functions.photos.UploadProfilePhotoRequest(pfile))
-    await edit_delete(event, "**LET US BE AS ONE**")
+    await eod(event, "**LET US BE AS ONE**")
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,
@@ -66,29 +68,29 @@ async def _(event):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="revert$",
-    command=("revert", plugin_category),
+    command=("revert", plugin_type),
     info={
         "header": "To revert back to your original name , bio and profile pic",
-        "note": "For proper Functioning of this command you need to set DEFAULT_USER in Database",
+        "note": "For proper Functioning of this command you need to set AUTONAME and DEFAULT_BIO with your profile name and bio respectively.",
         "usage": "{tr}revert",
     },
 )
-async def revert(event):
+async def _(event):
     "To reset your original details"
-    firstname = DEFAULTUSER
-    lastname = gvarstatus("LAST_NAME") or ""
-    bio = DEFAULTUSERBIO
+    name = f"{DEFAULTUSER}"
+    blank = ""
+    bio = f"{DEFAULTUSERBIO}"
     await event.client(
         functions.photos.DeletePhotosRequest(
             await event.client.get_profile_photos("me", limit=1)
         )
     )
     await event.client(functions.account.UpdateProfileRequest(about=bio))
-    await event.client(functions.account.UpdateProfileRequest(first_name=firstname))
-    await event.client(functions.account.UpdateProfileRequest(last_name=lastname))
-    await edit_delete(event, "successfully reverted to your account back")
+    await event.client(functions.account.UpdateProfileRequest(first_name=name))
+    await event.client(functions.account.UpdateProfileRequest(last_name=blank))
+    await eod(event, "successfully reverted to your account back")
     if BOTLOG:
         await event.client.send_message(
             BOTLOG_CHATID,

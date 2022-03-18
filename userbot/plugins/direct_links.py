@@ -8,18 +8,18 @@ import requests
 from bs4 import BeautifulSoup
 from humanize import naturalsize
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..funcs.logger import logging
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "misc"
+plugin_type = "misc"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="direct(?: |$)([\s\S]*)",
-    command=("direct", plugin_category),
+    command=("direct", plugin_type),
     info={
         "header": "To generate a direct download link from a URL.",
         "description": "Reply to a link or paste a URL to generate a direct download link.",
@@ -45,8 +45,8 @@ async def direct_link_generator(event):
         if textx:
             message = textx.text
         else:
-            return await edit_delete(event, "`Usage: .direct <url>`")
-    lionxevent = await edit_or_reply(event, "`Processing...`")
+            return await eod(event, "`Usage: .direct <url>`")
+    lionxevent = await eor(event, "`Processing...`")
     reply = ""
     links = re.findall(r"\bhttps?://.*\.\S+", message)
     if not links:

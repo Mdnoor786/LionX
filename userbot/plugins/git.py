@@ -5,25 +5,35 @@ import aiohttp
 import requests
 from github import Github
 from pySmartDL import SmartDL
+from telethon.errors import ChatSendInlineForbiddenError as noin
+from telethon.errors.rpcerrorlist import BotMethodInvalidError as dedbot
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.utils import reply_id
 from . import reply_id
 
 LOGS = logging.getLogger(os.path.basename(__name__))
 ppath = os.path.join(os.getcwd(), "temp", "githubuser.jpg")
-plugin_category = "misc"
+plugin_type = "misc"
+from . import LionX_channel
 
 GIT_TEMP_DIR = "./temp/"
 
+msg = f"""
+**⚜ 𝙻𝚎𝚐𝚎𝚗𝚍𝚊𝚛𝚢 𝙰𝚏 𝙻𝚎𝚐𝚎𝚗𝚍𝙱𝚘𝚝 ⚜**
+  •        [♥️ 𝚁𝚎𝚙𝚘 ♥️](https://github.com/TEAMLIONX/LIONX)
+  •        [♦️ Deploy ♦️](https://dashboard.heroku.com/new?button-url=https%3A%2F%2Fgithub.com%2FTEAMLIONX%2FLionX&template=https%3A%2F%2Fgithub.com%2FTEAMLIONX%2FLionX)
+  •  ©️ {LionX_channel} ™
+"""
 
-@lionxub.lionx_cmd(
+
+@lionx.lion_cmd(
     pattern="repo$",
-    command=("repo", plugin_category),
+    command=("repo", plugin_type),
     info={
         "header": "Source code link of userbot",
         "usage": [
@@ -33,21 +43,23 @@ GIT_TEMP_DIR = "./temp/"
 )
 async def source(e):
     "Source code link of userbot"
-    await edit_or_reply(
-        e,
-        "Click [here](https://github.com/TeamLionX/LionX) to open this bot source code\
-        \nClick [here](https://github.com/TeamLionX/nekopack) to open supported link for heroku",
-    )
+    reply_to_id = await reply_id(e)
+    try:
+        lionx = await e.client.inline_query(Config.BOT_USERNAME, "repo")
+        await lionx[0].click(e.chat_id, reply_to=reply_to_id, hide_via=True)
+        await e.delete()
+    except (noin, dedbot):
+        await eor(e, msg)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="github( -l(\d+))? ([\s\S]*)",
-    command=("github", plugin_category),
+    command=("github", plugin_type),
     info={
         "header": "Shows the information about an user on GitHub of given username",
         "flags": {"-l": "repo limit : default to 5"},
-        "usage": ".github [flag] [username]",
-        "examples": [".github TeamLionX", ".github -l5 TeamLionX"],
+        "usage": ".github [type] [username]",
+        "examples": [".github TEAMLIONX", ".github -l5 TEAMLIONX"],
     },
 )
 async def _(event):
@@ -58,8 +70,8 @@ async def _(event):
     async with aiohttp.ClientSession() as session:
         async with session.get(URL) as request:
             if request.status == 404:
-                return await edit_delete(event, f"`{username} not found`")
-            lionxevent = await edit_or_reply(event, "`fetching github info ...`")
+                return await eod(event, f"`{username} not found`")
+            lionxevent = await eor(event, "`fetching github info ...`")
             result = await request.json()
             photo = result["avatar_url"]
             if result["bio"]:
@@ -79,7 +91,7 @@ async def _(event):
                 \n🔧 **Type:** `{type}`\
                 \n🏢 **Company:** `{company}`\
                 \n🔭 **Blog** : {blog}\
-                \n📍 **Location** : `{location}`\
+                \n🪄 **Location** : `{location}`\
                 \n📝 **Bio** : __{bio}__\
                 \n❤️ **Followers** : `{followers}`\
                 \n👁 **Following** : `{following}`\
@@ -106,9 +118,9 @@ async def _(event):
             await lionxevent.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="commit$",
-    command=("commit", plugin_category),
+    command=("commit", plugin_type),
     info={
         "header": "To commit the replied plugin to github.",
         "description": "It uploads the given file to your github repo in **userbot/plugins** folder\
@@ -120,20 +132,18 @@ async def _(event):
 async def download(event):
     "To commit the replied plugin to github."
     if Config.GITHUB_ACCESS_TOKEN is None:
-        return await edit_delete(
-            event, "`Please ADD Proper Access Token from github.com`", 5
-        )
+        return await eod(event, "`Please ADD Proper Access Token from github.com`", 5)
     if Config.GIT_REPO_NAME is None:
-        return await edit_delete(
+        return await eod(
             event, "`Please ADD Proper Github Repo Name of your userbot`", 5
         )
-    mone = await edit_or_reply(event, "`Processing ...`")
+    mone = await eor(event, "`Processing ...`")
     if not os.path.isdir(GIT_TEMP_DIR):
         os.makedirs(GIT_TEMP_DIR)
     start = datetime.now()
     reply_message = await event.get_reply_message()
     if not reply_message or not reply_message.media:
-        return await edit_delete(
+        return await eod(
             event, "__Reply to a file which you want to commit in your github.__"
         )
     try:

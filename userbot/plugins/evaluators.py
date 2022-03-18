@@ -7,12 +7,12 @@ import traceback
 from ..helpers.utils import _format
 from . import *
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="exec(?:\s|$)([\s\S]*)",
-    command=("exec", plugin_category),
+    command=("exec", plugin_type),
     info={
         "header": "To Execute terminal commands in a subprocess.",
         "usage": "{tr}exec <command>",
@@ -23,21 +23,21 @@ async def _(event):
     "To Execute terminal commands in a subprocess."
     cmd = "".join(event.message.message.split(maxsplit=1)[1:])
     if not cmd:
-        return await edit_delete(event, "`What should i execute?..`")
-    lionxevent = await edit_or_reply(event, "`Executing.....`")
+        return await eod(event, "`What should i execute?..`")
+    lionxevent = await eor(event, "`Executing.....`")
     process = await asyncio.create_subprocess_shell(
         cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     stdout, stderr = await process.communicate()
     result = str(stdout.decode().strip()) + str(stderr.decode().strip())
-    lionxuser = await event.client.get_me()
-    curruser = lionxuser.username or "lionx"
+    LionXUSer = await event.client.get_me()
+    curruser = LionXUSer.username or "LionX"
     uid = os.geteuid()
     if uid == 0:
         cresult = f"```{curruser}:~#``` ```{cmd}```\n```{result}```"
     else:
         cresult = f"```{curruser}:~$``` ```{cmd}```\n```{result}```"
-    await edit_or_reply(
+    await eor(
         lionxevent,
         text=cresult,
         aslink=True,
@@ -45,30 +45,39 @@ async def _(event):
     )
     if BOTLOG:
         await event.client.send_message(
-            BOTLOG_CHATID, f"Terminal command {cmd} was executed sucessfully."
+            BOTLOG_CHATID,
+            "Terminal command " + cmd + " was executed sucessfully.",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="eval(?:\s|$)([\s\S]*)",
-    command=("eval", plugin_category),
+    command=("eval", plugin_type),
     info={
         "header": "To Execute python script/statements in a subprocess.",
         "usage": "{tr}eval <command>",
-        "examples": "{tr}eval print('lionx')",
+        "examples": "{tr}eval print('LionX')",
     },
 )
 async def _(event):
     "To Execute python script/statements in a subprocess."
     cmd = "".join(event.message.message.split(maxsplit=1)[1:])
     if not cmd:
-        return await edit_delete(event, "`What should i run ?..`")
+        return await eod(event, "`What should i run ?..`")
+    if "session" in cmd:
+        return await eor(
+            event, "`This Is A Sensitive Data.So Its Protected By LionX.`"
+        )
+    if "STRING_SESSION" in cmd:
+        return await eor(
+            event, "`This Is A Sensitive Data.So Its Protected By LionX.`"
+        )
     cmd = (
         cmd.replace("sendmessage", "send_message")
         .replace("sendfile", "send_file")
         .replace("editmessage", "edit_message")
     )
-    lionxevent = await edit_or_reply(event, "`Running ...`")
+    lionxevent = await eor(event, "`Running ...`")
     old_stderr = sys.stderr
     old_stdout = sys.stdout
     redirected_output = sys.stdout = io.StringIO()
@@ -94,7 +103,7 @@ async def _(event):
     final_output = (
         f"**•  Eval : **\n```{cmd}``` \n\n**•  Result : **\n```{evaluation}``` \n"
     )
-    await edit_or_reply(
+    await eor(
         lionxevent,
         text=final_output,
         aslink=True,
@@ -102,7 +111,8 @@ async def _(event):
     )
     if BOTLOG:
         await event.client.send_message(
-            BOTLOG_CHATID, f"eval command {cmd} was executed sucessfully."
+            BOTLOG_CHATID,
+            "eval command\n " + cmd + "\nwas executed sucessfully.",
         )
 
 

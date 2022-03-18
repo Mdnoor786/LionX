@@ -1,5 +1,5 @@
-#    Copyright (C) 2020  Criminal786
-# baning spmmers plugin for lionx by @TeamLionX
+#    Copyright (C) 2020  @Simpleboy786
+# baning spmmers plugin for LionX by @TeamLionX
 # included both cas(combot antispam service) and spamwatch (need to add more feaututres)
 
 from requests import get
@@ -9,15 +9,15 @@ from telethon.tl.types import ChannelParticipantsAdmins
 from telethon.utils import get_display_name
 
 from ..Config import Config
-from ..sql_helper.gban_sql_helper import get_gbanuser, is_gbanned
+from ..sql_helper.gban_sql_helper import gbanned, is_gbanned
 from ..utils import is_admin
-from . import BOTLOG, BOTLOG_CHATID, edit_or_reply, lionxub, logging, spamwatch
+from . import BOTLOG, BOTLOG_CHATID, eor, lionx, logging, spamwatch
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "admin"
+plugin_type = "admin"
 if Config.ANTISPAMBOT_BAN:
 
-    @lionxub.on(ChatAction())
+    @lionx.on(ChatAction())
     async def anti_spambot(event):  # sourcery no-metrics
         if not event.user_joined and not event.user_added:
             return
@@ -42,7 +42,7 @@ if Config.ANTISPAMBOT_BAN:
         if ignore:
             return
         if is_gbanned(user.id):
-            lionxgban = get_gbanuser(user.id)
+            lionxgban = gbanned(user.id)
             if lionxgban.reason:
                 hmm = await event.reply(
                     f"[{user.first_name}](tg://user?id={user.id}) was gbanned by you for the reason `{lionxgban.reason}`"
@@ -59,7 +59,8 @@ if Config.ANTISPAMBOT_BAN:
             except Exception as e:
                 LOGS.info(e)
         if spamwatch and not lionxbanned:
-            if ban := spamwatch.get_ban(user.id):
+            ban = spamwatch.get_ban(user.id)
+            if ban:
                 hmm = await event.reply(
                     f"[{user.first_name}](tg://user?id={user.id}) was banned by spamwatch for the reason `{ban.reason}`"
                 )
@@ -101,20 +102,20 @@ if Config.ANTISPAMBOT_BAN:
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="cascheck$",
-    command=("cascheck", plugin_category),
+    command=("cascheck", plugin_type),
     info={
         "header": "To check the users who are banned in cas",
         "description": "When you use this cmd it will check every user in the group where you used whether \
-        he is banned in cas (combat antispam service) and will show there names if they are flagged in cas",
+        he is banned in cas (combat antispam service) and will show there names if they are typeged in cas",
         "usage": "{tr}cascheck",
     },
     groups_only=True,
 )
 async def caschecker(event):
     "Searches for cas(combot antispam service) banned users in group and shows you the list"
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         "`checking any cas(combot antispam service) banned users here, this may take several minutes too......`",
     )
@@ -140,18 +141,18 @@ async def caschecker(event):
         text += banned_users
         if not cas_count:
             text = "No CAS Banned users found!"
-    except ChatAdminRequiredError as carerr:
+    except ChatAdminRequiredError:
         await lionxevent.edit("`CAS check failed: Admin privileges are required`")
         return
-    except BaseException as be:
+    except BaseException:
         await lionxevent.edit("`CAS check failed`")
         return
     await lionxevent.edit(text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="spamcheck$",
-    command=("spamcheck", plugin_category),
+    command=("spamcheck", plugin_type),
     info={
         "header": "To check the users who are banned in spamwatch",
         "description": "When you use this command it will check every user in the group where you used whether \
@@ -163,7 +164,7 @@ async def caschecker(event):
 async def caschecker(event):
     "Searches for spamwatch federation banned users in group and shows you the list"
     text = ""
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         "`checking any spamwatch banned users here, this may take several minutes too......`",
     )
@@ -189,10 +190,12 @@ async def caschecker(event):
         text += banned_users
         if not cas_count:
             text = "No spamwatch Banned users found!"
-    except ChatAdminRequiredError as carerr:
-        await lionxevent.edit("`spamwatch check failed: Admin privileges are required`")
+    except ChatAdminRequiredError:
+        await lionxevent.edit(
+            "`spamwatch check failed: Admin privileges are required`"
+        )
         return
-    except BaseException as be:
+    except BaseException:
         await lionxevent.edit("`spamwatch check failed`")
         return
     await lionxevent.edit(text)

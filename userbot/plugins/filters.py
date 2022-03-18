@@ -3,9 +3,9 @@ import re
 
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_or_reply
+from ..funcs.managers import eor
 from ..sql_helper.filter_sql import (
     add_filter,
     get_filters,
@@ -14,10 +14,10 @@ from ..sql_helper.filter_sql import (
 )
 from . import BOTLOG, BOTLOG_CHATID
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
-@lionxub.lionx_cmd(incoming=True)
+@lionx.lion_cmd(incoming=True)
 async def filter_incoming_handler(event):  # sourcery no-metrics
     if event.sender_id == event.client.uid:
         return
@@ -26,11 +26,9 @@ async def filter_incoming_handler(event):  # sourcery no-metrics
     if not filters:
         return
     a_user = await event.get_sender()
-    chat = await event.get_chat()
+    await event.get_chat()
     me = await event.client.get_me()
     title = get_display_name(await event.get_chat()) or "this chat"
-    participants = await event.client.get_participants(chat)
-    count = len(participants)
     mention = f"[{a_user.first_name}](tg://user?id={a_user.id})"
     my_mention = f"[{me.first_name}](tg://user?id={me.id})"
     first = a_user.first_name
@@ -43,7 +41,7 @@ async def filter_incoming_handler(event):  # sourcery no-metrics
     my_fullname = f"{my_first} {my_last}" if my_last else my_first
     my_username = f"@{me.username}" if me.username else my_mention
     for trigger in filters:
-        pattern = f"( |^|[^\\w]){re.escape(trigger.keyword)}( |$|[^\\w])"
+        pattern = r"( |^|[^\w])" + re.escape(trigger.keyword) + r"( |$|[^\w])"
         if re.search(pattern, name, flags=re.IGNORECASE):
             file_media = None
             filter_msg = None
@@ -61,7 +59,6 @@ async def filter_incoming_handler(event):  # sourcery no-metrics
                 filter_msg.format(
                     mention=mention,
                     title=title,
-                    count=count,
                     first=first,
                     last=last,
                     fullname=fullname,
@@ -78,16 +75,15 @@ async def filter_incoming_handler(event):  # sourcery no-metrics
             )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="filter (.*)",
-    command=("filter", plugin_category),
+    command=("filter", plugin_type),
     info={
         "header": "To save filter for the given keyword.",
         "description": "If any user sends that filter then your bot will reply.",
         "option": {
             "{mention}": "To mention the user",
             "{title}": "To get chat name in message",
-            "{count}": "To get group members",
             "{first}": "To use user first name",
             "{last}": "To use user last name",
             "{fullname}": "To use user full name",
@@ -125,7 +121,7 @@ async def add_new_filter(event):
             )
             msg_id = msg_o.id
         else:
-            await edit_or_reply(
+            await eor(
                 event,
                 "__Saving media as reply to the filter requires the__ `PRIVATE_GROUP_BOT_API_ID` __to be set.__",
             )
@@ -133,19 +129,19 @@ async def add_new_filter(event):
     elif msg and msg.text and not string:
         string = msg.text
     elif not string:
-        return await edit_or_reply(event, "__What should i do ?__")
+        return await eor(event, "__What should i do ?__")
     success = "`Filter` **{}** `{} successfully`"
     if add_filter(str(event.chat_id), keyword, string, msg_id) is True:
-        return await edit_or_reply(event, success.format(keyword, "added"))
+        return await eor(event, success.format(keyword, "added"))
     remove_filter(str(event.chat_id), keyword)
     if add_filter(str(event.chat_id), keyword, string, msg_id) is True:
-        return await edit_or_reply(event, success.format(keyword, "Updated"))
-    await edit_or_reply(event, f"Error while setting filter for {keyword}")
+        return await eor(event, success.format(keyword, "Updated"))
+    await eor(event, f"Error while setting filter for {keyword}")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="filters$",
-    command=("filters", plugin_category),
+    command=("filters", plugin_type),
     info={
         "header": "To list all filters in that chat.",
         "description": "Lists all active (of your userbot) filters in a chat.",
@@ -160,7 +156,7 @@ async def on_snip_list(event):
         if OUT_STR == "There are no filters in this chat.":
             OUT_STR = "Active filters in this chat:\n"
         OUT_STR += "👉 `{}`\n".format(filt.keyword)
-    await edit_or_reply(
+    await eor(
         event,
         OUT_STR,
         caption="Available Filters in the Current Chat",
@@ -168,9 +164,9 @@ async def on_snip_list(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="stop ([\s\S]*)",
-    command=("stop", plugin_category),
+    command=("stop", plugin_type),
     info={
         "header": "To delete that filter . so if user send that keyword bot will not reply",
         "usage": "{tr}stop <keyword>",
@@ -185,9 +181,9 @@ async def remove_a_filter(event):
         await event.edit("Filter `{} `was deleted successfully".format(filt))
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="rmfilters$",
-    command=("rmfilters", plugin_category),
+    command=("rmfilters", plugin_type),
     info={
         "header": "To delete all filters in that group.",
         "usage": "{tr}rmfilters",
@@ -198,6 +194,6 @@ async def on_all_snip_delete(event):
     filters = get_filters(event.chat_id)
     if filters:
         remove_all_filters(event.chat_id)
-        await edit_or_reply(event, "filters in current chat deleted successfully")
+        await eor(event, "filters in current chat deleted successfully")
     else:
-        await edit_or_reply(event, "There are no filters in this group")
+        await eor(event, "There are no filters in this group")

@@ -21,11 +21,11 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from telethon import events
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..Config import Config
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import CancelProcess, humanbytes, progress, time_formatter
 from ..helpers.utils import _format
 from ..sql_helper import google_drive_sql as helper
@@ -40,9 +40,9 @@ from . import (
 )
 
 LOGS = logging.getLogger(__name__)
-plugin_category = "misc"
+plugin_type = "misc"
 
-# LionX Google Drive managers  ported from Projectbish and added extra things by @copyless786
+# LionX Google Drive managers  ported from Projectbish and added extra things by @TeamLionX
 
 
 # =========================================================== #
@@ -116,7 +116,7 @@ async def create_app(gdrive):
     """Create google drive service app"""
     hmm = gdrive.client.uid
     creds = helper.get_credentials(str(hmm))
-    lionx = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+    lionx = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     if creds is not None:
         """Repack credential objects from strings"""
         creds = pickle.loads(base64.b64decode(creds.encode()))
@@ -174,11 +174,11 @@ async def download(event, gdrive, service, uri=None):  # sourcery no-metrics
         try:
             from .torrentutils import aria2, check_metadata
 
-            lionxtorrent = True
+            swttorrent = True
         except Exception:
-            lionxtorrent = False
+            swttorrent = False
         full_path = os.path.join(os.getcwd(), TMP_DOWNLOAD_DIRECTORY)
-        if lionxtorrent:
+        if swttorrent:
             LOGS.info("torrentutils exists")
             if os.path.isfile(uri) and uri.endswith(".torrent"):
                 downloads = aria2.add_torrent(
@@ -191,9 +191,9 @@ async def download(event, gdrive, service, uri=None):  # sourcery no-metrics
                 )
         else:
             LOGS.info("No torrentutils")
-            await edit_or_reply(
+            await eor(
                 gdrive,
-                "`To use torrent files or download files from link install torrentutils from` @LionXPlugins",
+                "`To use torrent files or download files from link install torrentutils from` @lionxplugins",
             )
             return "install torrentutils"
         from .torrentutils import aria2, check_metadata
@@ -274,7 +274,7 @@ async def download(event, gdrive, service, uri=None):  # sourcery no-metrics
             status = status.replace("[FILE", "[FOLDER")
             folder = await create_dir(service, file_name, GDRIVE_.parent_Id)
             dir_id = folder.get("id")
-            webViewURL = f"https://drive.google.com/drive/folders/{dir_id}"
+            webViewURL = "https://drive.google.com/drive/folders/" + dir_id
             try:
                 await task_directory(gdrive, service, required_file_name, dir_id)
             except CancelProcess:
@@ -375,15 +375,22 @@ async def gdrive_download(
                 except AttributeError:
                     try:
                         error = (
-                            page.find("p", {"class": "uc-error-caption"}).text + "\n"
-                        ) + page.find("p", {"class": "uc-error-subcaption"}).text
-
+                            page.find("p", {"class": "uc-error-caption"}).text
+                            + "\n"
+                            + page.find("p", {"class": "uc-error-subcaption"}).text
+                        )
                     except Exception:
-                        reply += "**[FILE - ERROR]**\n\n**Status : **BAD - failed to download.\n**Reason : **uncaught err."
-
+                        reply += (
+                            "**[FILE - ERROR]**\n\n"
+                            "**Status : **BAD - failed to download.\n"
+                            "**Reason : **uncaught err."
+                        )
                     else:
-                        reply += f"**[FILE - ERROR]**\n\n**Status : **BAD - failed to download.\n**Reason : **`{error}`"
-
+                        reply += (
+                            "**[FILE - ERROR]**\n\n"
+                            "**Status : **BAD - failed to download.\n"
+                            f"**Reason : **`{error}`"
+                        )
                     return reply, "Error"
                 download = session.get(export, stream=True)
                 file_size = humanbytes(
@@ -391,13 +398,11 @@ async def gdrive_download(
                     .text.split()[-1]
                     .strip("()")
                 )
-
             else:
                 file_size = int(download.headers["Content-Length"])
             file_name = re.search(
                 "filename='(.)'", download.headers["Content-Disposition"]
             ).group(1)
-
             file_path = os.path.join(path, file_name)
             with io.FileIO(file_path, "wb") as files:
                 CHUNK_SIZE = None
@@ -407,7 +412,7 @@ async def gdrive_download(
                 GDRIVE_.is_cancelled = False
                 for chunk in download.iter_content(CHUNK_SIZE):
                     if GDRIVE_.is_cancelled:
-                        raise CancelProcess from e
+                        raise CancelProcess
                     if not chunk:
                         break
                     diff = time.time() - current_time
@@ -420,13 +425,18 @@ async def gdrive_download(
                     speed = round(downloaded / diff, 2)
                     eta = round((file_size - downloaded) / speed)
                     prog_str = "`[{0}{1}] {2}%`".format(
-                        "".join("▰" for _ in range(math.floor(percentage / 10))),
-                        "".join("▱" for _ in range(10 - math.floor(percentage / 10))),
+                        "".join("▰" for i in range(math.floor(percentage / 10))),
+                        "".join("▱" for i in range(10 - math.floor(percentage / 10))),
                         round(percentage, 2),
                     )
-
-                    current_message = f"**File downloading**\n\n**Name : **`{file_name}`\n**Status**\n{prog_str}\n`{humanbytes(downloaded)} of {humanbytes(file_size)}` @ {humanbytes(speed)}`\n**ETA :** `{time_formatter(eta)}`"
-
+                    current_message = (
+                        "**File downloading**\n\n"
+                        f"**Name : **`{file_name}`\n"
+                        f"**Status**\n{prog_str}\n"
+                        f"`{humanbytes(downloaded)} of {humanbytes(file_size)}`"
+                        f" @ {humanbytes(speed)}`\n"
+                        f"**ETA :** `{time_formatter(eta)}`"
+                    )
                     if display_message != current_message:
                         await gdrive.edit(current_message)
                         display_message = current_message
@@ -470,15 +480,14 @@ async def gdrive_download(
                         status,
                         "".join(
                             Config.FINISHED_PROGRESS_STR
-                            for _ in range(math.floor(percentage / 5))
+                            for i in range(math.floor(percentage / 5))
                         ),
                         "".join(
                             Config.UNFINISHED_PROGRESS_STR
-                            for _ in range(20 - math.floor(percentage / 5))
+                            for i in range(20 - math.floor(percentage / 5))
                         ),
                         round(percentage, 2),
                     )
-
                     current_message = (
                         "**File Downloading**\n\n"
                         f"**Name : **`{file_name}`\n"
@@ -547,7 +556,7 @@ async def change_permission(service, Id):
         ):
             return
         else:
-            raise e from e
+            raise e
     return
 
 
@@ -628,11 +637,11 @@ async def upload(gdrive, service, file_path, file_name, mimeType, dir_id=None):
             prog_str = "`Uploading :`\n`[{0}{1}] {2}`".format(
                 "".join(
                     Config.FINISHED_PROGRESS_STR
-                    for _ in range(math.floor(percentage / 10))
+                    for i in range(math.floor(percentage / 10))
                 ),
                 "".join(
                     Config.UNFINISHED_PROGRESS_STR
-                    for _ in range(10 - math.floor(percentage / 10))
+                    for i in range(10 - math.floor(percentage / 10))
                 ),
                 round(percentage, 2),
             )
@@ -686,7 +695,7 @@ async def share(service, event, url):
     try:
         result = await get_output(service, file_id)
     except Exception as e:
-        await edit_delete(event, f"str({e})", parse_mode=_format.parse_pre)
+        await eod(event, f"str({e})", parse_mode=_format.parse_pre)
         return
     await event.edit(f"**Shareable Links**\n\n{result}")
 
@@ -757,8 +766,8 @@ async def check_progress_for_dl(event, gid, previous):  # sourcery no-metrics
                     percentage = int(file.progress)
                     downloaded = percentage * int(file.total_length) / 100
                     prog_str = "**Downloading : **`[{0}{1}] {2}`".format(
-                        "".join("▰" for _ in range(math.floor(percentage / 10))),
-                        "".join("▱" for _ in range(10 - math.floor(percentage / 10))),
+                        "".join("▰" for i in range(math.floor(percentage / 10))),
+                        "".join("▱" for i in range(10 - math.floor(percentage / 10))),
                         file.progress_string(),
                     )
 
@@ -808,7 +817,7 @@ async def lists(gdrive, folderlink=None):  # sourcery no-metrics
     if checker is not None:
         page_size = int(gdrive.pattern_match.group(1).strip("-l "))
         if page_size > 1000:
-            await edit_or_reply(
+            await eor(
                 gdrive,
                 "**GDRIVE - LIST**\n\n"
                 "**Status : **`BAD`\n"
@@ -868,7 +877,7 @@ async def lists(gdrive, folderlink=None):  # sourcery no-metrics
                 .execute()
             )
         except HttpError as e:
-            await edit_or_reply(
+            await eor(
                 gdrive,
                 f"**[GDRIVE - LIST]**\n\n**Status : **`BAD`\n**Reason : **`{e}`",
             )
@@ -896,14 +905,14 @@ async def lists(gdrive, folderlink=None):  # sourcery no-metrics
     del result
     if query == "":
         query = "Not specified"
-    await edit_or_reply(
+    await eor(
         gdrive, "**Google Drive Query**:\n" f"`{query}`\n\n**Results**\n\n{message}"
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gauth$",
-    command=("gauth", plugin_category),
+    command=("gauth", plugin_type),
     info={
         "header": "To authenciate gdrive credentials.",
         "description": "Generate token to enable all cmd google drive service. This only need to run once in life time.",
@@ -913,14 +922,14 @@ async def lists(gdrive, folderlink=None):  # sourcery no-metrics
 async def generate_credentials(gdrive):
     """Only generate once for long run"""
     if not BOTLOG:
-        await edit_delete(
+        await eod(
             gdrive,
             "for authencation you need to set PRIVATE_GROUP_BOT_API_ID in heroku",
             time=10,
         )
     hmm = gdrive.client.uid
     if helper.get_credentials(str(hmm)) is not None:
-        await edit_or_reply(gdrive, "`You already authorized token...`")
+        await eor(gdrive, "`You already authorized token...`")
         await asyncio.sleep(1.5)
         await gdrive.delete()
         return False
@@ -929,9 +938,9 @@ async def generate_credentials(gdrive):
         try:
             configs = json.loads(G_DRIVE_DATA)
         except json.JSONDecodeError:
-            await edit_or_reply(
+            await eor(
                 gdrive,
-                "**AUTHENTILIONXE - ERROR**\n\n"
+                "**AUTHENTICATE - ERROR**\n\n"
                 "**Status : **`BAD`\n"
                 "**Reason : **`G_DRIVE_DATA entity is not valid!`",
             )
@@ -939,9 +948,9 @@ async def generate_credentials(gdrive):
     else:
         """Only for old user"""
         if G_DRIVE_CLIENT_ID is None and G_DRIVE_CLIENT_SECRET is None:
-            await edit_or_reply(
+            await eor(
                 gdrive,
-                "**AUTHENTILIONXE - ERROR**\n\n"
+                "**AUTHENTICATE - ERROR**\n\n"
                 "**Status : **`BAD`\n"
                 "**Reason : **`please get your G_DRIVE_DATA`",
             )
@@ -954,7 +963,7 @@ async def generate_credentials(gdrive):
                 "token_uri": GOOGLE_TOKEN_URI,
             }
         }
-    gdrive = await edit_or_reply(gdrive, "`Creating credentials...`")
+    gdrive = await eor(gdrive, "`Creating credentials...`")
     flow = InstalledAppFlow.from_client_config(
         configs, SCOPES, redirect_uri=REDIRECT_URI
     )
@@ -982,9 +991,9 @@ async def generate_credentials(gdrive):
     return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="greset",
-    command=("greset", plugin_category),
+    command=("greset", plugin_type),
     info={
         "header": "To reset gdrive credentials.",
         "description": "reset your token if something bad happened or change drive acc.",
@@ -994,7 +1003,7 @@ async def generate_credentials(gdrive):
 async def reset_credentials(gdrive):
     """Reset credentials or change account"""
     hmm = gdrive.client.uid
-    gdrive = await edit_or_reply(gdrive, "`Resetting information...`")
+    gdrive = await eor(gdrive, "`Resetting information...`")
     helper.clear_credentials(str(hmm))
     await gdrive.edit("`Done...`")
     await asyncio.sleep(1)
@@ -1002,17 +1011,17 @@ async def reset_credentials(gdrive):
     return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="glist(?: |$)(-l \d+)?(?: |$)?([\s\S]*)?(?: |$)",
-    command=("glist", plugin_category),
+    command=("glist", plugin_type),
     info={
         "header": "Get list of folders and files with default size 50",
         "flags": {
-            "l": "Use flag `-l range[1-1000]` for limit output",
-            "p": "Use flag `-p parents-folder_id` for files/folder in given folder in gdrive.",
+            "l": "Use type `-l range[1-1000]` for limit output",
+            "p": "Use type `-p parents-folder_id` for files/folder in given folder in gdrive.",
         },
-        "note": "for `.glist` you can combine -l and -p flags with or without name "
-        "at the same time, it must be `-l` flags first before use `-p` flags.\n"
+        "note": "for `.glist` you can combine -l and -p types with or without name "
+        "at the same time, it must be `-l` types first before use `-p` types.\n"
         "And by default it lists from latest 'modifiedTime' and then folders.",
         "usage": [
             "{tr}glist -l <count>",
@@ -1022,14 +1031,14 @@ async def reset_credentials(gdrive):
         ],
     },
 )
-async def lionxlists(gdrive):
+async def owolists(gdrive):
     "To get list of files and folers"
     await lists(gdrive)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gdf (mkdir|rm|info) ([\s\S]*)",
-    command=("gdf", plugin_category),
+    command=("gdf", plugin_type),
     info={
         "header": "Google Drive folder/file management",
         "description": "To create or delete or check folders/files in gdrive.",
@@ -1053,7 +1062,7 @@ async def google_drive_managers(gdrive):  # sourcery no-metrics
     """Split name if contains spaces by using ;"""
     f_name = gdrive.pattern_match.group(2).split(";")
     exe = gdrive.pattern_match.group(1)
-    gdrive = await edit_or_reply(gdrive, "`Sending information...`")
+    gdrive = await eor(gdrive, "`Sending information...`")
     reply = ""
     for name_or_id in f_name:
         """in case given name has a space beetween ;"""
@@ -1189,9 +1198,9 @@ async def google_drive_managers(gdrive):  # sourcery no-metrics
     await gdrive.edit(reply)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gabort$",
-    command=("gabort", plugin_category),
+    command=("gabort", plugin_type),
     info={
         "header": "Abort process uploading or downloading process.",
         "usage": "{tr}gabort",
@@ -1199,7 +1208,7 @@ async def google_drive_managers(gdrive):  # sourcery no-metrics
 )
 async def cancel_process(gdrive):
     "Abort process for download and upload."
-    gdrive = await edit_or_reply(gdrive, "`Cancelling...`")
+    gdrive = await eor(gdrive, "`Cancelling...`")
     try:
         from .torrentutils import aria2
 
@@ -1214,9 +1223,9 @@ async def cancel_process(gdrive):
     await gdrive.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ugd(?:\s|$)([\s\S]*)",
-    command=("ugd", plugin_category),
+    command=("ugd", plugin_type),
     info={
         "header": "upload files/folders to gdrive.",
         "description": "Upload file from local or uri/url/drivelink into google drive."
@@ -1232,9 +1241,9 @@ async def google_drive(gdrive):  # sourcery no-metrics
     file_path = None
     uri = None
     if not value and not gdrive.reply_to_msg_id:
-        return await edit_or_reply(gdrive, "`What should i Do You idiot`")
+        return await eor(gdrive, "`What should i Do You idiot`")
     elif value and gdrive.reply_to_msg_id:
-        await edit_or_reply(
+        await eor(
             gdrive,
             "**[UNKNOWN - ERROR]**\n\n"
             "**Status : **`failed`\n"
@@ -1245,7 +1254,7 @@ async def google_drive(gdrive):  # sourcery no-metrics
     event = gdrive
     if service is False:
         return None
-    gdrive = await edit_or_reply(gdrive, "`Uploading...`")
+    gdrive = await eor(gdrive, "`Uploading...`")
     if os.path.isfile(value):
         file_path = value
         if file_path.endswith(".torrent"):
@@ -1385,9 +1394,9 @@ async def google_drive(gdrive):  # sourcery no-metrics
     return
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gclear$",
-    command=("gclear", plugin_category),
+    command=("gclear", plugin_type),
     info={
         "header": "to clear the temparary upload directory.",
         "description": "that is directory set by command gset . when you used this command it will make your parent directory as G_DRIVE_FOLDER_ID",
@@ -1396,7 +1405,7 @@ async def google_drive(gdrive):  # sourcery no-metrics
 )
 async def set_upload_folder(gdrive):
     """to clear the temperary upload parent id."""
-    gdrive = await edit_or_reply(gdrive, "`Sending information...`")
+    gdrive = await eor(gdrive, "`Sending information...`")
     if G_DRIVE_FOLDER_ID is not None:
         GDRIVE_.parent_Id = G_DRIVE_FOLDER_ID
         await gdrive.edit(
@@ -1419,9 +1428,9 @@ async def set_upload_folder(gdrive):
         return None
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gset(?:\s|$)([\s\S]*)",
-    command=("gset", plugin_category),
+    command=("gset", plugin_type),
     info={
         "header": "To set temparary parent id.",
         "description": "Change upload directory in gdrive",
@@ -1431,7 +1440,7 @@ async def set_upload_folder(gdrive):
 async def set_upload_folder(gdrive):
     """Set parents dir for upload/check/makedir/remve"""
     event = gdrive
-    gdrive = await edit_or_reply(gdrive, "`Sending information...`")
+    gdrive = await eor(gdrive, "`Sending information...`")
     inp = event.pattern_match.group(1)
     if not inp:
         await gdrive.edit(">`.gset <folderURL/folderID>`")
@@ -1460,9 +1469,9 @@ async def set_upload_folder(gdrive):
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gdown ?(-u)? ([\s\S]*)",
-    command=("gdown", plugin_category),
+    command=("gdown", plugin_type),
     info={
         "header": "To download files form gdrive.",
         "description": "G-Drive File Downloader Plugin For Userbot. only gdrive files are supported now",
@@ -1482,14 +1491,12 @@ async def g_download(event):
         return None
     cmd = event.pattern_match.group(1)
     drive_link = event.pattern_match.group(2)
-    lionxevent = await edit_or_reply(
-        event, "`Downloading Requested File from G-Drive...`"
-    )
-    file_name, lionxrocess = await gdrive_download(
+    lionxevent = await eor(event, "`Downloading Requested File from G-Drive...`")
+    file_name, swtprocess = await gdrive_download(
         event, lionxevent, service, drive_link
     )
-    if lionxrocess is not None:
-        return await edit_delete(lionxevent, file_name)
+    if swtprocess is not None:
+        return await eod(lionxevent, file_name)
     thumb = thumb_image_path if os.path.exists(thumb_image_path) else None
     if not cmd:
         await lionxevent.edit(
@@ -1509,16 +1516,16 @@ async def g_download(event):
             ),
         )
         os.remove(file_name)
-        await edit_delete(
+        await eod(
             lionxevent,
             "**File Downloaded and uploaded.\nName : **`" + str(file_name) + "`",
             5,
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="gshare ([\s\S]*)",
-    command=("gshare", plugin_category),
+    command=("gshare", plugin_type),
     info={
         "header": "To share the team drive files.",
         "description": "Get sharable link for team drive files need to set G_DRIVE_INDEX_LINK",
@@ -1531,6 +1538,6 @@ async def gshare(event):
     if service is False:
         return None
     input_str = event.pattern_match.group(1)
-    lionxevent = await edit_or_reply(event, "`Creating sharable link...`")
+    lionxevent = await eor(event, "`Creating sharable link...`")
     await asyncio.sleep(2)
     await share(service, lionxevent, input_str)

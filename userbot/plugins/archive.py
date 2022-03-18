@@ -12,10 +12,10 @@ from telethon import types
 from telethon.utils import get_extension
 
 from ..Config import Config
-from . import edit_delete, edit_or_reply, lionxub, progress
+from . import eod, eor, lionx, progress
 
 thumb_image_path = os.path.join(Config.TMP_DOWNLOAD_DIRECTORY, "thumb_image.jpg")
-plugin_category = "misc"
+plugin_type = "misc"
 
 
 def zipdir(dirName):
@@ -27,9 +27,9 @@ def zipdir(dirName):
     return filePaths
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="zip(?:\s|$)([\s\S]*)",
-    command=("zip", plugin_category),
+    command=("zip", plugin_type),
     info={
         "header": "To compress the file/folders",
         "description": "Will create a zip file for the given file path or folder path",
@@ -43,34 +43,34 @@ async def zip_file(event):
     "To create zip file"
     input_str = event.pattern_match.group(1)
     if not input_str:
-        return await edit_delete(event, "`Provide file path to zip`")
+        return await eod(event, "`Provide file path to zip`")
     start = datetime.now()
     if not os.path.exists(Path(input_str)):
-        return await edit_or_reply(
+        return await eor(
             event,
             f"There is no such directory or file with the name `{input_str}` check again",
         )
     if os.path.isfile(Path(input_str)):
-        return await edit_delete(event, "`File compressing is not implemented yet`")
-    mone = await edit_or_reply(event, "`Zipping in progress....`")
+        return await eod(event, "`File compressing is not implemented yet`")
+    mone = await eor(event, "`Zipping in progress....`")
     filePaths = zipdir(input_str)
     filepath = os.path.join(
         Config.TMP_DOWNLOAD_DIRECTORY, os.path.basename(Path(input_str))
     )
-    zip_file = zipfile.ZipFile(f"{filepath}.zip", "w")
+    zip_file = zipfile.ZipFile(filepath + ".zip", "w")
     with zip_file:
         for file in filePaths:
             zip_file.write(file)
     end = datetime.now()
     ms = (end - start).seconds
     await mone.edit(
-        f"Zipped the path `{input_str}` into `{filepath}.zip` in __{ms}__ Seconds"
+        f"Zipped the path `{input_str}` into `{filepath+'.zip'}` in __{ms}__ Seconds"
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="tar(?:\s|$)([\s\S]*)",
-    command=("tar", plugin_category),
+    command=("tar", plugin_type),
     info={
         "header": "To compress the file/folders to tar file",
         "description": "Will create a tar file for the given file path or folder path",
@@ -84,15 +84,15 @@ async def tar_file(event):
     "To create tar file"
     input_str = event.pattern_match.group(1)
     if not input_str:
-        return await edit_delete(event, "`Provide file path to compress`")
+        return await eod(event, "`Provide file path to compress`")
     if not os.path.exists(Path(input_str)):
-        return await edit_or_reply(
+        return await eor(
             event,
             f"There is no such directory or file with the name `{input_str}` check again",
         )
     if os.path.isfile(Path(input_str)):
-        return await edit_delete(event, "`File compressing is not implemented yet`")
-    mone = await edit_or_reply(event, "`Tar creation in progress....`")
+        return await eod(event, "`File compressing is not implemented yet`")
+    mone = await eor(event, "`Tar creation in progress....`")
     start = datetime.now()
     filePaths = zipdir(input_str)
     filepath = os.path.join(
@@ -110,9 +110,9 @@ async def tar_file(event):
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="unzip(?:\s|$)([\s\S]*)",
-    command=("unzip", plugin_category),
+    command=("unzip", plugin_type),
     info={
         "header": "To unpack the given zip file",
         "description": "Reply to a zip file or provide zip file path with command to unzip the given file",
@@ -123,16 +123,17 @@ async def tar_file(event):
 )
 async def zip_file(event):  # sourcery no-metrics
     "To unpack the zip file"
-    if input_str := event.pattern_match.group(1):
+    input_str = event.pattern_match.group(1)
+    if input_str:
         path = Path(input_str)
         if os.path.exists(path):
             start = datetime.now()
             if not zipfile.is_zipfile(path):
-                return await edit_delete(
+                return await eod(
                     event, f"`The Given path {path} is not zip file to unpack`"
                 )
 
-            mone = await edit_or_reply(event, "`Unpacking....`")
+            mone = await eor(event, "`Unpacking....`")
             destination = os.path.join(
                 Config.TMP_DOWNLOAD_DIRECTORY,
                 os.path.splitext(os.path.basename(path))[0],
@@ -145,17 +146,17 @@ async def zip_file(event):  # sourcery no-metrics
                 f"unzipped and stored to `{destination}` \n**Time Taken :** `{ms} seconds`"
             )
         else:
-            await edit_delete(event, f"I can't find that path `{input_str}`", 10)
+            await eod(event, f"I can't find that path `{input_str}`", 10)
     elif event.reply_to_msg_id:
         start = datetime.now()
         reply = await event.get_reply_message()
         ext = get_extension(reply.document)
         if ext != ".zip":
-            return await edit_delete(
+            return await eod(
                 event,
                 "`The replied file is not a zip file recheck the replied message`",
             )
-        mone = await edit_or_reply(event, "`Unpacking....`")
+        mone = await eor(event, "`Unpacking....`")
         for attr in getattr(reply.document, "attributes", []):
             if isinstance(attr, types.DocumentAttributeFilename):
                 filename = attr.file_name
@@ -172,7 +173,7 @@ async def zip_file(event):  # sourcery no-metrics
             )
             dl.close()
         except Exception as e:
-            return await edit_delete(mone, f"**Error:**\n__{e}__")
+            return await eod(mone, f"**Error:**\n__{e}__")
         await mone.edit("`Download finished Unpacking now`")
         destination = os.path.join(
             Config.TMP_DOWNLOAD_DIRECTORY,
@@ -187,15 +188,15 @@ async def zip_file(event):  # sourcery no-metrics
         )
         os.remove(filename)
     else:
-        await edit_delete(
+        await eod(
             mone,
             "`Either reply to the zipfile or provide path of zip file along with command`",
         )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="untar(?:\s|$)([\s\S]*)",
-    command=("untar", plugin_category),
+    command=("untar", plugin_type),
     info={
         "header": "To unpack the given tar file",
         "description": "Reply to a tar file or provide tar file path with command to unpack the given tar file",
@@ -206,16 +207,17 @@ async def zip_file(event):  # sourcery no-metrics
 )
 async def untar_file(event):  # sourcery no-metrics
     "To unpack the tar file"
-    if input_str := event.pattern_match.group(1):
+    input_str = event.pattern_match.group(1)
+    if input_str:
         path = Path(input_str)
         if os.path.exists(path):
             start = datetime.now()
             if not is_tarfile(path):
-                return await edit_delete(
+                return await eod(
                     event, f"`The Given path {path} is not tar file to unpack`"
                 )
 
-            mone = await edit_or_reply(event, "`Unpacking....`")
+            mone = await eor(event, "`Unpacking....`")
             destination = os.path.join(
                 Config.TMP_DOWNLOAD_DIRECTORY, (os.path.basename(path).split("."))[0]
             )
@@ -232,11 +234,11 @@ async def untar_file(event):  # sourcery no-metrics
                 \nUnpacked the input path `{input_str}` and stored to `{destination}`"
             )
         else:
-            await edit_delete(event, f"I can't find that path `{input_str}`", 10)
+            await eod(event, f"I can't find that path `{input_str}`", 10)
     elif event.reply_to_msg_id:
         start = datetime.now()
         reply = await event.get_reply_message()
-        mone = await edit_or_reply(event, "`Unpacking....`")
+        mone = await eor(event, "`Unpacking....`")
         for attr in getattr(reply.document, "attributes", []):
             if isinstance(attr, types.DocumentAttributeFilename):
                 filename = attr.file_name
@@ -253,9 +255,9 @@ async def untar_file(event):  # sourcery no-metrics
             )
             dl.close()
         except Exception as e:
-            return await edit_delete(mone, f"**Error:**\n__{e}__")
+            return await eod(mone, f"**Error:**\n__{e}__")
         if not is_tarfile(filename):
-            return await edit_delete(
+            return await eod(
                 mone, "`The replied file is not tar file to unpack it recheck it`"
             )
         await mone.edit("`Download finished Unpacking now`")
@@ -277,7 +279,7 @@ async def untar_file(event):  # sourcery no-metrics
         )
         os.remove(filename)
     else:
-        await edit_delete(
+        await eod(
             mone,
             "`Either reply to the tarfile or provide path of tarfile along with command`",
         )

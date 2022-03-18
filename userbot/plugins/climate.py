@@ -13,9 +13,9 @@ from pytz import timezone as tz
 from ..Config import Config
 from ..helpers.utils import _format
 from ..sql_helper.globals import addgvar, gvarstatus
-from . import edit_or_reply, lionxub, logging, reply_id
+from . import eor, lionx, logging, reply_id
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 LOGS = logging.getLogger(__name__)
 # Get time zone of the given country. Credits: @aragon12 and @zakaryan2004.
@@ -44,9 +44,9 @@ def sun(unix, ctimezone):
     return datetime.fromtimestamp(unix, tz=ctimezone).strftime("%I:%M %p")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="climate(?:\s|$)([\s\S]*)",
-    command=("climate", plugin_category),
+    command=("climate", plugin_type),
     info={
         "header": "To get the weather report of a city.",
         "description": "Shows you the weather report of a city. By default it is Delhi, you can change it by {tr}setcity command.",
@@ -60,7 +60,7 @@ def sun(unix, ctimezone):
 async def get_weather(event):  # sourcery no-metrics
     "To get the weather report of a city."
     if not Config.OPEN_WEATHER_MAP_APPID:
-        return await edit_or_reply(
+        return await eor(
             event, "`Get an API key from` https://openweathermap.org/ `first.`"
         )
     input_str = "".join(event.text.split(maxsplit=1)[1:])
@@ -73,14 +73,14 @@ async def get_weather(event):  # sourcery no-metrics
     if "," in CITY:
         newcity = CITY.split(",")
         if len(newcity[1]) == 2:
-            CITY = f"{newcity[0].strip()},{newcity[1].strip()}"
+            CITY = newcity[0].strip() + "," + newcity[1].strip()
         else:
             country = await get_tz((newcity[1].strip()).title())
             try:
                 countrycode = timezone_countries[f"{country}"]
             except KeyError:
-                return await edit_or_reply(event, "`Invalid Country.`")
-            CITY = f"{newcity[0].strip()},{countrycode.strip()}"
+                return await eor(event, "`Invalid Country.`")
+            CITY = newcity[0].strip() + "," + countrycode.strip()
     url = f"https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={Config.OPEN_WEATHER_MAP_APPID}"
     async with aiohttp.ClientSession() as _session:
         async with _session.get(url) as request:
@@ -88,7 +88,7 @@ async def get_weather(event):  # sourcery no-metrics
             requesttext = await request.text()
     result = json.loads(requesttext)
     if requeststatus != 200:
-        return await edit_or_reply(event, "`Invalid Country.`")
+        return await eor(event, "`Invalid Country.`")
     cityname = result["name"]
     curtemp = result["main"]["temp"]
     humidity = result["main"]["humidity"]
@@ -113,7 +113,7 @@ async def get_weather(event):  # sourcery no-metrics
     findir = dirs[funmath % len(dirs)]
     kmph = str(wind * 3.6).split(".")
     mph = str(wind * 2.237).split(".")
-    await edit_or_reply(
+    await eor(
         event,
         f"🌡**Temperature:** `{celsius(curtemp)}°C | {fahrenheit(curtemp)}°F`\n"
         + f"🥰**Human Feeling** `{celsius(feel)}°C | {fahrenheit(feel)}°F`\n"
@@ -131,9 +131,9 @@ async def get_weather(event):  # sourcery no-metrics
     )
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="setcity(?:\s|$)([\s\S]*)",
-    command=("setcity", plugin_category),
+    command=("setcity", plugin_type),
     info={
         "header": "To set default city for climate cmd",
         "description": "Sets your default city so you can just use .weather or .climate when ever you neededwithout typing city name each time",
@@ -147,7 +147,7 @@ async def get_weather(event):  # sourcery no-metrics
 async def set_default_city(event):
     "To set default city for climate/weather cmd"
     if not Config.OPEN_WEATHER_MAP_APPID:
-        return await edit_or_reply(
+        return await eor(
             event, "`Get an API key from` https://openweathermap.org/ `first.`"
         )
     input_str = event.pattern_match.group(1)
@@ -160,29 +160,29 @@ async def set_default_city(event):
     if "," in CITY:
         newcity = CITY.split(",")
         if len(newcity[1]) == 2:
-            CITY = f"{newcity[0].strip()},{newcity[1].strip()}"
+            CITY = newcity[0].strip() + "," + newcity[1].strip()
         else:
             country = await get_tz((newcity[1].strip()).title())
             try:
                 countrycode = timezone_countries[f"{country}"]
             except KeyError:
-                return await edit_or_reply(event, "`Invalid country.`")
-            CITY = f"{newcity[0].strip()},{countrycode.strip()}"
+                return await eor(event, "`Invalid country.`")
+            CITY = newcity[0].strip() + "," + countrycode.strip()
     url = f"https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={Config.OPEN_WEATHER_MAP_APPID}"
     request = requests.get(url)
     result = json.loads(request.text)
     if request.status_code != 200:
-        return await edit_or_reply(event, "`Invalid country.`")
+        return await eor(event, "`Invalid country.`")
     addgvar("DEFCITY", CITY)
     cityname = result["name"]
     country = result["sys"]["country"]
     fullc_n = c_n[f"{country}"]
-    await edit_or_reply(event, f"`Set default event as {cityname}, {fullc_n}.`")
+    await eor(event, f"`Set default event as {cityname}, {fullc_n}.`")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="weather(?:\s|$)([\s\S]*)",
-    command=("weather", plugin_category),
+    command=("weather", plugin_type),
     info={
         "header": "To get the weather report of a city.",
         "description": "Shows you the weather report of a city . By default it is Delhi, you can change it by {tr}setcity command.",
@@ -198,12 +198,12 @@ async def _(event):
     if not input_str:
         input_str = gvarstatus("DEFCITY") or "Delhi"
     output = requests.get(f"https://wttr.in/{input_str}?mnTC0&lang=en").text
-    await edit_or_reply(event, output, parse_mode=_format.parse_pre)
+    await eor(event, output, parse_mode=_format.parse_pre)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="wttr(?:\s|$)([\s\S]*)",
-    command=("wttr", plugin_category),
+    command=("wttr", plugin_type),
     info={
         "header": "To get the weather report of a city.",
         "description": "Shows you the weather report of a city for next 3 days . By default it is Delhi, you can change it by {tr}setcity command.",

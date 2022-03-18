@@ -1,16 +1,16 @@
-# file summary plugin for lionx  by @copyless786
+# file summary plugin for LionX  by @TeamLionX
 import time
 
 from prettytable import PrettyTable
 
-from userbot import lionxub
+from userbot import lionx
 
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers.tools import media_type
 from ..helpers.utils import _format
 from . import humanbytes
 
-plugin_category = "utils"
+plugin_type = "utils"
 
 
 TYPES = [
@@ -29,20 +29,21 @@ def weird_division(n, d):
     return n / d if d else 0
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="chatfs(?:\s|$)([\s\S]*)",
-    command=("chatfs", plugin_category),
+    command=("chatfs", plugin_type),
     info={
         "header": "Shows you the complete media/file summary of the that group.",
         "description": "As of now limited to last 10000 in the group u used",
         "usage": "{tr}chatfs <Username/id>",
-        "examples": "{tr}chatfs @LionXsupport",
+        "examples": "{tr}chatfs @TeamLionX",
     },
 )
 async def _(event):  # sourcery no-metrics
     "Shows you the complete media/file summary of the that group"
     entity = event.chat_id
-    if input_str := event.pattern_match.group(1):
+    input_str = event.pattern_match.group(1)
+    if input_str:
         try:
             entity = int(input_str)
         except ValueError:
@@ -56,7 +57,7 @@ async def _(event):  # sourcery no-metrics
     try:
         chatdata = await event.client.get_entity(entity)
     except Exception as e:
-        return await edit_delete(
+        return await eod(
             event,
             f"<b>Error : </b><code>{e}</code>",
             time=5,
@@ -70,7 +71,7 @@ async def _(event):  # sourcery no-metrics
             link = chatdata.title
     else:
         link = f"<a href='tg://user?id={chatdata.id}'>{chatdata.first_name}</a>"
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         f"<code>Counting files and file size of </code><b>{link}</b>\n<code>This may take some time also depends on number of group messages</code>",
         parse_mode="HTML",
@@ -109,9 +110,9 @@ async def _(event):  # sourcery no-metrics
             largest += f"  •  <b><a href='{media_dict[mediax]['max_file_link']}'>{mediax}</a>  : </b><code>{humanbytes(media_dict[mediax]['max_size'])}</code>\n"
     endtime = int(time.monotonic())
     if endtime - starttime >= 120:
-        runtime = f"{str(round(((endtime - starttime) / 60), 2))} minutes"
+        runtime = str(round(((endtime - starttime) / 60), 2)) + " minutes"
     else:
-        runtime = f"{str(endtime - starttime)} seconds"
+        runtime = str(endtime - starttime) + " seconds"
     avghubytes = humanbytes(weird_division(totalsize, totalcount))
     avgruntime = (
         str(round((weird_division((endtime - starttime), totalcount)) * 1000, 2))
@@ -132,9 +133,9 @@ async def _(event):  # sourcery no-metrics
     await lionxevent.edit(result, parse_mode="HTML", link_preview=False)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="userfs(?:\s|$)([\s\S]*)",
-    command=("userfs", plugin_category),
+    command=("userfs", plugin_type),
     info={
         "header": "Shows you the complete media/file summary of the that user in that group.",
         "description": "As of now limited to last 10000 messages of that person in the group u used",
@@ -173,14 +174,14 @@ async def _(event):  # sourcery no-metrics
     try:
         chatdata = await event.client.get_entity(entity)
     except Exception as e:
-        return await edit_delete(
+        return await eod(
             event, f"<b>Error : </b><code>{e}</code>", 5, parse_mode="HTML"
         )
 
     try:
         userdata = await event.client.get_entity(userentity)
     except Exception as e:
-        return await edit_delete(
+        return await eod(
             event,
             f"<b>Error : </b><code>{e}</code>",
             time=5,
@@ -194,7 +195,7 @@ async def _(event):  # sourcery no-metrics
             link = chatdata.title
     else:
         link = f"<a href='tg://user?id={chatdata.id}'>{chatdata.first_name}</a>"
-    lionxevent = await edit_or_reply(
+    lionxevent = await eor(
         event,
         f"<code>Counting files and file size by </code>{_format.htmlmentionuser(userdata.first_name,userdata.id)}<code> in Group </code><b>{link}</b>\n<code>This may take some time also depends on number of user messages</code>",
         parse_mode="HTML",
@@ -236,9 +237,9 @@ async def _(event):  # sourcery no-metrics
             largest += f"  •  <b><a href='{media_dict[mediax]['max_file_link']}'>{mediax}</a>  : </b><code>{humanbytes(media_dict[mediax]['max_size'])}</code>\n"
     endtime = int(time.monotonic())
     if endtime - starttime >= 120:
-        runtime = f"{str(round(((endtime - starttime) / 60), 2))} minutes"
+        runtime = str(round(((endtime - starttime) / 60), 2)) + " minutes"
     else:
-        runtime = f"{str(endtime - starttime)} seconds"
+        runtime = str(endtime - starttime) + " seconds"
     avghubytes = humanbytes(weird_division(totalsize, totalcount))
     avgruntime = (
         str(round((weird_division((endtime - starttime), totalcount)) * 1000, 2))

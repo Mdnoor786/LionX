@@ -1,9 +1,9 @@
 import pyfiglet
 
 from ..helpers.utils import _format
-from . import _format, deEmojify, edit_delete, edit_or_reply, lionxub
+from . import _format, deEmojify, eod, eor, lionx
 
-plugin_category = "extra"
+plugin_type = "extra"
 
 CMD_FIG = {
     "slant": "slant",
@@ -24,9 +24,9 @@ CMD_FIG = {
 }
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="figlet(?:\s|$)([\s\S]*)",
-    command=("figlet", plugin_category),
+    command=("figlet", plugin_type),
     info={
         "header": "Changes the given text into the given style",
         "usage": ["{tr}figlet <style> ; <text>", "{tr}figlet <text>"],
@@ -59,7 +59,7 @@ async def figlet(event):
         cmd = None
         text = input_str
     else:
-        await edit_or_reply(event, "`Give some text to change it`")
+        await eor(event, "`Give some text to change it`")
         return
     style = cmd
     text = text.strip()
@@ -67,10 +67,10 @@ async def figlet(event):
         try:
             font = CMD_FIG[style.strip()]
         except KeyError:
-            return await edit_delete(
+            return await eod(
                 event, "**Invalid style selected**, __Check__ `.info figlet`."
             )
         result = pyfiglet.figlet_format(deEmojify(text), font=font)
     else:
         result = pyfiglet.figlet_format(deEmojify(text))
-    await edit_or_reply(event, result, parse_mode=_format.parse_pre)
+    await eor(event, result, parse_mode=_format.parse_pre)

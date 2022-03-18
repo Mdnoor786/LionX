@@ -2,22 +2,22 @@ from datetime import datetime
 
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 from userbot.funcs.logger import logging
 
 from ..funcs.data import blacklist_chats_list
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..sql_helper import global_collectionjson as sql
 from ..sql_helper.globals import addgvar, delgvar, gvarstatus
 
-plugin_category = "tools"
+plugin_type = "tools"
 
 LOGS = logging.getLogger(__name__)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="chatblacklist (on|off)$",
-    command=("chatblacklist", plugin_category),
+    command=("chatblacklist", plugin_type),
     info={
         "header": "To enable and disable chats blacklist.",
         "description": "If you turn this on, then your userbot won't work on the chats stored\
@@ -32,22 +32,20 @@ async def chat_blacklist(event):
     blkchats = blacklist_chats_list()
     if input_str == "on":
         if gvarstatus("blacklist_chats") is not None:
-            return await edit_delete(event, "__Already it was turned on.__")
+            return await eod(event, "__Already it was turned on.__")
         addgvar("blacklist_chats", "true")
-        text = (
-            "__From now on, your LionX doesn't work in the chats stored in database.__"
-        )
+        text = "__From now ChatBlackList ON, your LionX doesn't work in that chats which u add in BlackList __.Stored in database."
         if len(blkchats) != 0:
             text += (
-                "**Bot is reloading to apply the changes. Please wait for a minute**"
+                "\n**Bot is reloading to apply the changes. Please wait for a minute**"
             )
-            msg = await edit_or_reply(
+            msg = await eor(
                 event,
                 text,
             )
             return await event.client.reload(msg)
         text += "**You haven't added any chat to blacklist.**"
-        return await edit_or_reply(
+        return await eor(
             event,
             text,
         )
@@ -58,22 +56,22 @@ async def chat_blacklist(event):
             text += (
                 "**Bot is reloading to apply the changes. Please wait for a minute**"
             )
-            msg = await edit_or_reply(
+            msg = await eor(
                 event,
                 text,
             )
             return await event.client.reload(msg)
         text += "**You haven't added any chat to blacklist.**"
-        return await edit_or_reply(
+        return await eor(
             event,
             text,
         )
-    await edit_delete(event, "It was turned off already")
+    await eod(event, "It was turned off already")
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="addblkchat(s)?(?:\s|$)([\s\S]*)",
-    command=("addblkchat", plugin_category),
+    command=("addblkchat", plugin_type),
     info={
         "header": "To add chats to blacklist.",
         "description": "to add the chats to database so your bot doesn't work in\
@@ -146,13 +144,13 @@ async def add_blacklist_chat(event):
         output += f"**Error:**\n{errors}\n"
     if result != "":
         output += "**Bot is reloading to apply the changes. Please wait for a minute**"
-    msg = await edit_or_reply(event, output)
+    msg = await eor(event, output)
     await event.client.reload(msg)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="rmblkchat(s)?(?:\s|$)([\s\S]*)",
-    command=("rmblkchat", plugin_category),
+    command=("rmblkchat", plugin_type),
     info={
         "header": "To remove chats to blacklist.",
         "description": "to remove the chats from database so your bot will work in\
@@ -182,9 +180,7 @@ async def add_blacklist_chat(event):
                 if chatid in blkchats:
                     chatname = blacklistchats[str(chatid)]["chat_name"]
                     del blacklistchats[str(chatid)]
-                    result += (
-                        f"successfully removed {chatname} from blacklisted chats.\n"
-                    )
+                    result += f"Successfully removed {chatname} from blacklisted chats.\nNow Bot Will Run In That Group"
                 else:
                     errors += f"the given id {chatid} doesn't exists in your database. That is it hasn't been blacklisted.\n"
             except Exception as e:
@@ -210,13 +206,13 @@ async def add_blacklist_chat(event):
         output += f"**Error:**\n{errors}\n"
     if result != "":
         output += "**Bot is reloading to apply the changes. Please wait for a minute**"
-    msg = await edit_or_reply(event, output)
+    msg = await eor(event, output)
     await event.client.reload(msg)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="listblkchats$",
-    command=("listblkchats", plugin_category),
+    command=("listblkchats", plugin_type),
     info={
         "header": "To list all blacklisted chats.",
         "description": "Will show you the list of all blacklisted chats",
@@ -233,14 +229,12 @@ async def add_blacklist_chat(event):
     except AttributeError:
         blacklistchats = {}
     if len(blkchats) == 0:
-        return await edit_delete(
-            event, "__There are no blacklisted chats in your bot.__"
-        )
-    result = "**The list of blacklisted chats are :**\n\n"
+        return await eod(event, "__There are no blacklisted chats in your bot.__")
+    result = "🛡️ **The list of blacklisted chats are :**\n\n"
     for chat in blkchats:
         result += f"☞ {blacklistchats[str(chat)]['chat_name']}\n"
         result += f"**Chat Id :** `{chat}`\n"
         username = blacklistchats[str(chat)]["chat_username"] or "__Private group__"
         result += f"**Username :** {username}\n"
         result += f"Added on {blacklistchats[str(chat)]['date']}\n\n"
-    await edit_or_reply(event, result)
+    await eor(event, result)
