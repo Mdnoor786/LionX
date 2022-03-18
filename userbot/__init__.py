@@ -1,29 +1,38 @@
+import signal
+import sys
 import time
 
 import heroku3
 
 from .Config import Config
 from .funcs.logger import logging
-from .funcs.session import lionub
+from .funcs.session import lionxub
+from .helpers.utils.utils import runasync
 from .sql_helper.globals import addgvar, delgvar, gvarstatus
 
-__version__ = "1.0.1"
+__version__ = "3.0.6"
 __license__ = "GNU Affero General Public License v3.0"
-__author__ = "LionUserBot <https://github.com/MdNoor786/Lion-Z>"
-__copyright__ = "Lion-Z Copyright (©️) 2020 - 2021  " + __author__
+__author__ = "LionX <https://github.com/TeamLionX/LionX>"
+__copyright__ = f"LionX Copyright (C) 2020 - 2021  {__author__}"
 
-lionub.version = __version__
-lionub.tgbot.version = __version__
+lionxub.version = __version__
+lionxub.tgbot.version = __version__
 LOGS = logging.getLogger("LionX")
-bot = lionub
+bot = lionxub
 
 StartTime = time.time()
-lionversion = "0.5"
+lionxversion = "3.0.6"
 
-if Config.UPSTREAM_REPO == "lion":
-    UPSTREAM_REPO_URL = "https://github.com/MdNoor786/Lion-Z"
-else:
-    UPSTREAM_REPO_URL = Config.UPSTREAM_REPO
+
+def close_connection(*_):
+    print("Clossing Userbot connection.")
+    runasync(lionxub.disconnect())
+    sys.exit(143)
+
+
+signal.signal(signal.SIGTERM, close_connection)
+
+UPSTREAM_REPO_URL = Config.UPSTREAM_REPO
 
 if Config.PRIVATE_GROUP_BOT_API_ID == 0:
     if gvarstatus("PRIVATE_GROUP_BOT_API_ID") is None:
@@ -46,7 +55,7 @@ if Config.PM_LOGGER_GROUP_ID == 0:
     else:
         Config.PM_LOGGER_GROUP_ID = int(gvarstatus("PM_LOGGER_GROUP_ID"))
 elif str(Config.PM_LOGGER_GROUP_ID)[0] != "-":
-    Config.PM_LOGGER_GROUP_ID = int("-" + str(Config.PM_LOGGER_GROUP_ID))
+    Config.PM_LOGGER_GROUP_ID = int(f"-{str(Config.PM_LOGGER_GROUP_ID)}")
 
 try:
     if Config.HEROKU_API_KEY is not None or Config.HEROKU_APP_NAME is not None:
