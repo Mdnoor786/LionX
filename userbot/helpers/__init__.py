@@ -14,7 +14,7 @@ while type:
         from .progress import *
         from .qhelper import process
         from .tools import *
-        from .utils import _format, _lionxtools, _lionutils
+        from .utils import _format, _lionxtools, _lionxutils
 
         break
     except ModuleNotFoundError as e:
