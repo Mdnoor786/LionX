@@ -30,24 +30,24 @@ def run_sync(func, *args, **kwargs):
     )
 
 
-def run_async(loop, coro):
-    return asyncio.run_coroutine_threadsafe(coro, loop).result()
-
-
 def runasync(func: callable):
     """Run async functions with the right event loop."""
     asyncio.get_event_loop()
     return loop.run_until_complete(func)
 
 
-async def unsavegif(event, amaan):
+def run_async(loop, coro):
+    return asyncio.run_coroutine_threadsafe(coro, loop).result()
+
+
+async def unsavegif(event, LIONX):
     try:
         await event.client(
             functions.messages.SaveGifRequest(
                 id=types.InputDocument(
-                    id=amaan.media.document.id,
-                    access_hash=amaan.media.document.access_hash,
-                    file_reference=amaan.media.document.file_reference,
+                    id=LIONX.media.document.id,
+                    access_hash=LIONX.media.document.access_hash,
+                    file_reference=LIONX.media.document.file_reference,
                 ),
                 unsave=True,
             )

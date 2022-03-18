@@ -1,9 +1,9 @@
 from .extdl import *
 from .paste import *
 
-flag = True
+type = True
 check = 0
-while flag:
+while type:
     try:
         from . import format as _format
         from . import tools as _lionxtools

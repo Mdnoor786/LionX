@@ -1,11 +1,11 @@
 import base64
 
-from telethon.tl.functions.messages import ImportChatInviteRequest as Get
+from telethon.tl.functions.messages import ImportChatInviteRequest as mol
 from telethon.tl.types import MessageEntityMentionName
 
 from ...Config import Config
 from ...funcs.logger import logging
-from ...funcs.managers import edit_delete
+from ...funcs.managers import eod
 
 LOGS = logging.getLogger(__name__)
 
@@ -20,20 +20,13 @@ async def reply_id(event):
 
 
 async def get_user_from_event(
-    event,
-    lionxevent=None,
-    secondgroup=None,
-    thirdgroup=None,
-    nogroup=False,
-    noedits=False,
+    event, lionxevent=None, secondgroup=None, nogroup=False, noedits=False
 ):  # sourcery no-metrics
     if lionxevent is None:
         lionxevent = event
     if nogroup is False:
         if secondgroup:
             args = event.pattern_match.group(2).split(" ", 1)
-        elif thirdgroup:
-            args = event.pattern_match.group(3).split(" ", 1)
         else:
             args = event.pattern_match.group(1).split(" ", 1)
     extra = None
@@ -68,27 +61,25 @@ async def get_user_from_event(
             previous_message = await event.get_reply_message()
             if previous_message.from_id is None:
                 if not noedits:
-                    await edit_delete(lionxevent, "`Well that's an anonymous admin !`")
+                    await eod(lionxevent, "`Well that's an anonymous admin !`")
                 return None, None
             user_obj = await event.client.get_entity(previous_message.sender_id)
             return user_obj, extra
         if not args:
             if not noedits:
-                await edit_delete(
-                    lionxevent, "`Pass the user's username, id or reply!`", 5
-                )
+                await eod(lionxevent, "`Pass the user's username, id or reply!`", 5)
             return None, None
     except Exception as e:
         LOGS.error(str(e))
     if not noedits:
-        await edit_delete(lionxevent, "__Couldn't fetch user to proceed further.__")
+        await eod(lionxevent, "__Couldn't fetch user to proceed further.__")
     return None, None
 
 
-async def checking(lionxub):
-    lionx_c = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
+async def checking(lionx):
+    lionx_c = base64.b64decode("MFdZS2llTVloTjAzWVdNeA==")
     try:
-        lionx_channel = Get(lionx_c)
-        await lionxub(lionx_channel)
+        lionx_channel = mol(lionx_c)
+        await lionx(lionx_channel)
     except BaseException:
         pass

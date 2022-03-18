@@ -31,9 +31,9 @@ async def p_paste(message, extension=None):
             else f"https://pasty.lus.pm/{response['id']}.txt"
         )
         try:
-            from ...funcs.session import lionxub
+            from ...funcs.session import lionx
 
-            await lionxub.send_message(
+            await lionx.send_message(
                 Config.BOTLOG_CHATID,
                 f"**You have created a new paste in pasty bin.** Link to pasty is [here]({purl}). You can delete that paste by using this token `{response['deletionToken']}`",
             )
