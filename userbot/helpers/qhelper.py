@@ -22,7 +22,7 @@ from fontTools.ttLib import TTFont
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from telethon.tl import types
 
-from .utils import _lionutils
+from .utils import _lionxutils
 
 COLORS = [
     "#F07975",
@@ -161,7 +161,7 @@ async def process(msg, user, client, reply, replied=None):
                 cmd = (
                     f"lottie_convert.py --frame 0 -if lottie -of png {sticker} {file_1}"
                 )
-                stdout, stderr = (await _lionutils.runcmd(cmd))[:2]
+                stdout, stderr = (await _lionxutils.runcmd(cmd))[:2]
                 stimg = Image.open("./temp/q.png")
             else:
                 stimg = Image.open(sticker)
@@ -202,7 +202,7 @@ async def process(msg, user, client, reply, replied=None):
         file_1 = os.path.join("./temp/", "q.png")
         if sticker.endswith(("tgs")):
             cmd = f"lottie_convert.py --frame 0 -if lottie -of png {sticker} {file_1}"
-            stdout, stderr = (await _lionutils.runcmd(cmd))[:2]
+            stdout, stderr = (await _lionxutils.runcmd(cmd))[:2]
             stimg = Image.open("./temp/q.png")
         else:
             stimg = Image.open(sticker)
