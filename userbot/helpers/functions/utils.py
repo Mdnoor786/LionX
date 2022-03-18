@@ -37,7 +37,7 @@ async def get_readable_time(seconds: int) -> str:
     for x in range(hmm):
         time_list[x] = str(time_list[x]) + time_suffix_list[x]
     if len(time_list) == 4:
-        up_time += f"{time_list.pop()}, "
+        up_time += time_list.pop() + ", "
     time_list.reverse()
     up_time += ":".join(time_list)
     return up_time
@@ -46,9 +46,9 @@ async def get_readable_time(seconds: int) -> str:
 # gban
 
 
-async def admin_groups(lionxub):
+async def admin_groups(lionx):
     lionxgroups = []
-    async for dialog in lionxub.iter_dialogs():
+    async for dialog in lionx.iter_dialogs():
         entity = dialog.entity
         if (
             isinstance(entity, Channel)
@@ -62,12 +62,12 @@ async def admin_groups(lionxub):
 # https://github.com/pokurt/LyndaRobot/blob/7556ca0efafd357008131fa88401a8bb8057006f/lynda/modules/helper_funcs/string_handling.py#L238
 
 
-async def extract_time(lionx, time_val):
+async def extract_time(swt, time_val):
     if any(time_val.endswith(unit) for unit in ("s", "m", "h", "d", "w")):
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
-            await lionx.edit("Invalid time amount specified.")
+            await swt.edit("Invalid time amount specified.")
             return None
         if unit == "s":
             bantime = int(time.time() + int(time_num) * 1)
@@ -81,12 +81,12 @@ async def extract_time(lionx, time_val):
             bantime = int(time.time() + int(time_num) * 7 * 24 * 60 * 60)
         else:
             # how even...?
-            await lionx.edit(
+            await swt.edit(
                 f"__Invalid time type specified. Expected s,  m , h , d or w but got:__ {time_val[-1]}"
             )
             return None
         return bantime
-    await lionx.edit(
+    await swt.edit(
         f"__Invalid time type specified. Expected s,  m , h , d or w but got: __{time_val[-1]}"
     )
     return None

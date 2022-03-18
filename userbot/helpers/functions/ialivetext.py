@@ -7,7 +7,7 @@ import requests
 from ...Config import Config
 from .utils import get_readable_time
 
-Heroku = heroku3.from_key(Config.HEROKU_API_KEY)
+Heroku = heroku3.from_key(Config.API_KEY)
 heroku_api = "https://api.heroku.com"
 
 # UniBorg Telegram UseRBot
@@ -54,10 +54,10 @@ async def lionxalive(StartTime):
         user_id = Heroku.account().id
         headers = {
             "User-Agent": useragent,
-            "Authorization": f"Bearer {Config.HEROKU_API_KEY}",
+            "Authorization": f"Bearer {Config.API_KEY}",
             "Accept": "application/vnd.heroku+json; version=3.account-quotas",
         }
-        path = f"/accounts/{user_id}/actions/get-quota"
+        path = "/accounts/" + user_id + "/actions/get-quota"
         r = requests.get(heroku_api + path, headers=headers)
         result = r.json()
         quota = result["account_quota"]
@@ -80,12 +80,7 @@ async def lionxalive(StartTime):
             math.floor(App[0]["quota_used"] * 100 / quota)
         AppHours = math.floor(AppQuotaUsed / 60)
         AppMinutes = math.floor(AppQuotaUsed % 60)
-        dyno = f"{AppHours}h {AppMinutes}m/{hours}h {minutes}m"
-    except Exception as e:
-        dyno = e
-    return f"LionX Stats\
-                 \n\nDatabase : {check_sgnirts}\
-                  \nSudo : {sudo}\
-                  \nUptime : {uptime}\
-                  \nDyno : {dyno}\
-                  "
+        f"{AppHours}h {AppMinutes}m/{hours}h {minutes}m"
+    except Exception:
+        pass
+    return f"꧁⚜ LionX Stats ⚜꧂\n\n༄ Database : {check_sgnirts}\n༄ Sudo : {sudo}\n༄ Uptime : {uptime}"

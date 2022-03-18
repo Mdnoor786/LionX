@@ -220,14 +220,14 @@ async def formatJSON(outData):
     msg += f"\n\n**Type** : {jsonData['format']}"
     msg += "\n**Genres** : "
     for g in jsonData["genres"]:
-        msg += f"{g} "
+        msg += g + " "
     msg += f"\n**Status** : {jsonData['status']}"
     msg += f"\n**Episode** : {jsonData['episodes']}"
     msg += f"\n**Year** : {jsonData['startDate']['year']}"
     msg += f"\n**Score** : {jsonData['averageScore']}"
     msg += f"\n**Duration** : {jsonData['duration']} min\n\n"
-    # https://t.me/LionXsupport/19496
-    lionx = f"{jsonData['description']}"
+    # https://t.me/TeamLionX/19496
+    lionx = "{jsonData['description']}"
     msg += " __" + re.sub("<br>", "\n", lionx) + "__"
     msg = re.sub("<b>", "__**", msg)
     msg = re.sub("</b>", "**__", msg)
@@ -237,7 +237,7 @@ async def formatJSON(outData):
 def shorten(description, info="anilist.co"):
     msg = ""
     if len(description) > 700:
-        description = f"{description[:200]}....."
+        description = description[0:200] + "....."
         msg += f"\n**Description**:\n{description} [Read More]({info})"
     else:
         msg += f"\n**Description**: \n   {description}"
@@ -256,7 +256,8 @@ async def anilist_user(input_str):
     result = requests.post(
         anilisturl, json={"query": user_query, "variables": username}
     ).json()
-    if error := result.get("errors"):
+    error = result.get("errors")
+    if error:
         error_sts = error[0].get("message")
         return [f"{error_sts}"]
     user_data = result["data"]["User"]
@@ -264,13 +265,11 @@ async def anilist_user(input_str):
         f"""
 **User name :** [{user_data['name']}]({user_data['siteUrl']})
 **Anilist ID :** `{user_data['id']}` 
-
 **✙  Anime Stats**
 • **Total Anime Watched :** `{user_data["statistics"]["anime"]['count']}`
 • **Total Episode Watched : **`{user_data["statistics"]["anime"]['episodesWatched']}`
 • **Total Time Spent : **`{readable_time(user_data["statistics"]["anime"]['minutesWatched']*60)}`
 • **Average Score :** `{user_data["statistics"]["anime"]['meanScore']}`
-
 **✙  Manga Stats**
 • **Total Manga Read :** `{user_data["statistics"]["manga"]['count']}`
 • **Total Chapters Read :** `{user_data["statistics"]["manga"]['chaptersRead']}`
@@ -325,9 +324,10 @@ def getBannerLink(mal, kitsu_search=True, anilistid=0):
     }
     """
     data = {"query": query, "variables": {"idMal": int(mal)}}
-    if image := requests.post("https://graphql.anilist.co", json=data).json()["data"][
+    image = requests.post("https://graphql.anilist.co", json=data).json()["data"][
         "Media"
-    ]["bannerImage"]:
+    ]["bannerImage"]
+    if image:
         return image
     return getPosterLink(mal)
 
@@ -336,7 +336,8 @@ async def get_anime_manga(mal_id, search_type, _user_id):  # sourcery no-metrics
     jikan = jikanpy.jikan.Jikan()
     if search_type == "anime_anime":
         result = jikan.anime(mal_id)
-        if trailer := result["trailer_url"]:
+        trailer = result["trailer_url"]
+        if trailer:
             TRAILER = f"<a href='{trailer}'>🎬 Trailer</a>"
         else:
             TRAILER = "🎬 <i>No Trailer Available</i>"
@@ -382,7 +383,8 @@ async def get_anime_manga(mal_id, search_type, _user_id):  # sourcery no-metrics
         anime_data = anime_result["data"]["Media"]
         html_char = ""
         for character in anime_data["characters"]["nodes"]:
-            html_ = "" + "<br>"
+            html_ = ""
+            html_ += "<br>"
             html_ += f"""<a href="{character['siteUrl']}">"""
             html_ += f"""<img src="{character['image']['large']}"/></a>"""
             html_ += "<br>"
