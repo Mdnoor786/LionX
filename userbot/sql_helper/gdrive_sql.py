@@ -1,7 +1,7 @@
 """
-credits to @copyless786 and @TeamLionX
+credits to @TeamLionX and @TeamLionX
 """
-#    Copyright (C) 2020  Criminal786
+#    Copyright (C) 2020  @Simpleboy786
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -21,8 +21,8 @@ class Gdrive(BASE):
     __tablename__ = "lionxgdrive"
     lionx = Column(String(50), primary_key=True)
 
-    def __init__(self, lionx):
-        self.lionx = lionx
+    def __init__(self, lion):
+        self.lionx = lion
 
 
 Gdrive.__table__.create(checkfirst=True)

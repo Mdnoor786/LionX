@@ -15,7 +15,10 @@ class LionXBroadcast(BASE):
         self.group_id = str(group_id)
 
     def __repr__(self):
-        return "<LionX Broadcast channels '%s' for %s>" % (self.group_id, self.keywoard)
+        return "<LionX Broadcast channels '%s' for %s>" % (
+            self.group_id,
+            self.keywoard,
+        )
 
     def __eq__(self, other):
         return bool(
@@ -27,7 +30,7 @@ class LionXBroadcast(BASE):
 
 LionXBroadcast.__table__.create(checkfirst=True)
 
-LIONBROADCAST_INSERTION_LOCK = threading.RLock()
+LIONXBROADCAST_INSERTION_LOCK = threading.RLock()
 
 
 class BROADCAST_SQL:
@@ -39,7 +42,7 @@ BROADCAST_SQL_ = BROADCAST_SQL()
 
 
 def add_to_broadcastlist(keywoard, group_id):
-    with LIONBROADCAST_INSERTION_LOCK:
+    with LIONXBROADCAST_INSERTION_LOCK:
         broadcast_group = LionXBroadcast(keywoard, str(group_id))
 
         SESSION.merge(broadcast_group)
@@ -48,10 +51,9 @@ def add_to_broadcastlist(keywoard, group_id):
 
 
 def rm_from_broadcastlist(keywoard, group_id):
-    with LIONBROADCAST_INSERTION_LOCK:
-        if broadcast_group := SESSION.query(LionXBroadcast).get(
-            (keywoard, str(group_id))
-        ):
+    with LIONXBROADCAST_INSERTION_LOCK:
+        broadcast_group = SESSION.query(LionXBroadcast).get((keywoard, str(group_id)))
+        if broadcast_group:
             if str(group_id) in BROADCAST_SQL_.BROADCAST_CHANNELS.get(keywoard, set()):
                 BROADCAST_SQL_.BROADCAST_CHANNELS.get(keywoard, set()).remove(
                     str(group_id)
@@ -66,13 +68,13 @@ def rm_from_broadcastlist(keywoard, group_id):
 
 
 def is_in_broadcastlist(keywoard, group_id):
-    with LIONBROADCAST_INSERTION_LOCK:
+    with LIONXBROADCAST_INSERTION_LOCK:
         broadcast_group = SESSION.query(LionXBroadcast).get((keywoard, str(group_id)))
         return bool(broadcast_group)
 
 
 def del_keyword_broadcastlist(keywoard):
-    with LIONBROADCAST_INSERTION_LOCK:
+    with LIONXBROADCAST_INSERTION_LOCK:
         broadcast_group = (
             SESSION.query(LionXBroadcast.keywoard)
             .filter(LionXBroadcast.keywoard == keywoard)

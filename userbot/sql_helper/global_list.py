@@ -27,7 +27,7 @@ class LionXGloballist(BASE):
 
 LionXGloballist.__table__.create(checkfirst=True)
 
-LIONGLOBALLIST_INSERTION_LOCK = threading.RLock()
+LIONXGLOBALLIST_INSERTION_LOCK = threading.RLock()
 
 
 class GLOBALLIST_SQL:
@@ -39,7 +39,7 @@ GLOBALLIST_SQL_ = GLOBALLIST_SQL()
 
 
 def add_to_list(keywoard, group_id):
-    with LIONGLOBALLIST_INSERTION_LOCK:
+    with LIONXGLOBALLIST_INSERTION_LOCK:
         broadcast_group = LionXGloballist(keywoard, str(group_id))
         SESSION.merge(broadcast_group)
         SESSION.commit()
@@ -47,10 +47,9 @@ def add_to_list(keywoard, group_id):
 
 
 def rm_from_list(keywoard, group_id):
-    with LIONGLOBALLIST_INSERTION_LOCK:
-        if broadcast_group := SESSION.query(LionXGloballist).get(
-            (keywoard, str(group_id))
-        ):
+    with LIONXGLOBALLIST_INSERTION_LOCK:
+        broadcast_group = SESSION.query(LionXGloballist).get((keywoard, str(group_id)))
+        if broadcast_group:
             if str(group_id) in GLOBALLIST_SQL_.GLOBALLIST_VALUES.get(keywoard, set()):
                 GLOBALLIST_SQL_.GLOBALLIST_VALUES.get(keywoard, set()).remove(
                     str(group_id)
@@ -64,13 +63,13 @@ def rm_from_list(keywoard, group_id):
 
 
 def is_in_list(keywoard, group_id):
-    with LIONGLOBALLIST_INSERTION_LOCK:
+    with LIONXGLOBALLIST_INSERTION_LOCK:
         broadcast_group = SESSION.query(LionXGloballist).get((keywoard, str(group_id)))
         return bool(broadcast_group)
 
 
 def del_keyword_list(keywoard):
-    with LIONGLOBALLIST_INSERTION_LOCK:
+    with LIONXGLOBALLIST_INSERTION_LOCK:
         broadcast_group = (
             SESSION.query(LionXGloballist.keywoard)
             .filter(LionXGloballist.keywoard == keywoard)

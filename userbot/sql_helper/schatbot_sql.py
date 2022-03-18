@@ -3,8 +3,8 @@ from sqlalchemy import Column, String, UnicodeText
 from . import BASE, SESSION
 
 
-class ChatBot(BASE):
-    __tablename__ = "chatbot"
+class SEchos(BASE):
+    __tablename__ = "sechos"
     chat_id = Column(String(14), primary_key=True)
     user_id = Column(String(14), primary_key=True, nullable=False)
     chat_name = Column(UnicodeText)
@@ -24,79 +24,79 @@ class ChatBot(BASE):
 
     def __eq__(self, other):
         return bool(
-            isinstance(other, ChatBot)
+            isinstance(other, SEchos)
             and self.chat_id == other.chat_id
             and self.user_id == other.user_id
         )
 
 
-ChatBot.__table__.create(checkfirst=True)
+SEchos.__table__.create(checkfirst=True)
 
 
-def is_added(chat_id, user_id):
+def sis_echo(chat_id, user_id):
     try:
-        return SESSION.query(ChatBot).get((str(chat_id), str(user_id)))
+        return SESSION.query(SEchos).get((str(chat_id), str(user_id)))
     except BaseException:
         return None
     finally:
         SESSION.close()
 
 
-def get_users(chat_id):
+def sget_echos(chat_id):
     try:
-        return SESSION.query(ChatBot).filter(ChatBot.chat_id == str(chat_id)).all()
+        return SESSION.query(SEchos).filter(SEchos.chat_id == str(chat_id)).all()
     finally:
         SESSION.close()
 
 
-def get_all_users():
+def sget_all_echos():
     try:
-        return SESSION.query(ChatBot).all()
+        return SESSION.query(SEchos).all()
     except BaseException:
         return None
     finally:
         SESSION.close()
 
 
-def addai(chat_id, user_id, chat_name, user_name, user_username, chat_type):
-    to_check = is_added(chat_id, user_id)
+def saddecho(chat_id, user_id, chat_name, user_name, user_username, chat_type):
+    to_check = sis_echo(chat_id, user_id)
     if not to_check:
-        adder = ChatBot(
+        sadder = SEchos(
             str(chat_id), str(user_id), chat_name, user_name, user_username, chat_type
         )
-        SESSION.add(adder)
+        SESSION.add(sadder)
         SESSION.commit()
         return True
-    rem = SESSION.query(ChatBot).get((str(chat_id), str(user_id)))
+    rem = SESSION.query(SEchos).get((str(chat_id), str(user_id)))
     SESSION.delete(rem)
     SESSION.commit()
-    adder = ChatBot(
+    sadder = SEchos(
         str(chat_id), str(user_id), chat_name, user_name, user_username, chat_type
     )
-    SESSION.add(adder)
+    SESSION.add(sadder)
     SESSION.commit()
     return False
 
 
-def remove_ai(chat_id, user_id):
-    to_check = is_added(chat_id, user_id)
+def sremove_echo(chat_id, user_id):
+    to_check = sis_echo(chat_id, user_id)
     if not to_check:
         return False
-    rem = SESSION.query(ChatBot).get((str(chat_id), str(user_id)))
-    SESSION.delete(rem)
+    srem = SESSION.query(SEchos).get((str(chat_id), str(user_id)))
+    SESSION.delete(srem)
     SESSION.commit()
     return True
 
 
-def remove_users(chat_id):
-    saved_filter = SESSION.query(ChatBot).filter(ChatBot.chat_id == str(chat_id))
+def sremove_echos(chat_id):
+    saved_filter = SESSION.query(SEchos).filter(SEchos.chat_id == str(chat_id))
     if saved_filter:
         saved_filter.delete()
         SESSION.commit()
 
 
-def remove_all_users():
-    saved_filter = SESSION.query(ChatBot)
+def sremove_all_echos():
+    saved_filter = SESSION.query(SEchos)
     if saved_filter:
         saved_filter.delete()
         SESSION.commit()
