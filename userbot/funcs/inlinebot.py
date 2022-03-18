@@ -183,15 +183,15 @@ def paginate_help(
                 modulo_page * number_of_rows : number_of_rows * (modulo_page + 1)
             ] + [
                 (
-                    Button.inline("⬅️", data=f"{prefix}_prev({modulo_page})_plugin"),
+                    Button.inline("🔻", data=f"{prefix}_prev({modulo_page})_plugin"),
                     Button.inline(
                         f"{HELP_EMOJI} Back {HELP_EMOJI}", data="help_k_minu"
                     ),
-                    Button.inline("➡️", data=f"{prefix}_next({modulo_page})_plugin"),
+                    Button.inline("🔺", data=f"{prefix}_next({modulo_page})_plugin"),
                 )
             ]
         else:
-            pairs = pairs + [(Button.inline("⬅️ Back", data="help_k_minu"),)]
+            pairs = pairs + [(Button.inline("🔹Back", data="help_k_minu"),)]
     elif len(pairs) > number_of_rows:
         if category_pgno < 0:
             category_pgno = len(pairs) + category_pgno
@@ -200,7 +200,7 @@ def paginate_help(
         ] + [
             (
                 Button.inline(
-                    "⬅️",
+                    "🔻",
                     data=f"{prefix}_prev({modulo_page})_command_{category_plugins}_{category_pgno}",
                 ),
                 Button.inline(
@@ -208,7 +208,7 @@ def paginate_help(
                     data=f"back_plugin_{category_plugins}_{category_pgno}",
                 ),
                 Button.inline(
-                    "➡️",
+                    "🔺",
                     data=f"{prefix}_next({modulo_page})_command_{category_plugins}_{category_pgno}",
                 ),
             )
@@ -219,7 +219,7 @@ def paginate_help(
         pairs = pairs + [
             (
                 Button.inline(
-                    "⬅️ Back",
+                    "🔹Back",
                     data=f"back_plugin_{category_plugins}_{category_pgno}",
                 ),
             )
@@ -289,12 +289,12 @@ async def inline_handler(event):  # sourcery no-metrics
                 title="Repository",
                 text=f"**⚜ LionXary Af LionX ⚜**",
                 buttons=[
-                    [Button.url("♥️ Tutorial ♥", "https://youtu.be/CH_KO1wim2o")],
-                    [Button.url("🪄 𝚁𝚎𝚙𝚘 🪄", "https://github.com/TEAMLIONX/LionX")],
+                    [Button.url("Tutorial♥", "https://youtu.be/kHd8g3TIDAA")],
+                    [Button.url("𝚁𝚎𝚙𝚘🪄", "https://github.com/TEAMLIONX/LionX")],
                     [
                         Button.url(
-                            "💞 Deploy 💞",
-                            "https://heroku.com/deploy?template=https://github.com/TEAMLIONX/LIONX",
+                            "Deploy📌",
+                            "https://heroku.com/deploy?template=https://github.com/TEAMLIONX/Heroku",
                         )
                     ],
                 ],
@@ -510,7 +510,7 @@ async def inline_handler(event):  # sourcery no-metrics
                             data=f"ytdl_listall_{key_}_1",
                         ),
                         Button.inline(
-                            "⬇️  Download",
+                            "✴️Download",
                             data=f'ytdl_download_{outdata[1]["video_id"]}_0',
                         ),
                     ]
@@ -584,7 +584,7 @@ async def inline_handler(event):  # sourcery no-metrics
             await event.answer([result] if result else None)
         elif string == "pmpermit":
             buttons = [
-                Button.inline(text="👨‍💻 Open PM Menu 💝", data="show_pmpermit_options"),
+                Button.inline(text="📍Open PM Menu📍", data="show_pmpermit_options"),
             ]
             PM_PIC = (
                 gvarstatus("PM_PIC")
@@ -634,7 +634,7 @@ async def inline_handler(event):  # sourcery no-metrics
                 url=ALV_PIC, size=0, mime_type="image/jpeg", attributes=[]
             )
             text, msg_entities = await event.client._parse_message_text(
-                f"⚜ **LɪᴏɴXᵘᵇ** ⚜\n------------\n🛡️ Owner ~ {mention}\n\n👨‍💻 Support ~ {LionX_grp}",
+                f"⚜ **LɪᴏɴXᵘᵇ** ⚜\n------------\n📍Owner ~ {mention}\n\n✴️Support ~ {LionX_grp}",
                 "md",
             )
             result = types.InputBotInlineResult(
@@ -656,10 +656,10 @@ async def inline_handler(event):  # sourcery no-metrics
 @check_owner
 async def on_plug_in_callback_query_handler(event):
     buttons = [
-        (Button.inline("Re-Open Menu", data="mainmenu"),),
+        (Button.inline("Re-Open", data="mainmenu"),),
     ]
     await event.edit(
-        f"📜 Menu Provider Has Been Closed\n\n🛡️ Bot Of : {mention}\n\n             [©️LɪᴏɴXᵘᵇ](https://t.me/LionXsupport)",
+        f"Menu Provider Has Been Closed\n\n📍Bot Of : {mention}\n\n             [©️LɪᴏɴXᵘᵇ](https://t.me/LionXsupport)",
         buttons=buttons,
         link_preview=False,
     )
@@ -680,9 +680,9 @@ async def on_plugin_callback_query_handler(event):
 async def on_plug_in_callback_query_handler(event):
     category = str(event.pattern_match.group(1).decode("UTF-8"))
     buttons = paginate_help(0, GRP_INFO[category], category)
-    text = f"**📜Category: **{category}\
-        \n**🛡️Total plugins :** {len(GRP_INFO[category])}\
-        \n**🕹Total Commands:** {command_in_category(category)}"
+    text = f"**Category: **{category}\
+        \n**Total plugins :** {len(GRP_INFO[category])}\
+        \n**Total Commands:** {command_in_category(category)}"
     await event.edit(text, buttons=buttons)
 
 
@@ -698,9 +698,9 @@ async def on_plug_in_callback_query_handler(event):
     pgno = int(event.pattern_match.group(3).decode("UTF-8"))
     if mtype == "plugin":
         buttons = paginate_help(pgno, GRP_INFO[category], category)
-        text = f"**📜Category: **`{category}`\
-            \n**🛡️Total plugins :** __{len(GRP_INFO[category])}__\
-            \n**🕹Total Commands:** __{command_in_category(category)}__"
+        text = f"**Category: **`{category}`\
+            \n**Total plugins :** __{len(GRP_INFO[category])}__\
+            \n**Total Commands:** __{command_in_category(category)}__"
     else:
         category_plugins = str(event.pattern_match.group(4).decode("UTF-8"))
         category_pgno = int(event.pattern_match.group(5).decode("UTF-8"))
@@ -712,9 +712,9 @@ async def on_plug_in_callback_query_handler(event):
             category_plugins=category_plugins,
             category_pgno=category_pgno,
         )
-        text = f"**🛡️Plugin: **`{category}`\
-                \n**📜Category: **__{getkey(category)}__\
-                \n**🕹Total Commands:** __{len(PLG_INFO[category])}__"
+        text = f"**Plugin: **`{category}`\
+                \n**Category: **__{getkey(category)}__\
+                \n**Total Commands:** __{len(PLG_INFO[category])}__"
     await event.edit(text, buttons=buttons)
 
 
@@ -746,9 +746,9 @@ async def on_plug_in_callback_query_handler(event):
             category_plugins=category_plugins,
             category_pgno=category_pgno,
         )
-        text = f"**🛡️Plugin: **`{category}`\
-                \n**📜Category: **__{getkey(category)}__\
-                \n**🕹Total Commands:** __{len(PLG_INFO[category])}__"
+        text = f"**Plugin: **`{category}`\
+                \n**Category: **__{getkey(category)}__\
+                \n**Total Commands:** __{len(PLG_INFO[category])}__"
         try:
             return await event.edit(text, buttons=buttons)
         except Exception as e:
@@ -799,14 +799,14 @@ async def on_plug_in_callback_query_handler(event):
     buttons = [
         (
             Button.inline(
-                "⬅️ Back ",
+                "🔹Back ",
                 data=f"back_command_{category}_{pgno}_{category_plugins}_{category_pgno}",
             ),
             Button.inline("Main Menu", data="mainmenu"),
         )
     ]
-    text = f"**🕹Command :** `{tr}{cmd}`\
-        \n**🛡️Plugin :** `{category}`\
-        \n**🪄Category :** `{category_plugins}`\
-        \n\n**📜 Intro :**\n{CMD_INFO[cmd][0]}"
+    text = f"**Command :** `{tr}{cmd}`\
+        \n**Plugin :** `{category}`\
+        \n**Category :** `{category_plugins}`\
+        \n\n**📌Intro :**\n{CMD_INFO[cmd][0]}"
     await event.edit(text, buttons=buttons)
