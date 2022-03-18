@@ -6,17 +6,17 @@ from telethon.sessions import StringSession
 from ..Config import Config
 from .client import LionXClient
 
-__version__ = "2.10.6"
+__version__ = "1.10.6"
 
 loop = None
 
 if Config.STRING_SESSION:
     session = StringSession(str(Config.STRING_SESSION))
 else:
-    session = "lionx"
+    session = "LionX"
 
 try:
-    lionxub = LionXClient(
+    lionx = LionXClient(
         session=session,
         api_id=Config.APP_ID,
         api_hash=Config.API_HASH,
@@ -30,8 +30,7 @@ except Exception as e:
     print(f"STRING_SESSION - {e}")
     sys.exit()
 
-
-lionxub.tgbot = tgbot = LionXClient(
+lionx.tgbot = tgbot = LionXClient(
     session="LionXTgbot",
     api_id=Config.APP_ID,
     api_hash=Config.API_HASH,
@@ -40,4 +39,4 @@ lionxub.tgbot = tgbot = LionXClient(
     connection=ConnectionTcpAbridged,
     auto_reconnect=True,
     connection_retries=None,
-).start(bot_token=Config.TG_BOT_TOKEN)
+).start(bot_token=Config.BOT_TOKEN)

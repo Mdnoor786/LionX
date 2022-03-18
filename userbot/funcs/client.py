@@ -31,7 +31,7 @@ from .data import _sudousers_list, blacklist_chats_list, sudo_enabled_cmds
 from .events import *
 from .fasttelethon import download_file, upload_file
 from .logger import logging
-from .managers import edit_delete
+from .managers import eod
 from .pluginManager import get_message_link, restart_script
 
 LOGS = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ sudo_enabledcmds = sudo_enabled_cmds()
 
 
 class LionXClient(TelegramClient):
-    def lionx_cmd(
+    def lion_cmd(
         self: TelegramClient,
         pattern: str or tuple = None,
         info: Union[str, Dict[str, Union[str, List[str], Dict[str, str]]]]
@@ -96,25 +96,23 @@ class LionXClient(TelegramClient):
             ):
                 REGEX_.regex1 = REGEX_.regex2 = re.compile(pattern)
             else:
-                reg1 = "\\" + Config.COMMAND_HAND_LER
-                reg2 = "\\" + Config.SUDO_COMMAND_HAND_LER
+                reg1 = "\\" + Config.HANDLER
+                reg2 = "\\" + Config.SUDO_HANDLER
                 REGEX_.regex1 = re.compile(reg1 + pattern)
                 REGEX_.regex2 = re.compile(reg2 + pattern)
 
         def decorator(func):  # sourcery no-metrics
             async def wrapper(check):  # sourcery no-metrics
                 if groups_only and not check.is_group:
-                    return await edit_delete(
-                        check, "`I don't think this is a group.`", 10
-                    )
+                    return await eod(check, "`I don't think this is a group.`", 10)
                 if private_only and not check.is_private:
-                    return await edit_delete(
+                    return await eod(
                         check, "`I don't think this is a personal Chat.`", 10
                     )
                 try:
                     await func(check)
-                except events.StopPropagation as e:
-                    raise events.StopPropagation from e
+                except events.StopPropagation:
+                    raise events.StopPropagation
                 except KeyboardInterrupt:
                     pass
                 except MessageNotModifiedError:
@@ -122,25 +120,21 @@ class LionXClient(TelegramClient):
                 except MessageIdInvalidError:
                     LOGS.error("Message was deleted or cant be found")
                 except BotInlineDisabledError:
-                    await edit_delete(check, "`Turn on Inline mode for our bot`", 10)
+                    await eod(check, "`Turn on Inline mode for our bot`", 10)
                 except ChatSendStickersForbiddenError:
-                    await edit_delete(
-                        check, "`I guess i can't send stickers in this chat`", 10
-                    )
+                    await eod(check, "`I guess i can't send stickers in this chat`", 10)
                 except BotResponseTimeoutError:
-                    await edit_delete(
-                        check, "`The bot didnt answer to your query in time`", 10
-                    )
+                    await eod(check, "`The bot didnt answer to your query in time`", 10)
                 except ChatSendMediaForbiddenError:
-                    await edit_delete(check, "`You can't send media in this chat`", 10)
+                    await eod(check, "`You can't send media in this chat`", 10)
                 except AlreadyInConversationError:
-                    await edit_delete(
+                    await eod(
                         check,
                         "`A conversation is already happening with the given chat. try again after some time.`",
                         10,
                     )
                 except ChatSendInlineForbiddenError:
-                    await edit_delete(
+                    await eod(
                         check, "`You can't send inline messages in this chat.`", 10
                     )
                 except FloodWaitError as e:
@@ -171,19 +165,17 @@ class LionXClient(TelegramClient):
                             "date": datetime.datetime.now(),
                         }
                         ftext += "\n\n--------END USERBOT TRACEBACK LOG--------"
-                        ftext += "\n\n\nLast 5 commits:\n"
                         command = 'git log --pretty=format:"%an: %s" -5'
+                        ftext += "\n\n\nLast 5 commits:\n"
                         output = (await runcmd(command))[:2]
                         result = output[0] + output[1]
                         ftext += result
                         pastelink = await paste_message(
                             ftext, pastetype="s", markdown=False
                         )
+                        text = "**LionX Error report**\n\n"
                         link = "[here](https://t.me/LionXsupport)"
-                        text = (
-                            "**LionX Error report**\n\n"
-                            + "If you wanna you can report it"
-                        )
+                        text += "If you wanna you can report it"
                         text += f"- just forward this message {link}.\n"
                         text += (
                             "Nothing is logged except the fact of error and date\n\n"
@@ -193,7 +185,7 @@ class LionXClient(TelegramClient):
                             Config.PRIVATE_GROUP_BOT_API_ID, text, link_preview=False
                         )
 
-            from .session import lionxub
+            from .session import lionx
 
             if not func.__doc__ is None:
                 CMD_INFO[command[0]].append((func.__doc__).strip())
@@ -206,18 +198,18 @@ class LionXClient(TelegramClient):
                     except BaseException:
                         LOADED_CMDS.update({command[0]: [wrapper]})
                 if edited:
-                    lionxub.add_event_handler(
+                    lionx.add_event_handler(
                         wrapper,
                         MessageEdited(pattern=REGEX_.regex1, outgoing=True, **kwargs),
                     )
-                lionxub.add_event_handler(
+                lionx.add_event_handler(
                     wrapper,
                     NewMessage(pattern=REGEX_.regex1, outgoing=True, **kwargs),
                 )
                 if allow_sudo and gvarstatus("sudoenable") is not None:
                     if command is None or command[0] in sudo_enabledcmds:
                         if edited:
-                            lionxub.add_event_handler(
+                            lionx.add_event_handler(
                                 wrapper,
                                 MessageEdited(
                                     pattern=REGEX_.regex2,
@@ -225,7 +217,7 @@ class LionXClient(TelegramClient):
                                     **kwargs,
                                 ),
                             )
-                        lionxub.add_event_handler(
+                        lionx.add_event_handler(
                             wrapper,
                             NewMessage(
                                 pattern=REGEX_.regex2,
@@ -241,8 +233,8 @@ class LionXClient(TelegramClient):
                 except BaseException:
                     LOADED_CMDS.update({file_test: [func]})
                 if edited:
-                    lionxub.add_event_handler(func, events.MessageEdited(**kwargs))
-                lionxub.add_event_handler(func, events.NewMessage(**kwargs))
+                    lionx.add_event_handler(func, events.MessageEdited(**kwargs))
+                lionx.add_event_handler(func, events.NewMessage(**kwargs))
             return wrapper
 
         return decorator
@@ -259,8 +251,8 @@ class LionXClient(TelegramClient):
             async def wrapper(check):
                 try:
                     await func(check)
-                except events.StopPropagation as e:
-                    raise events.StopPropagation from e
+                except events.StopPropagation:
+                    raise events.StopPropagation
                 except KeyboardInterrupt:
                     pass
                 except MessageNotModifiedError:
@@ -300,7 +292,7 @@ class LionXClient(TelegramClient):
                         )
                         text = "**LionX Error report**\n\n"
                         link = "[here](https://t.me/LionXsupport)"
-                        text += "If you wanna you can report it"
+                        text += "If U Want To Report This Error Then"
                         text += f"- just forward this message {link}.\n"
                         text += (
                             "Nothing is logged except the fact of error and date\n\n"
@@ -310,12 +302,12 @@ class LionXClient(TelegramClient):
                             Config.PRIVATE_GROUP_BOT_API_ID, text, link_preview=False
                         )
 
-            from .session import lionxub
+            from .session import lionx
 
             if edited is True:
-                lionxub.tgbot.add_event_handler(func, events.MessageEdited(**kwargs))
+                lionx.tgbot.add_event_handler(func, events.MessageEdited(**kwargs))
             else:
-                lionxub.tgbot.add_event_handler(func, events.NewMessage(**kwargs))
+                lionx.tgbot.add_event_handler(func, events.NewMessage(**kwargs))
 
             return wrapper
 
