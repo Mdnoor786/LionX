@@ -168,7 +168,7 @@ async def get_users(show):
                         f"\n[{user.first_name}](tg://user?id={user.id}) `{user.id}`"
                     )
     except Exception as e:
-        mentions += " " + str(e) + "\n"
+        mentions += f" {str(e)}" + "\n"
     await edit_or_reply(lionevent, mentions)
 
 
