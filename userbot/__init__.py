@@ -1,38 +1,44 @@
 import signal
-import sys
 import time
 
 import heroku3
 
 from .Config import Config
 from .funcs.logger import logging
-from .funcs.session import lionxub
+from .funcs.session import lionx
 from .helpers.utils.utils import runasync
 from .sql_helper.globals import addgvar, delgvar, gvarstatus
 
-__version__ = "3.0.6"
+__version__ = "1.0"
 __license__ = "GNU Affero General Public License v3.0"
-__author__ = "LionX <https://github.com/TeamLionX/LionX>"
-__copyright__ = f"LionX Copyright (C) 2020 - 2021  {__author__}"
+__author__ = "LionX <https://github.com/TEAMLIONX/LIONX>"
+__copyright__ = f"LionX Copyright (C) 2020 - 2021  { __author__}"
 
-lionxub.version = __version__
-lionxub.tgbot.version = __version__
+lionx.version = __version__
+lionx.tgbot.version = __version__
 LOGS = logging.getLogger("LionX")
-bot = lionxub
+bot = lionx
+
 
 StartTime = time.time()
-lionxversion = "3.0.6"
+lionxversion = "v1.0"
 
 
 def close_connection(*_):
-    print("Clossing Userbot connection.")
-    runasync(lionxub.disconnect())
+    print("Closing Userbot connection.")
+    runasync(lionx.disconnect())
     sys.exit(143)
 
 
 signal.signal(signal.SIGTERM, close_connection)
 
-UPSTREAM_REPO_URL = Config.UPSTREAM_REPO
+
+if Config.UPSTREAM_REPO == "pro":
+    UPSTREAM_REPO_URL = "https://github.com/TEAMLIONX/LIONX"
+elif Config.UPSTREAM_REPO == "multi":
+    UPSTREAM_REPO_URL = "https://github.com/TEAMLIONX/LionX"
+else:
+    UPSTREAM_REPO_URL = Config.UPSTREAM_REPO
 
 if Config.PRIVATE_GROUP_BOT_API_ID == 0:
     if gvarstatus("PRIVATE_GROUP_BOT_API_ID") is None:
@@ -55,13 +61,11 @@ if Config.PM_LOGGER_GROUP_ID == 0:
     else:
         Config.PM_LOGGER_GROUP_ID = int(gvarstatus("PM_LOGGER_GROUP_ID"))
 elif str(Config.PM_LOGGER_GROUP_ID)[0] != "-":
-    Config.PM_LOGGER_GROUP_ID = int(f"-{str(Config.PM_LOGGER_GROUP_ID)}")
+    Config.PM_LOGGER_GROUP_ID = int("-" + str(Config.PM_LOGGER_GROUP_ID))
 
 try:
-    if Config.HEROKU_API_KEY is not None or Config.HEROKU_APP_NAME is not None:
-        HEROKU_APP = heroku3.from_key(Config.HEROKU_API_KEY).apps()[
-            Config.HEROKU_APP_NAME
-        ]
+    if Config.API_KEY is not None or Config.APP_NAME is not None:
+        HEROKU_APP = heroku3.from_key(Config.API_KEY).apps()[Config.APP_NAME]
     else:
         HEROKU_APP = None
 except Exception:
