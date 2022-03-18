@@ -23,11 +23,11 @@ from youtube_dl.utils import (
     XAttrMetadataError,
 )
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..funcs import pool
 from ..funcs.logger import logging
-from ..funcs.managers import edit_delete, edit_or_reply
+from ..funcs.managers import eod, eor
 from ..helpers import progress, reply_id
 from ..helpers.functions.utube import _mp3Dl, get_yt_video_id, get_ytthumb, ytsearch
 from ..helpers.utils import _format
@@ -35,7 +35,7 @@ from . import hmention
 
 BASE_YT_URL = "https://www.youtube.com/watch?v="
 LOGS = logging.getLogger(__name__)
-plugin_category = "misc"
+plugin_type = "misc"
 
 
 video_opts = {
@@ -127,9 +127,7 @@ async def fix_attributes(
     if video and isinstance(video, types.DocumentAttributeVideo):
         new_attributes.append(video)
 
-    new_attributes.extend(
-        attr
-        for attr in attributes
+    for attr in attributes:
         if (
             isinstance(attr, types.DocumentAttributeAudio)
             and not audio
@@ -137,14 +135,14 @@ async def fix_attributes(
             and not video
             or not isinstance(attr, types.DocumentAttributeAudio)
             and not isinstance(attr, types.DocumentAttributeVideo)
-        )
-    )
+        ):
+            new_attributes.append(attr)
     return new_attributes, mime_type
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="yta(?:\s|$)([\s\S]*)",
-    command=("yta", plugin_category),
+    command=("yta", plugin_type),
     info={
         "header": "To download audio from many sites like Youtube",
         "description": "downloads the audio from the given link (Suports the all sites which support youtube-dl)",
@@ -159,8 +157,8 @@ async def download_audio(event):
         myString = rmsg.text
         url = re.search("(?P<url>https?://[^\s]+)", myString).group("url")
     if not url:
-        return await edit_or_reply(event, "`What I am Supposed to do? Give link`")
-    lionxevent = await edit_or_reply(event, "`Preparing to download...`")
+        return await eor(event, "`What I am Supposed to do? Give link`")
+    lionxevent = await eor(event, "`Preparing to download...`")
     reply_to_id = await reply_id(event)
     try:
         vid_data = YoutubeDL({"no-playlist": True}).extract_info(url, download=False)
@@ -178,7 +176,7 @@ async def download_audio(event):
         else:
             _fpath = _path
     if not _fpath:
-        return await edit_delete(lionxevent, "__Unable to upload file__")
+        return await eod(lionxevent, "__Unable to upload file__")
     await lionxevent.edit(
         f"`Preparing to upload video:`\
         \n**{vid_data['title']}**\
@@ -223,9 +221,9 @@ async def download_audio(event):
     await lionxevent.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="ytv(?:\s|$)([\s\S]*)",
-    command=("ytv", plugin_category),
+    command=("ytv", plugin_type),
     info={
         "header": "To download video from many sites like Youtube",
         "description": "downloads the video from the given link(Suports the all sites which support youtube-dl)",
@@ -243,18 +241,18 @@ async def download_video(event):
         myString = rmsg.text
         url = re.search("(?P<url>https?://[^\s]+)", myString).group("url")
     if not url:
-        return await edit_or_reply(event, "What I am Supposed to find? Give link")
-    lionxevent = await edit_or_reply(event, "`Preparing to download...`")
+        return await eor(event, "What I am Supposed to find? Give link")
+    lionxevent = await eor(event, "`Preparing to download...`")
     reply_to_id = await reply_id(event)
     ytdl_data = await ytdl_down(lionxevent, video_opts, url)
     if ytdl_down is None:
         return
     f = pathlib.Path(f"{ytdl_data['title']}.mp4".replace("|", "_"))
-    lionxthumb = pathlib.Path(f"{ytdl_data['title']}.jpg".replace("|", "_"))
-    if not os.path.exists(lionxthumb):
-        lionxthumb = pathlib.Path(f"{ytdl_data['title']}.webp".replace("|", "_"))
-    if not os.path.exists(lionxthumb):
-        lionxthumb = None
+    swtthumb = pathlib.Path(f"{ytdl_data['title']}.jpg".replace("|", "_"))
+    if not os.path.exists(swtthumb):
+        swtthumb = pathlib.Path(f"{ytdl_data['title']}.webp".replace("|", "_"))
+    if not os.path.exists(swtthumb):
+        swtthumb = None
     await lionxevent.edit(
         f"`Preparing to upload video:`\
         \n**{ytdl_data['title']}**\
@@ -274,7 +272,7 @@ async def download_video(event):
         file=uploaded,
         mime_type=mime_type,
         attributes=attributes,
-        thumb=await event.client.upload_file(lionxthumb) if lionxthumb else None,
+        thumb=await event.client.upload_file(swtthumb) if swtthumb else None,
     )
     await event.client.send_file(
         event.chat_id,
@@ -283,14 +281,14 @@ async def download_video(event):
         caption=ytdl_data["title"],
     )
     os.remove(f)
-    if lionxthumb:
-        os.remove(lionxthumb)
+    if swtthumb:
+        os.remove(swtthumb)
     await event.delete()
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="yts(?: |$)(\d*)? ?([\s\S]*)",
-    command=("yts", plugin_category),
+    command=("yts", plugin_type),
     info={
         "header": "To search youtube videos",
         "description": "Fetches youtube search results with views and duration with required no of count results by default it fetches 10 results",
@@ -308,10 +306,8 @@ async def yt_search(event):
     else:
         query = str(event.pattern_match.group(2))
     if not query:
-        return await edit_delete(
-            event, "`Reply to a message or pass a query to search!`"
-        )
-    video_q = await edit_or_reply(event, "`Searching...`")
+        return await eod(event, "`Reply to a message or pass a query to search!`")
+    video_q = await eor(event, "`Searching...`")
     if event.pattern_match.group(1) != "":
         lim = int(event.pattern_match.group(1))
         if lim <= 0:
@@ -321,14 +317,14 @@ async def yt_search(event):
     try:
         full_response = await ytsearch(query, limit=lim)
     except Exception as e:
-        return await edit_delete(video_q, str(e), time=10, parse_mode=_format.parse_pre)
+        return await eod(video_q, str(e), time=10, parse_mode=_format.parse_pre)
     reply_text = f"**•  Search Query:**\n`{query}`\n\n**•  Results:**\n{full_response}"
-    await edit_or_reply(video_q, reply_text)
+    await eor(video_q, reply_text)
 
 
-@lionxub.lionx_cmd(
+@lionx.lion_cmd(
     pattern="insta ([\s\S]*)",
-    command=("insta", plugin_category),
+    command=("insta", plugin_type),
     info={
         "header": "To download instagram video/photo",
         "description": "Note downloads only public profile photos/videos.",
@@ -342,12 +338,10 @@ async def kakashi(event):
     chat = "@instasavegrambot"
     link = event.pattern_match.group(1)
     if "www.instagram.com" not in link:
-        await edit_or_reply(
-            event, "` I need a Instagram link to download it's Video...`(*_*)"
-        )
+        await eor(event, "` I need a Instagram link to download it's Video...`(*_*)")
     else:
         start = datetime.now()
-        lionxevent = await edit_or_reply(event, "**Downloading.....**")
+        lionxevent = await eor(event, "**Downloading.....**")
     async with event.client.conversation(chat) as conv:
         try:
             msg_start = await conv.send_message("/start")
@@ -357,7 +351,9 @@ async def kakashi(event):
             details = await conv.get_response()
             await event.client.send_read_acknowledge(conv.chat_id)
         except YouBlockedUserError:
-            await lionxevent.edit("**Error:** `unblock` @instasavegrambot `and retry!`")
+            await lionxevent.edit(
+                "**Error:** `unblock` @instasavegrambot `and retry!`"
+            )
             return
         await lionxevent.delete()
         lionx = await event.client.send_file(
