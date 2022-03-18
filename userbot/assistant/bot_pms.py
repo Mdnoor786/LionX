@@ -1,3 +1,4 @@
+import io
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -8,7 +9,7 @@ from telethon.errors import UserIsBlockedError
 from telethon.events import CallbackQuery, StopPropagation
 from telethon.utils import get_display_name
 
-from userbot import Config, lionxub
+from userbot import Config, lionx
 
 from ..funcs import check_owner, pool
 from ..funcs.logger import logging
@@ -24,13 +25,14 @@ from ..sql_helper.bot_pms_sql import (
 )
 from ..sql_helper.bot_starters import add_starter_to_db, get_starter_details
 from ..sql_helper.globals import delgvar, gvarstatus
+from ..sql_helper.idaddar import get_all_users
 from . import BOTLOG, BOTLOG_CHATID
 from .botmanagers import ban_user_from_bot
 
 LOGS = logging.getLogger(__name__)
 
-plugin_category = "bot"
-botusername = Config.TG_BOT_USERNAME
+plugin_type = "bot"
+botusername = Config.BOT_USERNAME
 
 
 class FloodConfig:
@@ -64,14 +66,14 @@ async def check_bot_started_users(user, event):
         await event.client.send_message(BOTLOG_CHATID, notification)
 
 
-@lionxub.bot_cmd(
+@lionx.bot_cmd(
     pattern=f"^/start({botusername})?([\s]+)?$",
     incoming=True,
     func=lambda e: e.is_private,
 )
 async def bot_start(event):
     chat = await event.get_chat()
-    user = await lionxub.get_me()
+    user = await lionx.get_me()
     if check_is_black_list(chat.id):
         return
     reply_to = await reply_id(event)
@@ -103,23 +105,27 @@ async def bot_start(event):
                 my_mention=my_mention,
             )
         else:
-            start_msg = f"Hey! 👤{mention},\
-                        \nI am {my_mention}'s assistant bot.\
-                        \nYou can contact to my master from here.\
-                        \n\nPowered by [LionX](https://t.me/TeamLionX)"
+            start_msg = f"Hey! 👤{mention},\nI am {my_mention}'s assistant bot.\nYou can contact to my master from here.\n\nPowered by [LionX](https://t.me/LionXsupport)"
+            buttons = [
+                (
+                    Button.inline("🛡️Rules🛡️ ", data="rules"),
+                    Button.inline(" Deploy 🚀", data="depy"),
+                ),
+                (Button.url(" 🔱Support🔱 ", "https://t.me/LionXsupport"),),
+            ]
+    else:
+        start_msg = "Hey Master!\nHow can i help you ?"
         buttons = [
             (
-                Button.url("Repo", "https://github.com/TeamLionX/LionX"),
-                Button.url(
-                    "Deploy",
-                    "https://dashboard.heroku.com/new?button-url=https%3A%2F%2Fgithub.com%2Fed%2FHeroku",
-                ),
-            )
+                Button.url(" Support ", "https://t.me/LionXsupport"),
+                Button.url(" Updates ", "https://t.me/TeamLionX"),
+            ),
+            (
+                Button.inline(" Users ", data="users"),
+                Button.inline(" Settings ", data="osg"),
+            ),
+            (Button.inline(" Hack ", data="hack"),),
         ]
-    else:
-        start_msg = "Hey Master!\
-            \nHow can i help you ?"
-        buttons = None
     try:
         await event.client.send_message(
             chat.id,
@@ -132,14 +138,75 @@ async def bot_start(event):
         if BOTLOG:
             await event.client.send_message(
                 BOTLOG_CHATID,
-                f"**Error**\nThere was a error while user starting your bot.\\\x1f                \n`{e}`",
+                f"**Error**\nThere was a error while user starting your bot. `{e}`",
             )
 
+
+@lionx.tgbot.on(events.callbackquery.CallbackQuery(data=re.compile(b"rules")))
+async def help(event):
+    if event.query.user_id == bot.uid:
+        await event.answer("This Is Not For U My Master", cache_time=0, alert=True)
     else:
-        await check_bot_started_users(chat, event)
+        await tgbot.send_message(
+            event.chat_id,
+            message="🛡️Rᴇᴀᴅ Tʜᴇ Rᴜʟᴇꜱ Tᴏᴏ🛡️\n\n🔹 Dᴏɴ'ᴛ Sᴩᴀᴍ\n🔹 ᴛᴀʟᴋ Fʀɪᴇɴᴅʟy\n🔹 Dᴏɴ'ᴛ Bᴇ Rᴜᴅᴇ\n🔹 Sᴇɴᴅ Uʀ Mᴇꜱꜱᴀɢᴇꜱ Hᴇʀᴇ\n🔹 Nᴏ Pᴏʀɴᴏɢʀᴀᴘʜʏ\n🔹 Dᴏɴ'ᴛ Wʀɪᴛᴇ Bᴀᴅ Wᴏʀᴅs.\n\nWʜᴇɴ I Gᴇᴛ Fʀᴇᴇ Tɪᴍᴇ , I'ʟʟ Rᴇᴩʟy U 💯✅",
+            buttons=[
+                (Button.inline("Close", data="close"),),
+            ],
+        )
 
 
-@lionxub.bot_cmd(incoming=True, func=lambda e: e.is_private)
+@lionx.tgbot.on(events.callbackquery.CallbackQuery(data=re.compile(b"users")))
+async def users(event):
+    if event.query.user_id == bot.uid:
+        total_users = get_all_users()
+        users_list = "⚜List Of Total Users In Bot.⚜ \n\n"
+        for starked in total_users:
+            users_list += ("==> {} \n").format(int(starked.chat_id))
+        with io.BytesIO(str.encode(users_list)) as tedt_file:
+            tedt_file.name = "userlist.txt"
+            await tgbot.send_file(
+                event.chat_id,
+                tedt_file,
+                force_document=True,
+                caption="Total Users In Your Bot.",
+                allow_cache=False,
+            )
+    else:
+        await event.answer(
+            "Wait ... Sorry U are Not My Owmer So, U Cant Acesss It",
+            cache_time=0,
+            alert=True,
+        )
+
+
+@lionx.tgbot.on(events.callbackquery.CallbackQuery(data=re.compile(b"depy")))
+async def help(event):
+    if event.query.user_id == bot.uid:
+        await event.answer(
+            "Wait ... Sorry U are Not My Owmer So, U Cant Acesss It",
+            cache_time=0,
+            alert=True,
+        )
+    else:
+        await tgbot.send_message(
+            event.chat_id,
+            message="You Can Deploy LionX In Heroku By Following Steps Bellow, You Can See Some Quick Guides On Support Channel Or On Your Own Assistant Bot. \nThank You For Contacting Me.",
+            link_preview=False,
+            buttons=[
+                [
+                    custom.Button.inline("Tutorial", data="LOGED"),
+                ],
+                [
+                    Button.url(
+                        "Github Repo ❓", "https://github.com/TEAMLIONX/LIONX"
+                    ),
+                ],
+            ],
+        )
+
+
+@lionx.bot_cmd(incoming=True, func=lambda e: e.is_private)
 async def bot_pms(event):  # sourcery no-metrics
     chat = await event.get_chat()
     if check_is_black_list(chat.id):
@@ -196,7 +263,7 @@ async def bot_pms(event):  # sourcery no-metrics
                     )
 
 
-@lionxub.bot_cmd(edited=True)
+@lionx.bot_cmd(edited=True)
 async def bot_pms_edit(event):  # sourcery no-metrics
     chat = await event.get_chat()
     if check_is_black_list(chat.id):
@@ -205,6 +272,11 @@ async def bot_pms_edit(event):  # sourcery no-metrics
         users = get_user_reply(event.id)
         if users is None:
             return
+        reply_msg = None
+        for user in users:
+            if user.chat_id == str(chat.id):
+                reply_msg = user.message_id
+                break
         if reply_msg := next(
             (user.message_id for user in users if user.chat_id == str(chat.id)),
             None,
@@ -273,7 +345,6 @@ async def handler(event):
                 ),
                 None,
             )
-
             try:
                 if reply_msg:
                     users = get_user_id(reply_msg)
@@ -292,7 +363,7 @@ async def handler(event):
                 LOGS.error(str(e))
 
 
-@lionxub.bot_cmd(pattern="^/uinfo$", from_users=Config.OWNER_ID)
+@lionx.bot_cmd(pattern="^/uinfo$", from_users=Config.OWNER_ID)
 async def bot_start(event):
     reply_to = await reply_id(event)
     if not reply_to:
@@ -327,7 +398,7 @@ async def send_flood_alert(user_) -> None:
         (
             Button.inline("🚫  BAN", data=f"bot_pm_ban_{user_.id}"),
             Button.inline(
-                "➖ Bot Antiflood [OFF]",
+                "Bot Antiflood [OFF]",
                 data="toggle_bot-antiflood_off",
             ),
         )
@@ -342,7 +413,7 @@ async def send_flood_alert(user_) -> None:
             FloodConfig.ALERT[user_.id]["count"] = 1
         except Exception as e:
             if BOTLOG:
-                await lionxub.tgbot.send_message(
+                await lionx.tgbot.send_message(
                     BOTLOG_CHATID,
                     f"**Error:**\nWhile updating flood count\n`{e}`",
                 )
@@ -369,7 +440,7 @@ async def send_flood_alert(user_) -> None:
                     "Is Flooding your bot !, Check `.help delsudo` to remove the user from Sudo."
                 )
                 if BOTLOG:
-                    await lionxub.tgbot.send_message(BOTLOG_CHATID, sudo_spam)
+                    await lionx.tgbot.send_message(BOTLOG_CHATID, sudo_spam)
             else:
                 await ban_user_from_bot(
                     user_,
@@ -383,7 +454,7 @@ async def send_flood_alert(user_) -> None:
         if not fa_id:
             return
         try:
-            msg_ = await lionxub.tgbot.get_messages(BOTLOG_CHATID, fa_id)
+            msg_ = await lionx.tgbot.get_messages(BOTLOG_CHATID, fa_id)
             if msg_.text != flood_msg:
                 await msg_.edit(flood_msg, buttons=buttons)
         except Exception as fa_id_err:
@@ -391,32 +462,30 @@ async def send_flood_alert(user_) -> None:
             return
     else:
         if BOTLOG:
-            fa_msg = await lionxub.tgbot.send_message(
+            fa_msg = await lionx.tgbot.send_message(
                 BOTLOG_CHATID,
                 flood_msg,
                 buttons=buttons,
             )
         try:
-            chat = await lionxub.tgbot.get_entity(BOTLOG_CHATID)
-            await lionxub.tgbot.send_message(
+            chat = await lionx.tgbot.get_entity(BOTLOG_CHATID)
+            await lionx.tgbot.send_message(
                 Config.OWNER_ID,
                 f"⚠️  **[Bot Flood Warning !](https://t.me/c/{chat.id}/{fa_msg.id})**",
             )
         except UserIsBlockedError:
             if BOTLOG:
-                await lionxub.tgbot.send_message(
-                    BOTLOG_CHATID, "**Unblock your bot !**"
-                )
+                await lionx.tgbot.send_message(BOTLOG_CHATID, "**Unblock your bot !**")
     if FloodConfig.ALERT[user_.id].get("fa_id") is None and fa_msg:
         FloodConfig.ALERT[user_.id]["fa_id"] = fa_msg.id
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(b"bot_pm_ban_([0-9]+)")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(b"bot_pm_ban_([0-9]+)")))
 @check_owner
 async def bot_pm_ban_cb(c_q: CallbackQuery):
     user_id = int(c_q.pattern_match.group(1))
     try:
-        user = await lionxub.get_entity(user_id)
+        user = await lionx.get_entity(user_id)
     except Exception as e:
         await c_q.answer(f"Error:\n{e}")
     else:
@@ -453,7 +522,7 @@ def is_flood(uid: int) -> Optional[bool]:
         return True
 
 
-@lionxub.tgbot.on(CallbackQuery(data=re.compile(b"toggle_bot-antiflood_off$")))
+@lionx.tgbot.on(CallbackQuery(data=re.compile(b"toggle_bot-antiflood_off$")))
 @check_owner
 async def settings_toggle(c_q: CallbackQuery):
     if gvarstatus("bot_antif") is None:
@@ -463,8 +532,8 @@ async def settings_toggle(c_q: CallbackQuery):
     await c_q.edit("BOT_ANTIFLOOD is now disabled !")
 
 
-@lionxub.bot_cmd(incoming=True, func=lambda e: e.is_private)
-@lionxub.bot_cmd(edited=True, func=lambda e: e.is_private)
+@lionx.bot_cmd(incoming=True, func=lambda e: e.is_private)
+@lionx.bot_cmd(edited=True, func=lambda e: e.is_private)
 async def antif_on_msg(event):
     if gvarstatus("bot_antif") is None:
         return

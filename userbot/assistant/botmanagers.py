@@ -3,7 +3,7 @@ from math import floor
 
 from telethon.utils import get_display_name
 
-from userbot import lionxub
+from userbot import lionx
 
 from ..Config import Config
 from ..funcs.logger import logging
@@ -15,8 +15,8 @@ from . import BOTLOG, BOTLOG_CHATID
 
 LOGS = logging.getLogger(__name__)
 
-plugin_category = "bot"
-botusername = Config.TG_BOT_USERNAME
+plugin_type = "bot"
+botusername = Config.BOT_USERNAME
 
 
 async def get_user_and_reason(event):
@@ -43,15 +43,14 @@ async def get_user_and_reason(event):
     return user_id, reason
 
 
-# taken from https://github.com/code-rgb/USERGE-X/blob/f95766027ef95854d05e523b42cd158c2e8cdbd0/userge/plugins/bot/bot_forwards.py#L420
 def progress_str(total: int, current: int) -> str:
     percentage = current * 100 / total
     prog_arg = "**Progress** : `{}%`\n" "```[{}{}]```"
     return prog_arg.format(
         percentage,
-        "".join(Config.FINISHED_PROGRESS_STR for _ in range(floor(percentage / 5))),
+        "".join((Config.FINISHED_PROGRESS_STR for i in range(floor(percentage / 5)))),
         "".join(
-            Config.UNFINISHED_PROGRESS_STR for _ in range(20 - floor(percentage / 5))
+            (Config.UNFINISHED_PROGRESS_STR for i in range(20 - floor(percentage / 5)))
         ),
     )
 
@@ -65,14 +64,14 @@ async def ban_user_from_bot(user, reason, reply_to=None):
     banned_msg = (
         f"**You have been Banned Forever from using this bot.\nReason** : {reason}"
     )
-    await lionxub.tgbot.send_message(user.id, banned_msg)
+    await lionx.tgbot.send_message(user.id, banned_msg)
     info = f"**#Banned_Bot_PM_User**\
             \n\n👤 {_format.mentionuser(get_display_name(user) , user.id)}\
             \n**First Name:** {user.first_name}\
             \n**User ID:** `{user.id}`\
             \n**Reason:** `{reason}`"
     if BOTLOG:
-        await lionxub.send_message(BOTLOG_CHATID, info)
+        await lionx.send_message(BOTLOG_CHATID, info)
     return info
 
 
@@ -85,11 +84,11 @@ async def unban_user_from_bot(user, reason, reply_to=None):
 
     if reason is not None:
         banned_msg += f"\n**Reason:** __{reason}__"
-    await lionxub.tgbot.send_message(user.id, banned_msg)
+    await lionx.tgbot.send_message(user.id, banned_msg)
     info = f"**#Unbanned_Bot_PM_User**\
             \n\n👤 {_format.mentionuser(get_display_name(user) , user.id)}\
             \n**First Name:** {user.first_name}\
             \n**User ID:** `{user.id}`"
     if BOTLOG:
-        await lionxub.send_message(BOTLOG_CHATID, info)
+        await lionx.send_message(BOTLOG_CHATID, info)
     return info
