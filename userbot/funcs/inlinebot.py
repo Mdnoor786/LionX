@@ -70,10 +70,10 @@ async def on_plug_in_callback_query_handler(event):
             Button.inline(f"Extra ({len(GRP_INFO['extra'])})", data="extra_menu"),
             Button.inline(f"Useless ({len(GRP_INFO['useless'])})", data="useless_menu"),
         ),
-        (Button.inline(f"👨‍💻 Main Menu", data="mainmenu"),),
+        (Button.inline(f"Main Menu", data="mainmenu"),),
     ]
     await event.edit(
-        f"💝『{mention}』💝",
+        f"『{mention}』🪄",
         buttons=buttons,
         link_preview=False,
     )
@@ -83,16 +83,16 @@ def main_menu():
     tol = gvarstatus("BOT_USERNAME")
     text = f"⚜ {mention}  ⚜"
     buttons = [
-        [custom.Button.inline("👨‍💻 Info 👨‍💻", data="check")],
+        [custom.Button.inline("Info📍", data="check")],
         [
-            custom.Button.inline("🛡️ Plugins 🛡️", data="help_k_minu"),
-            Button.url("✨ Assistant ✨", f"https://t.me/{tol}"),
+            custom.Button.inline("Plugins", data="help_k_minu"),
+            Button.url("Assistant", f"https://t.me/{tol}"),
         ],
         [
-            custom.Button.inline("⚜ Alive ⚜", data="stats"),
-            Button.url("Support 🇮🇳", "https://t.me/TeamLionX"),
+            custom.Button.inline("Status", data="stats"),
+            Button.url("Support", "https://t.me/TeamLionX"),
         ],
-        [custom.Button.inline("❌", data="clise")],
+        [custom.Button.inline("Close", data="clise")],
     ]
     return text, buttons
 
@@ -114,14 +114,14 @@ def paginate_help(
     category_pgno=0,
 ):  # sourcery no-metrics
     try:
-        number_of_rows = int(gvarstatus("ROWS_IN_HELP") or 7)
+        number_of_rows = int(gvarstatus("ROWS_IN_HELP") or 5)
     except (ValueError, TypeError):
-        number_of_rows = 7
+        number_of_rows = 5
     try:
         number_of_cols = int(gvarstatus("COLUMNS_IN_HELP") or 2)
     except (ValueError, TypeError):
         number_of_cols = 2
-    LOL_EMOJI = gvarstatus("HELP_EMOJI") or "💝"
+    LOL_EMOJI = gvarstatus("HELP_EMOJI") or "🪄"
     lal = [x for x in LOL_EMOJI.split()]
     HELP_EMOJI = random.choice(lal)
     helpable_plugins = [p for p in loaded_plugins if not p.startswith("_")]
