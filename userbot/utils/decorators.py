@@ -10,7 +10,7 @@ from ..Config import Config
 from ..funcs.data import _sudousers_list, blacklist_chats_list
 from ..funcs.events import MessageEdited, NewMessage
 from ..funcs.logger import logging
-from ..funcs.session import lionxub
+from ..funcs.session import lionx
 from ..helpers.utils.format import paste_message
 from ..helpers.utils.utils import runcmd
 from ..sql_helper.globals import gvarstatus
@@ -36,12 +36,12 @@ def admin_cmd(pattern=None, command=None, **args):  # sourcery no-metrics
             except BaseException:
                 CMD_LIST.update({file_test: [cmd]})
         else:
-            if len(Config.COMMAND_HAND_LER) == 2:
-                lionxreg = f"^{Config.COMMAND_HAND_LER}"
-                reg = Config.COMMAND_HAND_LER[1]
-            elif len(Config.COMMAND_HAND_LER) == 1:
-                lionxreg = f"^\\{Config.COMMAND_HAND_LER}"
-                reg = Config.COMMAND_HAND_LER
+            if len(Config.HANDLER) == 2:
+                lionxreg = "^" + Config.HANDLER
+                reg = Config.HANDLER[1]
+            elif len(Config.HANDLER) == 1:
+                lionxreg = "^\\" + Config.HANDLER
+                reg = Config.HANDLER
             args["pattern"] = re.compile(lionxreg + pattern)
             if command is not None:
                 cmd = reg + command
@@ -88,12 +88,12 @@ def sudo_cmd(pattern=None, command=None, **args):  # sourcery no-metrics
             except BaseException:
                 SUDO_LIST.update({file_test: [cmd]})
         else:
-            if len(Config.SUDO_COMMAND_HAND_LER) == 2:
-                lionxreg = f"^{Config.SUDO_COMMAND_HAND_LER}"
-                reg = Config.SUDO_COMMAND_HAND_LER[1]
-            elif len(Config.SUDO_COMMAND_HAND_LER) == 1:
-                lionxreg = f"^\\{Config.SUDO_COMMAND_HAND_LER}"
-                reg = Config.COMMAND_HAND_LER
+            if len(Config.SUDO_HANDLER) == 2:
+                lionxreg = "^" + Config.SUDO_HANDLER
+                reg = Config.SUDO_HANDLER[1]
+            elif len(Config.SUDO_HANDLER) == 1:
+                lionxreg = "^\\" + Config.SUDO_HANDLER
+                reg = Config.HANDLER
             args["pattern"] = re.compile(lionxreg + pattern)
             if command is not None:
                 cmd = reg + command
@@ -160,7 +160,7 @@ def errors_handler(func):
             text = "**LionX Error report**\n\n"
             link = "[here](https://t.me/LionXsupport)"
             text += "If you wanna you can report it"
-            text += f"- just forward this message {link}.\n"
+            text += f"Just forward this message {link}.\n"
             text += "Nothing is logged except the fact of error and date\n\n"
             text += f"**Error report : ** [{new['error']}]({pastelink})"
             await check.client.send_message(
@@ -219,8 +219,8 @@ def register(**args):
 
     def decorator(func):
         if not disable_edited:
-            lionxub.add_event_handler(func, MessageEdited(**args))
-        lionxub.add_event_handler(func, NewMessage(**args))
+            lionx.add_event_handler(func, MessageEdited(**args))
+        lionx.add_event_handler(func, NewMessage(**args))
         try:
             LOAD_PLUG[file_test].append(func)
         except Exception:
@@ -276,8 +276,8 @@ def command(**args):
 
     def decorator(func):
         if allow_edited_updates:
-            lionxub.add_event_handler(func, MessageEdited(**args))
-        lionxub.add_event_handler(func, NewMessage(**args))
+            lionx.add_event_handler(func, MessageEdited(**args))
+        lionx.add_event_handler(func, NewMessage(**args))
         try:
             LOAD_PLUG[file_test].append(func)
         except BaseException:
