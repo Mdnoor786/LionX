@@ -2,14 +2,13 @@
 from telethon import events
 from telethon.errors.rpcerrorlist import YouBlockedUserError
 
-from userbot import lionxub
-
-from ..funcs.managers import edit_or_reply
+from userbot import lionx
+from ..funcs.managers import eor
 
 plugin_category = "utils"
 
 
-@lionxub.lionx_cmd(
+@lionx.lionx_cmd(
     pattern="recognize ?([\s\S]*)",
     command=("recognize", plugin_category),
     info={
@@ -21,14 +20,14 @@ plugin_category = "utils"
 async def _(event):
     "To recognize a image."
     if not event.reply_to_msg_id:
-        return await edit_or_reply(event, "Reply to any user's media message.")
+        return await eor(event, "Reply to any user's media message.")
     reply_message = await event.get_reply_message()
     if not reply_message.media:
-        return await edit_or_reply(event, "reply to media file")
+        return await eor(event, "reply to media file")
     chat = "@Rekognition_Bot"
     if reply_message.sender.bot:
         return await event.edit("Reply to actual users message.")
-    lionx = await edit_or_reply(event, "recognizeing this media")
+    lionx = await eor(event, "recognizeing this media")
     async with event.client.conversation(chat) as conv:
         try:
             response = conv.wait_event(
