@@ -64,9 +64,7 @@ async def oho(event):
         return await event.edit("Reply to a self distructing pic !.!.!")
     k = await event.get_reply_message()
     pic = await k.download_media()
-    await event.client.send_file(
-        event."me",
-        pic,
+    await event.client.send_file("me", pic,
         caption=f"""
 OwO!! LoL, Secret Pic Mode Pic Destroyed!!
 Pic captured By LɪᴏɴXᵘᵇ
