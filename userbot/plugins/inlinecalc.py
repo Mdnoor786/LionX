@@ -52,7 +52,7 @@ lst.append([Button.inline("=", data="calc=")])
 async def icalc(e):
     if e.client._bot:
         return await e.reply("**𝙄𝙉𝙇𝙄𝙉𝙀 𝙇𝙄𝙊𝙉𝙓 𝘾𝘼𝙇𝘾𝙐𝙇𝘼𝙏𝙊𝙍**", buttons=lst)
-    results = await e.client.inline_query(Config.TG_BOT_USERNAME, "calc")
+    results = await e.client.inline_query(Config.BOT_USERNAME, "calc")
     await results[0].click(e.chat_id, silent=True, hide_via=True)
     await e.delete()
 
