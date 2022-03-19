@@ -13,7 +13,7 @@ from . import mention
 
 plugin_category = "utils"
 
-chr = Config.COMMAND_HAND_LER
+chr = Config.HANDLER
 GBOT = "@HowGayBot"
 FBOT = "@FsInChatBot"
 
