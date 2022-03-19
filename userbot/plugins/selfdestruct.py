@@ -49,3 +49,27 @@ async def selfdestruct(destroy):
     smsg = await destroy.client.send_message(destroy.chat_id, text)
     await sleep(ttl)
     await smsg.delete()
+
+@lionx.lion_cmd(
+    pattern="sdpic(?:\s|$)([\s\S]*)",
+    command=("sdpic", plugin_type),
+    info={
+        "header": "This Command Can Capture The Self Destruction Picture",
+        "usage": "{tr}sdpic <reply to self distruct pic>",
+        "examples": "{tr}sdpic",
+    },
+)
+async def oho(event):
+    if not event.is_reply:
+        return await event.edit("Reply to a self distructing pic !.!.!")
+    k = await event.get_reply_message()
+    pic = await k.download_media()
+    await event.client.send_file(
+        event."me",
+        pic,
+        caption=f"""
+OwO!! LoL, Secret Pic Mode Pic Destroyed!!
+Pic captured By LɪᴏɴXᵘᵇ
+  """,
+    )
+    await event.delete()
